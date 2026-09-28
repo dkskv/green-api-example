@@ -27,9 +27,12 @@ export default function App() {
 
   const [verified, setVerified] = useState(false);
   const [sessionErrorMessage, setSessionErrorMessage] = useState("");
+
   useEffect(() => {
     if (!credentials || verified) return;
+
     const controller = new AbortController();
+
     validateTelegramSession(credentials, controller.signal)
       .then(() => {
         if (!controller.signal.aborted) setVerified(true);
@@ -42,6 +45,7 @@ export default function App() {
               : "Не удалось проверить сессию.",
           );
       });
+
     return () => controller.abort();
   }, [credentials, verified]);
 

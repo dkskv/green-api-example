@@ -10,6 +10,7 @@ export async function sendChatMessage(
   text: string,
 ) {
   const result = await sendTelegramMessage(credentials, chatId, text);
+
   return mapGreenMessage({
     idMessage: result.idMessage,
     type: "outgoing",

@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { mapGreenMessage, sortMessages, type ChatMessage } from "@/entities/message/model/message";
+import {
+  mapGreenMessage,
+  sortMessages,
+  type ChatMessage,
+} from "@/entities/message/model/message";
 import type {
   GreenApiCredentials,
   GreenNotificationDto,
@@ -18,7 +22,9 @@ const storedChatSchema = z.object({
   statuses: z.record(z.string(), z.string()),
   deleted: z.array(z.string()),
 });
+
 type StoredChat = z.infer<typeof storedChatSchema>;
+
 const cacheSchema = z.record(z.string(), storedChatSchema);
 const emptyMessages: ChatMessage[] = [];
 
@@ -33,20 +39,26 @@ function newerStatus(previous?: string, next?: string): string | undefined {
     delivered: 2,
     read: 3,
   };
+
   if (!next) return previous;
+
   if (previous && (rank[previous] ?? -1) > (rank[next] ?? 4)) return previous;
+
   return next;
 }
 
 export function createMessageStore(credentials: GreenApiCredentials) {
   const key = messageCacheKey(credentials);
   let chats: Record<string, StoredChat> = {};
+
   try {
     const saved = sessionStorage.getItem(key);
+
     if (saved) chats = cacheSchema.parse(JSON.parse(saved));
   } catch {
     /* Ignore invalid or unavailable cached data. */
   }
+
   const listeners = new Set<() => void>();
 
   function update(chatId: string, change: (chat: StoredChat) => StoredChat) {
@@ -56,6 +68,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
         chats[chatId] ?? { messages: [], statuses: {}, deleted: [] },
       ),
     };
+
     // Persist before acknowledging a notification. Failed storage leaves it in the queue.
     sessionStorage.setItem(key, JSON.stringify(next));
     chats = next;
@@ -67,8 +80,10 @@ export function createMessageStore(credentials: GreenApiCredentials) {
       const byId = new Map(
         chat.messages.map((message) => [message.id, message]),
       );
+
       for (const message of messages) {
         const previous = byId.get(message.id);
+
         byId.set(message.id, {
           ...previous,
           ...message,
@@ -78,6 +93,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
           ),
         });
       }
+
       return {
         ...chat,
         messages: sortMessages(
@@ -100,6 +116,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
   function receive(notification: GreenNotificationDto) {
     const body = notification.body;
     const chatId = body.chatId ?? body.senderData?.chatId;
+
     if (body.typeWebhook === "outgoingMessageStatus") {
       if (
         !body.idMessage &&
@@ -107,10 +124,13 @@ export function createMessageStore(credentials: GreenApiCredentials) {
       ) {
         return `Ошибка отправки в чат ${chatId ?? "неизвестен"}: ${body.description ?? body.status}`;
       }
+
       if (!chatId || !body.idMessage || !body.status)
         throw new Error("Некорректное уведомление о статусе сообщения.");
+
       const id = body.idMessage;
       const status = body.status;
+
       update(chatId, (chat) => ({
         ...chat,
         statuses: {
@@ -123,8 +143,10 @@ export function createMessageStore(credentials: GreenApiCredentials) {
             : message,
         ),
       }));
+
       return;
     }
+
     if (
       ![
         "incomingMessageReceived",
@@ -133,16 +155,23 @@ export function createMessageStore(credentials: GreenApiCredentials) {
       ].includes(body.typeWebhook)
     )
       return;
+
     if (!chatId) throw new Error("В уведомлении отсутствует чат.");
+
     if (body.messageData?.typeMessage === "deletedMessage") {
       const id = body.messageData.deletedMessageData?.stanzaId;
+
       if (!id)
         throw new Error("В уведомлении об удалении отсутствует ID сообщения.");
+
       remove(chatId, id);
+
       return;
     }
+
     if (!body.idMessage || !body.messageData)
       throw new Error("Некорректное уведомление о сообщении.");
+
     merge(chatId, [
       mapGreenMessage({
         idMessage: body.idMessage,
@@ -163,6 +192,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
     getMessages: (chatId: string) => chats[chatId]?.messages ?? emptyMessages,
     subscribe: (listener: () => void) => {
       listeners.add(listener);
+
       return () => {
         listeners.delete(listener);
       };

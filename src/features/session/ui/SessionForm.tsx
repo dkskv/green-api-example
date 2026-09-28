@@ -20,6 +20,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
 
   async function submit(event: SubmitEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+
     if (checking) return;
 
     const credentials = {
@@ -30,22 +31,26 @@ export function SessionForm({ onReady }: SessionFormProps) {
 
     try {
       const parsedApiUrl = new URL(credentials.apiUrl);
+
       if (parsedApiUrl.protocol !== "https:")
         throw new Error("HTTPS is required");
 
       credentials.apiUrl = parsedApiUrl.origin;
     } catch {
       setErrorMessage("Укажите корректный HTTPS API URL.");
+
       return;
     }
 
     if (!credentials.instanceId || !credentials.apiToken) {
       setErrorMessage("Укажите ID инстанса и API token");
+
       return;
     }
 
     setChecking(true);
     setErrorMessage("");
+
     try {
       await validateTelegramSession(credentials);
       saveCredentials(credentials);

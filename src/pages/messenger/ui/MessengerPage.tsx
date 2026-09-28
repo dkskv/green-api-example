@@ -36,6 +36,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     const saved = readSavedChat();
     const controller = new AbortController();
     const requestId = ++historyRequestRef.current;
+
     if (saved) {
       getChatHistory(credentials, saved.chatId, controller.signal)
         .then((history) => {
@@ -59,6 +60,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
             setIsLoadingHistory(false);
         });
     }
+
     return () => {
       mounted.current = false;
       controller.abort();
@@ -67,13 +69,17 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
 
   async function handleOpen(phone: string): Promise<void> {
     const requestId = ++openRequestRef.current;
+
     ++historyRequestRef.current;
     setErrorMessage("");
     setIsOpening(true);
     setIsLoadingHistory(false);
+
     try {
       const result = await openTelegramChat(credentials, phone);
+
       if (!mounted.current || requestId !== openRequestRef.current) return;
+
       store.merge(result.chat.chatId, result.messages);
       saveActiveChat(result.chat);
       ++historyRequestRef.current;
@@ -93,13 +99,18 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
 
   async function refreshHistory(): Promise<void> {
     if (!chat) return;
+
     const chatId = chat.chatId;
     const requestId = ++historyRequestRef.current;
+
     setErrorMessage("");
     setIsLoadingHistory(true);
+
     try {
       const history = await getChatHistory(credentials, chatId);
+
       if (!mounted.current) return;
+
       store.merge(chatId, history.map(mapGreenMessage));
     } catch (reason) {
       if (mounted.current && requestId === historyRequestRef.current)
@@ -117,6 +128,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
   async function deleteMessage(chatId: string, id: string) {
     try {
       await deleteTelegramMessage(credentials, chatId, id);
+
       if (mounted.current) store.remove(chatId, id);
     } catch (reason) {
       if (mounted.current && activeChatRef.current === chatId)

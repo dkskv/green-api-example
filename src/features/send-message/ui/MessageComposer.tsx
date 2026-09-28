@@ -24,12 +24,17 @@ export function MessageComposer({
     event.preventDefault();
     const version = draftVersion.current;
     const text = draft.trim();
+
     if (!text || sending) return;
+
     setSending(true);
     setErrorMessage("");
+
     try {
       const message = await sendChatMessage(credentials, chatId, text);
+
       onSent(message);
+
       if (version === draftVersion.current) setDraft("");
     } catch (reason) {
       setErrorMessage(
@@ -69,7 +74,9 @@ export function MessageComposer({
           Отправить
         </Button>
       </Flex>
-      {errorMessage && <Typography.Text type="danger">{errorMessage}</Typography.Text>}
+      {errorMessage && (
+        <Typography.Text type="danger">{errorMessage}</Typography.Text>
+      )}
     </form>
   );
 }

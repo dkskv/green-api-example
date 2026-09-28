@@ -9,6 +9,7 @@ const ACTIVE_CHAT_KEY = "green-api-active-chat";
 export function readCredentials(): GreenApiCredentials | null {
   try {
     const saved = localStorage.getItem(CREDENTIALS_KEY);
+
     return saved ? credentialsSchema.parse(JSON.parse(saved)) : null;
   } catch {
     return null;
@@ -17,18 +18,22 @@ export function readCredentials(): GreenApiCredentials | null {
 
 export function saveCredentials(credentials: GreenApiCredentials): void {
   const previous = readCredentials();
+
   if (
     previous?.apiUrl !== credentials.apiUrl ||
     previous?.instanceId !== credentials.instanceId
   ) {
     clearSavedChat();
   }
+
   localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
 }
 
 export function clearSession(): void {
   const credentials = readCredentials();
+
   if (credentials) sessionStorage.removeItem(messageCacheKey(credentials));
+
   localStorage.removeItem(CREDENTIALS_KEY);
   localStorage.removeItem(ACTIVE_CHAT_KEY);
 }

@@ -39,15 +39,19 @@ export function ChatWindow({
   onDelete,
 }: ChatWindowProps) {
   const [deleting, setDeleting] = useState<string[]>([]);
+
   async function remove(chatId: string, id: string) {
     const key = `${chatId}:${id}`;
+
     setDeleting((current) => [...current, key]);
+
     try {
       await onDelete(chatId, id);
     } finally {
       setDeleting((current) => current.filter((item) => item !== key));
     }
   }
+
   const statuses: Record<string, string> = {
     pending: "В очереди",
     sent: "Отправлено",

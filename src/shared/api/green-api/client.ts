@@ -122,6 +122,7 @@ export async function receiveTelegramNotification(
         `Green API отклонил ReceiveNotification (HTTP ${response.status}).`,
       );
     }
+
     throw new Error(await getApiError(response));
   }
 
@@ -160,10 +161,13 @@ export async function validateTelegramSession(
   const response = await fetch(methodUrl(credentials, "getStateInstance"), {
     signal,
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   const { stateInstance } = z
     .object({ stateInstance: z.string() })
     .parse(await response.json());
+
   if (stateInstance !== "authorized")
     throw new Error(
       `Инстанс не готов к работе: ${stateInstance}. Авторизуйте его в GREEN API.`,
@@ -186,7 +190,9 @@ export async function enableTelegramNotifications(
       deletedMessageWebhook: "yes",
     }),
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   z.object({ saveSettings: z.literal(true) }).parse(await response.json());
 }
 
@@ -200,6 +206,7 @@ export async function deleteTelegramMessage(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chatId, idMessage, onlySenderDelete: false }),
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
   // DeleteMessage returns HTTP 200 with an empty body.
 }
