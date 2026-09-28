@@ -7,3 +7,4 @@ export {
   saveActiveChat,
 } from "@/features/session/model/sessionStorage";
 export type { GreenApiCredentials } from "@/shared/api/green-api";
+export { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";

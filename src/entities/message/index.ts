@@ -7,3 +7,9 @@ export {
   createMessageStore,
   messageCacheKey,
 } from "@/entities/message/model/messageStore";
+export {
+  MESSAGE_STATUS,
+  MESSAGE_STATUS_LABELS,
+  getMessageStatusLabel,
+  type MessageStatus,
+} from "@/entities/message/model/status";

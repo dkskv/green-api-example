@@ -1,18 +1,21 @@
 import { z } from "zod";
 import {
+  INSTANCE_STATE,
+  WEBHOOK_SETTING,
+} from "@/shared/api/green-api/constants";
+import { API_ERROR_MESSAGES } from "@/shared/api/green-api/errors";
+import {
   accountSchema,
   greenMessageSchema,
   notificationSchema,
   settingsSchema,
   sendMessageSchema,
-} from "@/shared/api/green-api/types";
-import type {
-  CheckAccountResponse,
-  GreenApiCredentials,
-  GreenMessageDto,
-  GreenNotificationDto,
-  SendMessageResponse,
-  TelegramInstanceSettings,
+  type CheckAccountResponse,
+  type GreenApiCredentials,
+  type GreenMessageDto,
+  type GreenNotificationDto,
+  type SendMessageResponse,
+  type TelegramInstanceSettings,
 } from "@/shared/api/green-api/types";
 
 function instanceUrl(credentials: GreenApiCredentials): string {
@@ -72,8 +75,7 @@ export async function getChatHistory(
 
   const data = (await response.json()) as unknown;
 
-  if (!Array.isArray(data))
-    throw new Error("Telegram API вернул некорректный формат истории.");
+  if (!Array.isArray(data)) throw new Error(API_ERROR_MESSAGES.INVALID_HISTORY);
 
   return z.array(greenMessageSchema).parse(data);
 }
@@ -118,9 +120,7 @@ export async function receiveTelegramNotification(
 
   if (!response.ok) {
     if (response.status >= 400 && response.status < 500) {
-      throw new Error(
-        `Green API отклонил ReceiveNotification (HTTP ${response.status}).`,
-      );
+      throw new Error(API_ERROR_MESSAGES.receiveRejected(response.status));
     }
 
     throw new Error(await getApiError(response));
@@ -151,7 +151,9 @@ export async function acknowledgeTelegramNotification(
   } | null;
 
   if (result?.result !== true)
-    throw new Error(result?.reason || "Уведомление не подтверждено.");
+    throw new Error(
+      result?.reason || API_ERROR_MESSAGES.NOTIFICATION_NOT_ACKNOWLEDGED,
+    );
 }
 
 export async function validateTelegramSession(
@@ -168,10 +170,8 @@ export async function validateTelegramSession(
     .object({ stateInstance: z.string() })
     .parse(await response.json());
 
-  if (stateInstance !== "authorized")
-    throw new Error(
-      `Инстанс не готов к работе: ${stateInstance}. Авторизуйте его в GREEN API.`,
-    );
+  if (stateInstance !== INSTANCE_STATE.AUTHORIZED)
+    throw new Error(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
 }
 
 export async function enableTelegramNotifications(
@@ -183,11 +183,11 @@ export async function enableTelegramNotifications(
     signal,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      incomingWebhook: "yes",
-      outgoingWebhook: "yes",
-      outgoingMessageWebhook: "yes",
-      outgoingAPIMessageWebhook: "yes",
-      deletedMessageWebhook: "yes",
+      incomingWebhook: WEBHOOK_SETTING.ENABLED,
+      outgoingWebhook: WEBHOOK_SETTING.ENABLED,
+      outgoingMessageWebhook: WEBHOOK_SETTING.ENABLED,
+      outgoingAPIMessageWebhook: WEBHOOK_SETTING.ENABLED,
+      deletedMessageWebhook: WEBHOOK_SETTING.ENABLED,
     }),
   });
 

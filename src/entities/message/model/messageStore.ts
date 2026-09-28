@@ -1,13 +1,17 @@
 import { z } from "zod";
+import { newerStatus, isFailureStatus } from "@/entities/message/model/status";
+import {
+  WEBHOOK_TYPE,
+  MESSAGE_TYPE,
+  type GreenApiCredentials,
+  type GreenNotificationDto,
+} from "@/shared/api/green-api";
+import { MESSAGE_ERROR_MESSAGES } from "@/entities/message/model/errors";
 import {
   mapGreenMessage,
   sortMessages,
   type ChatMessage,
 } from "@/entities/message/model/message";
-import type {
-  GreenApiCredentials,
-  GreenNotificationDto,
-} from "@/shared/api/green-api";
 
 const storedChatSchema = z.object({
   messages: z.array(
@@ -30,21 +34,6 @@ const emptyMessages: ChatMessage[] = [];
 
 export function messageCacheKey(credentials: GreenApiCredentials): string {
   return `green-api-messages:${credentials.apiUrl}:${credentials.instanceId}`;
-}
-
-function newerStatus(previous?: string, next?: string): string | undefined {
-  const rank: Record<string, number> = {
-    pending: 0,
-    sent: 1,
-    delivered: 2,
-    read: 3,
-  };
-
-  if (!next) return previous;
-
-  if (previous && (rank[previous] ?? -1) > (rank[next] ?? 4)) return previous;
-
-  return next;
 }
 
 export function createMessageStore(credentials: GreenApiCredentials) {
@@ -117,16 +106,16 @@ export function createMessageStore(credentials: GreenApiCredentials) {
     const body = notification.body;
     const chatId = body.chatId ?? body.senderData?.chatId;
 
-    if (body.typeWebhook === "outgoingMessageStatus") {
-      if (
-        !body.idMessage &&
-        ["failed", "noAccount"].includes(body.status ?? "")
-      ) {
-        return `Ошибка отправки в чат ${chatId ?? "неизвестен"}: ${body.description ?? body.status}`;
+    if (body.typeWebhook === WEBHOOK_TYPE.OUTGOING_MESSAGE_STATUS) {
+      if (!body.idMessage && isFailureStatus(body.status)) {
+        return MESSAGE_ERROR_MESSAGES.sendFailed(
+          chatId,
+          body.description ?? body.status,
+        );
       }
 
       if (!chatId || !body.idMessage || !body.status)
-        throw new Error("Некорректное уведомление о статусе сообщения.");
+        throw new Error(MESSAGE_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
 
       const id = body.idMessage;
       const status = body.status;
@@ -148,21 +137,23 @@ export function createMessageStore(credentials: GreenApiCredentials) {
     }
 
     if (
-      ![
-        "incomingMessageReceived",
-        "outgoingMessageReceived",
-        "outgoingAPIMessageReceived",
-      ].includes(body.typeWebhook)
+      !(
+        [
+          WEBHOOK_TYPE.INCOMING_MESSAGE,
+          WEBHOOK_TYPE.OUTGOING_MESSAGE,
+          WEBHOOK_TYPE.OUTGOING_API_MESSAGE,
+        ] as readonly string[]
+      ).includes(body.typeWebhook)
     )
       return;
 
-    if (!chatId) throw new Error("В уведомлении отсутствует чат.");
+    if (!chatId) throw new Error(MESSAGE_ERROR_MESSAGES.MISSING_CHAT);
 
-    if (body.messageData?.typeMessage === "deletedMessage") {
+    if (body.messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
       const id = body.messageData.deletedMessageData?.stanzaId;
 
       if (!id)
-        throw new Error("В уведомлении об удалении отсутствует ID сообщения.");
+        throw new Error(MESSAGE_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
 
       remove(chatId, id);
 
@@ -170,13 +161,13 @@ export function createMessageStore(credentials: GreenApiCredentials) {
     }
 
     if (!body.idMessage || !body.messageData)
-      throw new Error("Некорректное уведомление о сообщении.");
+      throw new Error(MESSAGE_ERROR_MESSAGES.INVALID_NOTIFICATION);
 
     merge(chatId, [
       mapGreenMessage({
         idMessage: body.idMessage,
         type:
-          body.typeWebhook === "incomingMessageReceived"
+          body.typeWebhook === WEBHOOK_TYPE.INCOMING_MESSAGE
             ? "incoming"
             : "outgoing",
         timestamp: body.timestamp,

@@ -1,8 +1,9 @@
 import { Button, Flex, Input, Typography } from "antd";
 import { useRef, useState, type FormEvent } from "react";
+import { SEND_ERROR_MESSAGES } from "@/features/send-message/model/errors";
 import { sendChatMessage } from "@/features/send-message/model/sendMessage";
-import type { ChatMessage } from "@/entities/message";
-import type { GreenApiCredentials } from "@/shared/api/green-api";
+import { type ChatMessage } from "@/entities/message";
+import { type GreenApiCredentials } from "@/shared/api/green-api";
 
 type MessageComposerProps = {
   credentials: GreenApiCredentials;
@@ -37,9 +38,7 @@ export function MessageComposer({
 
       if (version === draftVersion.current) setDraft("");
     } catch (reason) {
-      setErrorMessage(
-        `Сообщение не отправлено. Текст сохранён. ${reason instanceof Error ? reason.message : "Попробуйте ещё раз."}`,
-      );
+      setErrorMessage(SEND_ERROR_MESSAGES.sendFailed(reason));
     } finally {
       setSending(false);
     }
@@ -56,8 +55,8 @@ export function MessageComposer({
         }}
       >
         <Input.TextArea
-          aria-label="Текст сообщения"
-          placeholder="Написать сообщение…"
+          aria-label="Message text"
+          placeholder="Write a message…"
           value={draft}
           onChange={(event) => {
             draftVersion.current += 1;
@@ -71,7 +70,7 @@ export function MessageComposer({
           disabled={!draft.trim()}
           loading={sending}
         >
-          Отправить
+          Send
         </Button>
       </Flex>
       {errorMessage && (

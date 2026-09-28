@@ -1,3 +1,4 @@
+import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
 import { normalizePhone, type VerifiedChat } from "@/entities/chat";
 import {
   mapGreenMessage,
@@ -16,7 +17,7 @@ export async function openTelegramChat(
 ): Promise<{ chat: VerifiedChat; messages: ChatMessage[] }> {
   const phone = normalizePhone(rawPhone);
 
-  if (!phone) throw new Error("Введите номер с кодом страны: от 8 до 15 цифр.");
+  if (!phone) throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
 
   const account = await checkTelegramAccount(credentials, Number(phone));
 
@@ -24,14 +25,12 @@ export async function openTelegramChat(
     throw new Error(
       account.reason ??
         account.data?.reason ??
-        "Telegram не смог проверить номер.",
+        OPEN_CHAT_ERROR_MESSAGES.CHECK_FAILED,
     );
   }
 
   if (!account.exist || !account.chatId) {
-    throw new Error(
-      "Аккаунт Telegram на этом номере не найден или номер скрыт настройками приватности.",
-    );
+    throw new Error(OPEN_CHAT_ERROR_MESSAGES.ACCOUNT_NOT_FOUND);
   }
 
   const history = await getChatHistory(credentials, account.chatId);

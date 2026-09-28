@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Alert, Flex } from "antd";
+import { MESSENGER_ERROR_MESSAGES } from "@/pages/messenger/model/errors";
 import { OpenChatForm, openTelegramChat } from "@/features/open-chat";
 import { readSavedChat, saveActiveChat } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
-import type { VerifiedChat } from "@/entities/chat";
+import { type VerifiedChat } from "@/entities/chat";
 import { createMessageStore, mapGreenMessage } from "@/entities/message";
 import {
   getChatHistory,
@@ -49,7 +50,11 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
             requestId === historyRequestRef.current
           )
             setErrorMessage(
-              `Не удалось восстановить историю: ${reason instanceof Error ? reason.message : "ошибка API"}`,
+              MESSENGER_ERROR_MESSAGES.restoreFailed(
+                reason instanceof Error
+                  ? reason.message
+                  : MESSENGER_ERROR_MESSAGES.API_ERROR,
+              ),
             );
         })
         .finally(() => {
@@ -89,7 +94,9 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     } catch (reason) {
       if (mounted.current && requestId === openRequestRef.current)
         setErrorMessage(
-          reason instanceof Error ? reason.message : "Не удалось открыть чат.",
+          reason instanceof Error
+            ? reason.message
+            : MESSENGER_ERROR_MESSAGES.OPEN_FAILED,
         );
     } finally {
       if (mounted.current && requestId === openRequestRef.current)
@@ -117,7 +124,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
         setErrorMessage(
           reason instanceof Error
             ? reason.message
-            : "Не удалось обновить историю.",
+            : MESSENGER_ERROR_MESSAGES.REFRESH_FAILED,
         );
     } finally {
       if (mounted.current && requestId === historyRequestRef.current)
@@ -135,7 +142,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
         setErrorMessage(
           reason instanceof Error
             ? reason.message
-            : "Не удалось удалить сообщение.",
+            : MESSENGER_ERROR_MESSAGES.DELETE_FAILED,
         );
     }
   }

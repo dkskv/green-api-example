@@ -1,8 +1,9 @@
 import { Alert, Button, Card, Flex, Input, Typography } from "antd";
 import { useState, type SubmitEvent } from "react";
+import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
 import { validateTelegramSession } from "@/shared/api/green-api";
 import { saveCredentials } from "@/features/session/model/sessionStorage";
-import type { GreenApiCredentials } from "@/shared/api/green-api/types";
+import { type GreenApiCredentials } from "@/shared/api/green-api/types";
 
 const DEFAULT_API_URL = "https://api.green-api.com";
 
@@ -33,17 +34,17 @@ export function SessionForm({ onReady }: SessionFormProps) {
       const parsedApiUrl = new URL(credentials.apiUrl);
 
       if (parsedApiUrl.protocol !== "https:")
-        throw new Error("HTTPS is required");
+        throw new Error(SESSION_ERROR_MESSAGES.INVALID_API_URL);
 
       credentials.apiUrl = parsedApiUrl.origin;
     } catch {
-      setErrorMessage("Укажите корректный HTTPS API URL.");
+      setErrorMessage(SESSION_ERROR_MESSAGES.INVALID_API_URL);
 
       return;
     }
 
     if (!credentials.instanceId || !credentials.apiToken) {
-      setErrorMessage("Укажите ID инстанса и API token");
+      setErrorMessage(SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS);
 
       return;
     }
@@ -59,7 +60,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
       setErrorMessage(
         reason instanceof Error
           ? reason.message
-          : "Не удалось проверить сессию.",
+          : SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
       );
     } finally {
       setChecking(false);
@@ -68,11 +69,11 @@ export function SessionForm({ onReady }: SessionFormProps) {
 
   return (
     <Card
-      title="Открыть сессию"
+      title="Connect instance"
       style={{ width: "min(440px, 100%)", margin: "7vh auto 0" }}
     >
       <Typography.Paragraph type="secondary">
-        Введите данные Telegram-инстанса Green API.
+        Enter your GREEN API Telegram instance credentials.
       </Typography.Paragraph>
       <form onSubmit={(event) => void submit(event)}>
         <Flex vertical gap="middle">
@@ -87,7 +88,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
             />
           </label>
           <label style={{ display: "grid", gap: 6 }}>
-            <Typography.Text>ID инстанса</Typography.Text>
+            <Typography.Text>Instance ID</Typography.Text>
             <Input
               value={instanceId}
               onChange={(event) => setInstanceId(event.target.value)}
@@ -100,13 +101,13 @@ export function SessionForm({ onReady }: SessionFormProps) {
             <Input.Password
               value={apiToken}
               onChange={(event) => setApiToken(event.target.value)}
-              placeholder="Введите токен"
+              placeholder="Enter your token"
               required
             />
           </label>
           {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
           <Button type="primary" htmlType="submit" block loading={checking}>
-            Продолжить
+            Continue
           </Button>
         </Flex>
       </form>
@@ -114,7 +115,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
         type="warning"
         showIcon
         style={{ marginTop: 16 }}
-        title="Credentials временно сохраняются в localStorage только для разработки. Удалить перед production."
+        title="Credentials are stored in this browser for development. Do not use this storage approach in production."
       />
     </Card>
   );

@@ -1,4 +1,5 @@
-import type { GreenMessageDto } from "@/shared/api/green-api/types";
+import { MESSAGE_TYPE_PLACEHOLDERS } from "@/entities/message/model/placeholders";
+import { type GreenMessageDto } from "@/shared/api/green-api/types";
 
 export type ChatMessage = {
   id: string;
@@ -16,19 +17,8 @@ export function mapGreenMessage(data: GreenMessageDto): ChatMessage {
     data.messageData?.extendedTextMessageData?.text ??
     data.caption ??
     data.messageData?.fileMessageData?.caption ??
-    (type === "imageMessage"
-      ? "Изображение пока не отображается"
-      : type === "videoMessage"
-        ? "Видео пока не отображается"
-        : type === "audioMessage"
-          ? "Аудио пока не отображается"
-          : type === "documentMessage"
-            ? "Документ пока не отображается"
-            : type === "stickerMessage"
-              ? "Стикер пока не отображается"
-              : type === "textMessage" || type === "extendedTextMessage"
-                ? ""
-                : "Сообщение этого типа пока не поддерживается");
+    MESSAGE_TYPE_PLACEHOLDERS[type] ??
+    "This message type is not supported yet.";
 
   return {
     id: data.idMessage,

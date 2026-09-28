@@ -18,3 +18,9 @@ export type {
   SendMessageResponse,
   TelegramInstanceSettings,
 } from "@/shared/api/green-api/types";
+export {
+  WEBHOOK_TYPE,
+  MESSAGE_TYPE,
+  INSTANCE_STATE,
+  WEBHOOK_SETTING,
+} from "@/shared/api/green-api/constants";

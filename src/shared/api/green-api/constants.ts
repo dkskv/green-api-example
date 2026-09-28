@@ -1,0 +1,20 @@
+export const WEBHOOK_TYPE = {
+  INCOMING_MESSAGE: "incomingMessageReceived",
+  OUTGOING_MESSAGE: "outgoingMessageReceived",
+  OUTGOING_API_MESSAGE: "outgoingAPIMessageReceived",
+  OUTGOING_MESSAGE_STATUS: "outgoingMessageStatus",
+} as const;
+
+export const MESSAGE_TYPE = {
+  TEXT: "textMessage",
+  EXTENDED_TEXT: "extendedTextMessage",
+  IMAGE: "imageMessage",
+  VIDEO: "videoMessage",
+  AUDIO: "audioMessage",
+  DOCUMENT: "documentMessage",
+  STICKER: "stickerMessage",
+  DELETED: "deletedMessage",
+} as const;
+
+export const INSTANCE_STATE = { AUTHORIZED: "authorized" } as const;
+export const WEBHOOK_SETTING = { ENABLED: "yes", DISABLED: "no" } as const;

@@ -15,9 +15,9 @@ export function OpenChatForm({
   const [phone, setPhone] = useState(initialPhone);
 
   return (
-    <Card title="Новый диалог">
+    <Card title="New conversation">
       <Typography.Paragraph type="secondary">
-        Введите номер в международном формате.
+        Enter a phone number in international format.
       </Typography.Paragraph>
       <form
         onSubmit={(event) => {
@@ -27,7 +27,7 @@ export function OpenChatForm({
       >
         <Flex gap="small">
           <Input
-            aria-label="Номер телефона"
+            aria-label="Phone number"
             inputMode="tel"
             autoComplete="tel"
             placeholder="+7 999 123-45-67"
@@ -35,7 +35,7 @@ export function OpenChatForm({
             onChange={(event) => setPhone(event.target.value)}
           />
           <Button type="primary" htmlType="submit" loading={loading}>
-            Открыть чат
+            Open chat
           </Button>
         </Flex>
       </form>

@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  CONNECTION_STATE,
+  NOTIFICATION_SETTINGS_NOTICE,
+  type ConnectionState,
+} from "@/features/receive-messages/model/connection";
+import {
+  WEBHOOK_SETTING,
   acknowledgeTelegramNotification,
   enableTelegramNotifications,
   getTelegramSettings,
@@ -7,14 +13,15 @@ import {
   type GreenApiCredentials,
   type GreenNotificationDto,
 } from "@/shared/api/green-api";
-
-type ConnectionState = "connecting" | "online" | "error";
+import { RECEIVE_ERROR_MESSAGES } from "@/features/receive-messages/model/errors";
 
 export function useReceiveMessages(
   credentials: GreenApiCredentials,
   onNotification: (notification: GreenNotificationDto) => string | void,
 ) {
-  const [state, setState] = useState<ConnectionState>("connecting");
+  const [state, setState] = useState<ConnectionState>(
+    CONNECTION_STATE.CONNECTING,
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [notice, setNotice] = useState("");
   const [deliveryErrorMessage, setDeliveryErrorMessage] = useState("");
@@ -50,9 +57,7 @@ export function useReceiveMessages(
             const settings = await getTelegramSettings(credentials, signal);
 
             if (settings.webhookUrl.trim())
-              throw new Error(
-                "Очистите webhookUrl в настройках GREEN API для HTTP-приёма.",
-              );
+              throw new Error(RECEIVE_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
 
             const enabled = [
               settings.incomingWebhook,
@@ -60,16 +65,13 @@ export function useReceiveMessages(
               settings.outgoingMessageWebhook,
               settings.outgoingAPIMessageWebhook,
               settings.deletedMessageWebhook,
-            ].every((value) => value === "yes");
+            ].every((value) => value === WEBHOOK_SETTING.ENABLED);
 
             if (!enabled && !settingsRequested) {
               await enableTelegramNotifications(credentials, signal);
               settingsRequested = true;
 
-              if (!signal.aborted)
-                setNotice(
-                  "Уведомления включены. GREEN API применяет настройки и перезапускает инстанс — это может занять до 5 минут.",
-                );
+              if (!signal.aborted) setNotice(NOTIFICATION_SETTINGS_NOTICE);
             }
 
             settingsReady = true;
@@ -96,17 +98,17 @@ export function useReceiveMessages(
 
           if (signal.aborted) return;
 
-          setState("online");
+          setState(CONNECTION_STATE.ONLINE);
           setErrorMessage("");
         } catch (reason) {
           if (signal.aborted) return;
 
-          setState("error");
+          setState(CONNECTION_STATE.ERROR);
 
           setErrorMessage(
             reason instanceof Error
               ? reason.message
-              : "Ошибка приёма уведомлений.",
+              : RECEIVE_ERROR_MESSAGES.RECEIVE_FAILED,
           );
 
           await pause();

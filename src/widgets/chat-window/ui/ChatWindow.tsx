@@ -10,10 +10,14 @@ import {
   Tag,
   Typography,
 } from "antd";
-import type { VerifiedChat } from "@/entities/chat";
-import type { ChatMessage } from "@/entities/message";
+import { getMessageStatusLabel, type ChatMessage } from "@/entities/message";
+import {
+  CONNECTION_STATE_LABELS,
+  type ConnectionState,
+} from "@/features/receive-messages";
+import { type VerifiedChat } from "@/entities/chat";
 import { MessageComposer } from "@/features/send-message";
-import type { GreenApiCredentials } from "@/shared/api/green-api";
+import { type GreenApiCredentials } from "@/shared/api/green-api";
 
 type ChatWindowProps = {
   credentials: GreenApiCredentials;
@@ -22,7 +26,7 @@ type ChatWindowProps = {
   loadingHistory: boolean;
   errorMessage: string;
   onRefresh: () => void;
-  connectionState: string;
+  connectionState: ConnectionState;
   onSent: (chatId: string, message: ChatMessage) => void;
   onDelete: (chatId: string, id: string) => Promise<void>;
 };
@@ -52,34 +56,19 @@ export function ChatWindow({
     }
   }
 
-  const statuses: Record<string, string> = {
-    pending: "В очереди",
-    sent: "Отправлено",
-    delivered: "Доставлено",
-    read: "Прочитано",
-    failed: "Ошибка отправки",
-    noAccount: "Аккаунт не найден",
-  };
-
   return (
     <Card
-      title={chat ? `+${chat.phone}` : "Чат не выбран"}
+      title={chat ? `+${chat.phone}` : "No chat selected"}
       extra={
         chat && (
           <Flex align="center" gap="small">
-            <Tag>
-              {connectionState === "online"
-                ? "Приём активен"
-                : connectionState === "error"
-                  ? "Ошибка приёма"
-                  : "Подключение"}
-            </Tag>
+            <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
             <Button
               onClick={onRefresh}
               loading={loadingHistory}
               disabled={!chat}
             >
-              Обновить историю
+              Refresh history
             </Button>
           </Flex>
         )
@@ -99,13 +88,13 @@ export function ChatWindow({
         aria-live="polite"
       >
         {!chat ? (
-          <Empty description="Откройте чат по номеру телефона" />
+          <Empty description="Open a chat using a phone number" />
         ) : loadingHistory && messages.length === 0 ? (
           <Flex justify="center" style={{ padding: 32 }}>
-            <Spin description="Загружаем историю…" />
+            <Spin description="Loading history…" />
           </Flex>
         ) : messages.length === 0 ? (
-          <Empty description="История пуста. Начните диалог сообщением." />
+          <Empty description="No messages yet. Send a message to start the conversation." />
         ) : (
           <>
             <Typography.Text
@@ -116,7 +105,7 @@ export function ChatWindow({
                 textAlign: "center",
               }}
             >
-              При открытии загружаются последние 100 сообщений.
+              The latest 100 messages are loaded when you open a chat.
             </Typography.Text>
             <List
               split={false}
@@ -136,22 +125,22 @@ export function ChatWindow({
                     <Typography.Paragraph
                       style={{ margin: 0, whiteSpace: "pre-wrap" }}
                     >
-                      {message.text || "Сообщение без текстового содержимого"}
+                      {message.text || "Message has no text content"}
                     </Typography.Paragraph>
                     <Flex justify="flex-end" gap={8} style={{ marginTop: 6 }}>
                       <Typography.Text type="secondary">
                         {message.timestamp
                           ? new Date(
                               message.timestamp * 1000,
-                            ).toLocaleTimeString("ru-RU", {
+                            ).toLocaleTimeString("en-US", {
                               hour: "2-digit",
                               minute: "2-digit",
                             })
-                          : "сейчас"}
+                          : "now"}
                       </Typography.Text>
                       {message.direction === "outgoing" && (
                         <Typography.Text type="secondary">
-                          {statuses[message.status ?? ""] ?? message.status}
+                          {getMessageStatusLabel(message.status)}
                         </Typography.Text>
                       )}
                     </Flex>
@@ -165,7 +154,7 @@ export function ChatWindow({
                         )}
                         onClick={() => void remove(chat.chatId, message.id)}
                       >
-                        Удалить у всех
+                        Delete for everyone
                       </Button>
                     )}
                   </Card>

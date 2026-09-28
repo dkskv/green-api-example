@@ -11,6 +11,7 @@ import {
   Typography,
 } from "antd";
 import {
+  SESSION_ERROR_MESSAGES,
   clearSession,
   readCredentials,
   type GreenApiCredentials,
@@ -42,7 +43,7 @@ export default function App() {
           setSessionErrorMessage(
             reason instanceof Error
               ? reason.message
-              : "Не удалось проверить сессию.",
+              : SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
           );
       });
 
@@ -65,9 +66,9 @@ export default function App() {
             {credentials && (
               <Space>
                 <Tag>
-                  {verified ? "Сессия активна" : "Сессия не подтверждена"}
+                  {verified ? "Session active" : "Session not verified"}
                 </Tag>
-                <Button onClick={handleSignOut}>Выйти</Button>
+                <Button onClick={handleSignOut}>Sign out</Button>
               </Space>
             )}
           </Flex>
@@ -81,7 +82,7 @@ export default function App() {
             ) : sessionErrorMessage ? (
               <Alert type="error" title={sessionErrorMessage} />
             ) : (
-              <Spin description="Проверяем сессию…" />
+              <Spin description="Verifying session…" />
             )
           ) : (
             <SessionPage
