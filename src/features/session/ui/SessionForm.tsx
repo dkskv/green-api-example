@@ -1,5 +1,5 @@
-import { Alert, Button, Card, Flex, Input, Typography } from "antd";
-import { useState, type SubmitEvent } from "react";
+import { Alert, Button, Card, Form, Input, Typography } from "antd";
+import { useState } from "react";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
 import { GreenApiClient } from "@/shared/api/green-api";
 import { saveCredentials } from "@/features/session/model/sessionStorage";
@@ -12,42 +12,18 @@ type SessionFormProps = {
 };
 
 export function SessionForm({ onReady }: SessionFormProps) {
-  const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL);
-  const [instanceId, setInstanceId] = useState("");
-  const [apiToken, setApiToken] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const [checking, setChecking] = useState(false);
 
-  async function submit(event: SubmitEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-
+  async function submit(values: GreenApiCredentials): Promise<void> {
     if (checking) return;
 
-    const credentials = {
-      apiUrl: apiUrl.trim().replace(/\/+$/, ""),
-      instanceId: instanceId.trim(),
-      apiToken: apiToken.trim(),
+    const credentials: GreenApiCredentials = {
+      apiUrl: new URL(values.apiUrl.trim()).origin,
+      instanceId: values.instanceId.trim(),
+      apiToken: values.apiToken.trim(),
     };
-
-    try {
-      const parsedApiUrl = new URL(credentials.apiUrl);
-
-      if (parsedApiUrl.protocol !== "https:")
-        throw new Error(SESSION_ERROR_MESSAGES.INVALID_API_URL);
-
-      credentials.apiUrl = parsedApiUrl.origin;
-    } catch {
-      setErrorMessage(SESSION_ERROR_MESSAGES.INVALID_API_URL);
-
-      return;
-    }
-
-    if (!credentials.instanceId || !credentials.apiToken) {
-      setErrorMessage(SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS);
-
-      return;
-    }
 
     setChecking(true);
     setErrorMessage("");
@@ -77,42 +53,74 @@ export function SessionForm({ onReady }: SessionFormProps) {
       <Typography.Paragraph type="secondary">
         Enter your GREEN API Telegram instance credentials.
       </Typography.Paragraph>
-      <form onSubmit={(event) => void submit(event)}>
-        <Flex vertical gap="middle">
-          <label style={{ display: "grid", gap: 6 }}>
-            <Typography.Text>API URL</Typography.Text>
-            <Input
-              type="url"
-              value={apiUrl}
-              onChange={(event) => setApiUrl(event.target.value)}
-              placeholder={DEFAULT_API_URL}
-              required
-            />
-          </label>
-          <label style={{ display: "grid", gap: 6 }}>
-            <Typography.Text>Instance ID</Typography.Text>
-            <Input
-              value={instanceId}
-              onChange={(event) => setInstanceId(event.target.value)}
-              placeholder="4100XXXXXXXX"
-              required
-            />
-          </label>
-          <label style={{ display: "grid", gap: 6 }}>
-            <Typography.Text>API token</Typography.Text>
-            <Input.Password
-              value={apiToken}
-              onChange={(event) => setApiToken(event.target.value)}
-              placeholder="Enter your token"
-              required
-            />
-          </label>
-          {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
-          <Button type="primary" htmlType="submit" block loading={checking}>
-            Continue
-          </Button>
-        </Flex>
-      </form>
+      <Form<GreenApiCredentials>
+        name="session"
+        layout="vertical"
+        initialValues={{
+          apiUrl: DEFAULT_API_URL,
+          instanceId: "",
+          apiToken: "",
+        }}
+        onFinish={submit}
+      >
+        <Form.Item
+          name="apiUrl"
+          label="API URL"
+          rules={[
+            {
+              validator: async (_, value: string | undefined) => {
+                try {
+                  if (new URL(value?.trim() ?? "").protocol === "https:")
+                    return;
+                } catch {
+                  // Invalid URLs use the same field validation message.
+                }
+
+                throw new Error(SESSION_ERROR_MESSAGES.INVALID_API_URL);
+              },
+            },
+          ]}
+        >
+          <Input placeholder={DEFAULT_API_URL} />
+        </Form.Item>
+        <Form.Item
+          name="instanceId"
+          label="Instance ID"
+          rules={[
+            {
+              required: true,
+              whitespace: true,
+              message: SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS,
+            },
+          ]}
+        >
+          <Input placeholder="4100XXXXXXXX" />
+        </Form.Item>
+        <Form.Item
+          name="apiToken"
+          label="API token"
+          rules={[
+            {
+              required: true,
+              whitespace: true,
+              message: SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS,
+            },
+          ]}
+        >
+          <Input.Password placeholder="Enter your token" />
+        </Form.Item>
+        {errorMessage && (
+          <Alert
+            type="error"
+            showIcon
+            title={errorMessage}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <Button type="primary" htmlType="submit" block loading={checking}>
+          Continue
+        </Button>
+      </Form>
       <Alert
         type="warning"
         showIcon

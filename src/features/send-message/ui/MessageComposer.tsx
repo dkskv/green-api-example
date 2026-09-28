@@ -1,9 +1,13 @@
-import { Button, Flex, Input, Typography } from "antd";
-import { useRef, useState, type FormEvent } from "react";
+import { Button, Flex, Form, Input, Typography } from "antd";
+import { useRef, useState } from "react";
 import { SEND_ERROR_MESSAGES } from "@/features/send-message/model/errors";
 import { sendChatMessage } from "@/features/send-message/model/sendMessage";
 import { type ChatMessage } from "@/entities/message";
 import { type GreenApiClient } from "@/shared/api/green-api";
+
+type MessageComposerValues = {
+  draft: string;
+};
 
 type MessageComposerProps = {
   client: GreenApiClient;
@@ -16,15 +20,15 @@ export function MessageComposer({
   chatId,
   onSent,
 }: MessageComposerProps) {
-  const [draft, setDraft] = useState("");
+  const [form] = Form.useForm<MessageComposerValues>();
+  const draft = Form.useWatch("draft", form) ?? "";
   const draftVersion = useRef(0);
   const [sending, setSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
+  async function submit(values: MessageComposerValues): Promise<void> {
     const version = draftVersion.current;
-    const text = draft.trim();
+    const text = values.draft.trim();
 
     if (!text || sending) return;
 
@@ -36,7 +40,7 @@ export function MessageComposer({
 
       onSent(message);
 
-      if (version === draftVersion.current) setDraft("");
+      if (version === draftVersion.current) form.setFieldValue("draft", "");
     } catch (reason) {
       setErrorMessage(SEND_ERROR_MESSAGES.sendFailed(reason));
     } finally {
@@ -45,7 +49,15 @@ export function MessageComposer({
   }
 
   return (
-    <form onSubmit={(event) => void submit(event)}>
+    <Form<MessageComposerValues>
+      form={form}
+      name="message-composer"
+      initialValues={{ draft: "" }}
+      onFinish={submit}
+      onValuesChange={() => {
+        draftVersion.current += 1;
+      }}
+    >
       <Flex
         gap="small"
         style={{
@@ -54,16 +66,23 @@ export function MessageComposer({
           paddingTop: 12,
         }}
       >
-        <Input.TextArea
-          aria-label="Message text"
-          placeholder="Write a message…"
-          value={draft}
-          onChange={(event) => {
-            draftVersion.current += 1;
-            setDraft(event.target.value);
-          }}
-          autoSize={{ minRows: 1, maxRows: 4 }}
-        />
+        <Form.Item
+          name="draft"
+          style={{ flex: 1, minWidth: 0, marginBottom: 0 }}
+          rules={[
+            {
+              required: true,
+              whitespace: true,
+              message: "Enter a message.",
+            },
+          ]}
+        >
+          <Input.TextArea
+            aria-label="Message text"
+            placeholder="Write a message…"
+            autoSize={{ minRows: 1, maxRows: 4 }}
+          />
+        </Form.Item>
         <Button
           type="primary"
           htmlType="submit"
@@ -76,6 +95,6 @@ export function MessageComposer({
       {errorMessage && (
         <Typography.Text type="danger">{errorMessage}</Typography.Text>
       )}
-    </form>
+    </Form>
   );
 }
