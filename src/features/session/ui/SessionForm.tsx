@@ -14,7 +14,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
   const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL);
   const [instanceId, setInstanceId] = useState("");
   const [apiToken, setApiToken] = useState("");
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [checking, setChecking] = useState(false);
 
@@ -35,23 +35,23 @@ export function SessionForm({ onReady }: SessionFormProps) {
 
       credentials.apiUrl = parsedApiUrl.origin;
     } catch {
-      setError("Укажите корректный HTTPS API URL.");
+      setErrorMessage("Укажите корректный HTTPS API URL.");
       return;
     }
 
     if (!credentials.instanceId || !credentials.apiToken) {
-      setError("Укажите ID инстанса и API token");
+      setErrorMessage("Укажите ID инстанса и API token");
       return;
     }
 
     setChecking(true);
-    setError("");
+    setErrorMessage("");
     try {
       await validateTelegramSession(credentials);
       saveCredentials(credentials);
       onReady(credentials);
     } catch (reason) {
-      setError(
+      setErrorMessage(
         reason instanceof Error
           ? reason.message
           : "Не удалось проверить сессию.",
@@ -99,7 +99,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
               required
             />
           </label>
-          {error && <Alert type="error" showIcon title={error} />}
+          {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
           <Button type="primary" htmlType="submit" block loading={checking}>
             Продолжить
           </Button>

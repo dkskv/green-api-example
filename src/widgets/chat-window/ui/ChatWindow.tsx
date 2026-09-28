@@ -20,7 +20,7 @@ type ChatWindowProps = {
   chat: VerifiedChat | null;
   messages: ChatMessage[];
   loadingHistory: boolean;
-  error: string;
+  errorMessage: string;
   onRefresh: () => void;
   connectionState: string;
   onSent: (chatId: string, message: ChatMessage) => void;
@@ -32,7 +32,7 @@ export function ChatWindow({
   chat,
   messages,
   loadingHistory,
-  error,
+  errorMessage,
   onRefresh,
   connectionState,
   onSent,
@@ -81,11 +81,11 @@ export function ChatWindow({
         )
       }
     >
-      {error && (
+      {errorMessage && (
         <Alert
           type="error"
           showIcon
-          title={error}
+          title={errorMessage}
           style={{ marginBottom: 12 }}
         />
       )}

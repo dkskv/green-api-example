@@ -15,9 +15,9 @@ export function useReceiveMessages(
   onNotification: (notification: GreenNotificationDto) => string | void,
 ) {
   const [state, setState] = useState<ConnectionState>("connecting");
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [notice, setNotice] = useState("");
-  const [deliveryError, setDeliveryError] = useState("");
+  const [deliveryErrorMessage, setDeliveryErrorMessage] = useState("");
   const handler = useRef(onNotification);
   useEffect(() => {
     handler.current = onNotification;
@@ -73,7 +73,7 @@ export function useReceiveMessages(
           if (signal.aborted) return;
           if (notification) {
             const warning = handler.current(notification);
-            if (warning) setDeliveryError(warning);
+            if (warning) setDeliveryErrorMessage(warning);
             await acknowledgeTelegramNotification(
               credentials,
               notification.receiptId,
@@ -82,11 +82,11 @@ export function useReceiveMessages(
           }
           if (signal.aborted) return;
           setState("online");
-          setError("");
+          setErrorMessage("");
         } catch (reason) {
           if (signal.aborted) return;
           setState("error");
-          setError(
+          setErrorMessage(
             reason instanceof Error
               ? reason.message
               : "Ошибка приёма уведомлений.",
@@ -99,5 +99,5 @@ export function useReceiveMessages(
     return () => controller.abort();
   }, [credentials]);
 
-  return { state, error, notice, deliveryError };
+  return { state, errorMessage, notice, deliveryErrorMessage };
 }

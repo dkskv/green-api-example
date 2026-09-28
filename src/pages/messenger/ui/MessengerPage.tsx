@@ -21,7 +21,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
   const [isLoadingHistory, setIsLoadingHistory] = useState(() =>
     Boolean(readSavedChat()),
   );
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const openRequestRef = useRef(0);
   const historyRequestRef = useRef(0);
   const mounted = useRef(false);
@@ -47,7 +47,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
             !controller.signal.aborted &&
             requestId === historyRequestRef.current
           )
-            setError(
+            setErrorMessage(
               `Не удалось восстановить историю: ${reason instanceof Error ? reason.message : "ошибка API"}`,
             );
         })
@@ -68,7 +68,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
   async function handleOpen(phone: string): Promise<void> {
     const requestId = ++openRequestRef.current;
     ++historyRequestRef.current;
-    setError("");
+    setErrorMessage("");
     setIsOpening(true);
     setIsLoadingHistory(false);
     try {
@@ -82,7 +82,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
       setChat(result.chat);
     } catch (reason) {
       if (mounted.current && requestId === openRequestRef.current)
-        setError(
+        setErrorMessage(
           reason instanceof Error ? reason.message : "Не удалось открыть чат.",
         );
     } finally {
@@ -95,7 +95,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     if (!chat) return;
     const chatId = chat.chatId;
     const requestId = ++historyRequestRef.current;
-    setError("");
+    setErrorMessage("");
     setIsLoadingHistory(true);
     try {
       const history = await getChatHistory(credentials, chatId);
@@ -103,7 +103,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
       store.merge(chatId, history.map(mapGreenMessage));
     } catch (reason) {
       if (mounted.current && requestId === historyRequestRef.current)
-        setError(
+        setErrorMessage(
           reason instanceof Error
             ? reason.message
             : "Не удалось обновить историю.",
@@ -120,7 +120,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
       if (mounted.current) store.remove(chatId, id);
     } catch (reason) {
       if (mounted.current && activeChatRef.current === chatId)
-        setError(
+        setErrorMessage(
           reason instanceof Error
             ? reason.message
             : "Не удалось удалить сообщение.",
@@ -131,9 +131,9 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
   return (
     <Flex vertical gap="middle">
       <OpenChatForm loading={isOpening} onOpen={handleOpen} />
-      {error && <Alert type="error" showIcon title={error} />}
-      {connection.deliveryError && (
-        <Alert type="error" showIcon title={connection.deliveryError} />
+      {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
+      {connection.deliveryErrorMessage && (
+        <Alert type="error" showIcon title={connection.deliveryErrorMessage} />
       )}
       {connection.notice && (
         <Alert type="info" showIcon title={connection.notice} closable />
@@ -143,7 +143,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
         chat={chat}
         messages={messages}
         loadingHistory={isLoadingHistory}
-        error={connection.error}
+        errorMessage={connection.errorMessage}
         connectionState={connection.state}
         onRefresh={() => void refreshHistory()}
         onSent={(chatId, message) => {

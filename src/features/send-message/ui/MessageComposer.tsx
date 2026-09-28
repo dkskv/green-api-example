@@ -18,7 +18,7 @@ export function MessageComposer({
   const [draft, setDraft] = useState("");
   const draftVersion = useRef(0);
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -26,13 +26,13 @@ export function MessageComposer({
     const text = draft.trim();
     if (!text || sending) return;
     setSending(true);
-    setError("");
+    setErrorMessage("");
     try {
       const message = await sendChatMessage(credentials, chatId, text);
       onSent(message);
       if (version === draftVersion.current) setDraft("");
     } catch (reason) {
-      setError(
+      setErrorMessage(
         `Сообщение не отправлено. Текст сохранён. ${reason instanceof Error ? reason.message : "Попробуйте ещё раз."}`,
       );
     } finally {
@@ -69,7 +69,7 @@ export function MessageComposer({
           Отправить
         </Button>
       </Flex>
-      {error && <Typography.Text type="danger">{error}</Typography.Text>}
+      {errorMessage && <Typography.Text type="danger">{errorMessage}</Typography.Text>}
     </form>
   );
 }

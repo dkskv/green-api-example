@@ -26,7 +26,7 @@ export default function App() {
   );
 
   const [verified, setVerified] = useState(false);
-  const [sessionError, setSessionError] = useState("");
+  const [sessionErrorMessage, setSessionErrorMessage] = useState("");
   useEffect(() => {
     if (!credentials || verified) return;
     const controller = new AbortController();
@@ -36,7 +36,7 @@ export default function App() {
       })
       .catch((reason: unknown) => {
         if (!controller.signal.aborted)
-          setSessionError(
+          setSessionErrorMessage(
             reason instanceof Error
               ? reason.message
               : "Не удалось проверить сессию.",
@@ -47,7 +47,7 @@ export default function App() {
 
   function handleSignOut(): void {
     setVerified(false);
-    setSessionError("");
+    setSessionErrorMessage("");
     clearSession();
     setCredentials(null);
   }
@@ -74,8 +74,8 @@ export default function App() {
           {credentials ? (
             verified ? (
               <MessengerPage credentials={credentials} />
-            ) : sessionError ? (
-              <Alert type="error" title={sessionError} />
+            ) : sessionErrorMessage ? (
+              <Alert type="error" title={sessionErrorMessage} />
             ) : (
               <Spin description="Проверяем сессию…" />
             )
