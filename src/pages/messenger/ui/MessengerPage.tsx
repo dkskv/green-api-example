@@ -5,7 +5,7 @@ import { OpenChatForm, openTelegramChat } from "@/features/open-chat";
 import { readSavedChat, saveActiveChat } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
 import { type VerifiedChat } from "@/entities/chat";
-import { createMessageStore, mapGreenMessage } from "@/entities/message";
+import { MessageStore, mapGreenMessage } from "@/entities/message";
 import {
   type GreenApiClient,
   type GreenApiCredentials,
@@ -18,7 +18,7 @@ type MessengerPageProps = {
 };
 
 export function MessengerPage({ credentials, client }: MessengerPageProps) {
-  const [store] = useState(() => createMessageStore(credentials));
+  const [store] = useState(() => new MessageStore(credentials));
   const [chat, setChat] = useState<VerifiedChat | null>(readSavedChat);
   const [isOpening, setIsOpening] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(() =>

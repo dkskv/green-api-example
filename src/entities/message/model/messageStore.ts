@@ -36,36 +36,51 @@ export function messageCacheKey(credentials: GreenApiCredentials): string {
   return `green-api-messages:${credentials.apiUrl}:${credentials.instanceId}`;
 }
 
-export function createMessageStore(credentials: GreenApiCredentials) {
-  const key = messageCacheKey(credentials);
-  let chats: Record<string, StoredChat> = {};
+export class MessageStore {
+  private readonly key: string;
+  private chats: Record<string, StoredChat> = {};
+  private readonly listeners = new Set<() => void>();
 
-  try {
-    const saved = sessionStorage.getItem(key);
+  constructor(credentials: GreenApiCredentials) {
+    this.key = messageCacheKey(credentials);
 
-    if (saved) chats = cacheSchema.parse(JSON.parse(saved));
-  } catch {
-    /* Ignore invalid or unavailable cached data. */
+    try {
+      const saved = sessionStorage.getItem(this.key);
+
+      if (saved) this.chats = cacheSchema.parse(JSON.parse(saved));
+    } catch {
+      /* Ignore invalid or unavailable cached data. */
+    }
   }
 
-  const listeners = new Set<() => void>();
+  getMessages(chatId: string): ChatMessage[] {
+    return this.chats[chatId]?.messages ?? emptyMessages;
+  }
 
-  function update(chatId: string, change: (chat: StoredChat) => StoredChat) {
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+
+  private update(chatId: string, change: (chat: StoredChat) => StoredChat) {
     const next = {
-      ...chats,
+      ...this.chats,
       [chatId]: change(
-        chats[chatId] ?? { messages: [], statuses: {}, deleted: [] },
+        this.chats[chatId] ?? { messages: [], statuses: {}, deleted: [] },
       ),
     };
 
     // Persist before acknowledging a notification. Failed storage leaves it in the queue.
-    sessionStorage.setItem(key, JSON.stringify(next));
-    chats = next;
-    listeners.forEach((listener) => listener());
+    sessionStorage.setItem(this.key, JSON.stringify(next));
+    this.chats = next;
+    this.listeners.forEach((listener) => listener());
   }
 
-  function merge(chatId: string, messages: ChatMessage[]) {
-    update(chatId, (chat) => {
+  merge(chatId: string, messages: ChatMessage[]) {
+    this.update(chatId, (chat) => {
       const byId = new Map(
         chat.messages.map((message) => [message.id, message]),
       );
@@ -94,15 +109,15 @@ export function createMessageStore(credentials: GreenApiCredentials) {
     });
   }
 
-  function remove(chatId: string, id: string) {
-    update(chatId, (chat) => ({
+  remove(chatId: string, id: string) {
+    this.update(chatId, (chat) => ({
       ...chat,
       deleted: [...new Set([...chat.deleted, id])],
       messages: chat.messages.filter((message) => message.id !== id),
     }));
   }
 
-  function receive(notification: GreenNotificationDto) {
+  receive = (notification: GreenNotificationDto) => {
     const body = notification.body;
     const chatId = body.chatId ?? body.senderData?.chatId;
 
@@ -120,7 +135,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
       const id = body.idMessage;
       const status = body.status;
 
-      update(chatId, (chat) => ({
+      this.update(chatId, (chat) => ({
         ...chat,
         statuses: {
           ...chat.statuses,
@@ -155,7 +170,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
       if (!id)
         throw new Error(MESSAGE_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
 
-      remove(chatId, id);
+      this.remove(chatId, id);
 
       return;
     }
@@ -163,7 +178,7 @@ export function createMessageStore(credentials: GreenApiCredentials) {
     if (!body.idMessage || !body.messageData)
       throw new Error(MESSAGE_ERROR_MESSAGES.INVALID_NOTIFICATION);
 
-    merge(chatId, [
+    this.merge(chatId, [
       mapGreenMessage({
         idMessage: body.idMessage,
         type:
@@ -174,19 +189,5 @@ export function createMessageStore(credentials: GreenApiCredentials) {
         messageData: body.messageData,
       }),
     ]);
-  }
-
-  return {
-    merge,
-    remove,
-    receive,
-    getMessages: (chatId: string) => chats[chatId]?.messages ?? emptyMessages,
-    subscribe: (listener: () => void) => {
-      listeners.add(listener);
-
-      return () => {
-        listeners.delete(listener);
-      };
-    },
   };
 }

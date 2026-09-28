@@ -4,7 +4,7 @@ export {
   type ChatMessage,
 } from "@/entities/message/model/message";
 export {
-  createMessageStore,
+  MessageStore,
   messageCacheKey,
 } from "@/entities/message/model/messageStore";
 export {
