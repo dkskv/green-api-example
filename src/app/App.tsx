@@ -14,11 +14,11 @@ import {
   clearSession,
   readCredentials,
   type GreenApiCredentials,
-} from "../features/session";
-import { MessengerPage } from "../pages/messenger";
-import { SessionPage } from "../pages/session";
-import { validateTelegramSession } from "../shared/api/green-api";
-import "./styles.css";
+} from "@/features/session";
+import { MessengerPage } from "@/pages/messenger";
+import { SessionPage } from "@/pages/session";
+import { validateTelegramSession } from "@/shared/api/green-api";
+import "@/app/styles.css";
 
 export default function App() {
   const [credentials, setCredentials] = useState<GreenApiCredentials | null>(

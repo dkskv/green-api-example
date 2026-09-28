@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { mapGreenMessage, sortMessages, type ChatMessage } from "./message";
+import { mapGreenMessage, sortMessages, type ChatMessage } from "@/entities/message/model/message";
 import type {
   GreenApiCredentials,
   GreenNotificationDto,
-} from "../../../shared/api/green-api";
+} from "@/shared/api/green-api";
 
 const storedChatSchema = z.object({
   messages: z.array(

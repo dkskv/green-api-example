@@ -1,7 +1,7 @@
-import { credentialsSchema } from "../../../shared/api/green-api/types";
-import { messageCacheKey } from "../../../entities/message";
-import type { GreenApiCredentials } from "../../../shared/api/green-api";
-import type { VerifiedChat } from "../../../entities/chat";
+import { credentialsSchema } from "@/shared/api/green-api/types";
+import { messageCacheKey } from "@/entities/message";
+import type { GreenApiCredentials } from "@/shared/api/green-api";
+import type { VerifiedChat } from "@/entities/chat";
 
 const CREDENTIALS_KEY = "green-api-credentials";
 const ACTIVE_CHAT_KEY = "green-api-active-chat";

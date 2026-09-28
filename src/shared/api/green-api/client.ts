@@ -5,7 +5,7 @@ import {
   notificationSchema,
   settingsSchema,
   sendMessageSchema,
-} from "./types";
+} from "@/shared/api/green-api/types";
 import type {
   CheckAccountResponse,
   GreenApiCredentials,
@@ -13,7 +13,7 @@ import type {
   GreenNotificationDto,
   SendMessageResponse,
   TelegramInstanceSettings,
-} from "./types";
+} from "@/shared/api/green-api/types";
 
 function instanceUrl(credentials: GreenApiCredentials): string {
   return `${credentials.apiUrl}/waInstance${encodeURIComponent(credentials.instanceId)}`;

@@ -1,8 +1,8 @@
 import { Button, Flex, Input, Typography } from "antd";
 import { useRef, useState, type FormEvent } from "react";
-import { sendChatMessage } from "../model/sendMessage";
-import type { ChatMessage } from "../../../entities/message";
-import type { GreenApiCredentials } from "../../../shared/api/green-api";
+import { sendChatMessage } from "@/features/send-message/model/sendMessage";
+import type { ChatMessage } from "@/entities/message";
+import type { GreenApiCredentials } from "@/shared/api/green-api";
 
 type MessageComposerProps = {
   credentials: GreenApiCredentials;

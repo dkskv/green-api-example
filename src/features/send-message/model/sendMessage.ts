@@ -1,8 +1,8 @@
-import { mapGreenMessage } from "../../../entities/message";
+import { mapGreenMessage } from "@/entities/message";
 import {
   sendTelegramMessage,
   type GreenApiCredentials,
-} from "../../../shared/api/green-api";
+} from "@/shared/api/green-api";
 
 export async function sendChatMessage(
   credentials: GreenApiCredentials,

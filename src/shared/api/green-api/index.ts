@@ -9,7 +9,7 @@ export {
   getTelegramSettings,
   receiveTelegramNotification,
   sendTelegramMessage,
-} from "./client";
+} from "@/shared/api/green-api/client";
 export type {
   CheckAccountResponse,
   GreenApiCredentials,
@@ -17,4 +17,4 @@ export type {
   GreenNotificationDto,
   SendMessageResponse,
   TelegramInstanceSettings,
-} from "./types";
+} from "@/shared/api/green-api/types";

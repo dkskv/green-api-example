@@ -1,4 +1,4 @@
-import type { GreenMessageDto } from "../../../shared/api/green-api/types";
+import type { GreenMessageDto } from "@/shared/api/green-api/types";
 
 export type ChatMessage = {
   id: string;

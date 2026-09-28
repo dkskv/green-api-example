@@ -6,7 +6,7 @@ import {
   receiveTelegramNotification,
   type GreenApiCredentials,
   type GreenNotificationDto,
-} from "../../../shared/api/green-api";
+} from "@/shared/api/green-api";
 
 type ConnectionState = "connecting" | "online" | "error";
 

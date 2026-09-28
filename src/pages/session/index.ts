@@ -1,1 +1,1 @@
-export { SessionPage } from "./ui/SessionPage";
+export { SessionPage } from "@/pages/session/ui/SessionPage";

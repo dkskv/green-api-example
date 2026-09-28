@@ -1,1 +1,1 @@
-export { MessengerPage } from "./ui/MessengerPage";
+export { MessengerPage } from "@/pages/messenger/ui/MessengerPage";

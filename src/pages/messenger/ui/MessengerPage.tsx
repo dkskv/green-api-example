@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Alert, Flex } from "antd";
-import { OpenChatForm, openTelegramChat } from "../../../features/open-chat";
-import { readSavedChat, saveActiveChat } from "../../../features/session";
-import { useReceiveMessages } from "../../../features/receive-messages";
-import type { VerifiedChat } from "../../../entities/chat";
-import { createMessageStore, mapGreenMessage } from "../../../entities/message";
+import { OpenChatForm, openTelegramChat } from "@/features/open-chat";
+import { readSavedChat, saveActiveChat } from "@/features/session";
+import { useReceiveMessages } from "@/features/receive-messages";
+import type { VerifiedChat } from "@/entities/chat";
+import { createMessageStore, mapGreenMessage } from "@/entities/message";
 import {
   getChatHistory,
   deleteTelegramMessage,
   type GreenApiCredentials,
-} from "../../../shared/api/green-api";
-import { ChatWindow } from "../../../widgets/chat-window";
+} from "@/shared/api/green-api";
+import { ChatWindow } from "@/widgets/chat-window";
 
 type MessengerPageProps = { credentials: GreenApiCredentials };
 

@@ -1,1 +1,1 @@
-export { ChatWindow } from "./ui/ChatWindow";
+export { ChatWindow } from "@/widgets/chat-window/ui/ChatWindow";

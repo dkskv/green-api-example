@@ -2,5 +2,5 @@ export {
   mapGreenMessage,
   sortMessages,
   type ChatMessage,
-} from "./model/message";
-export { createMessageStore, messageCacheKey } from "./model/messageStore";
+} from "@/entities/message/model/message";
+export { createMessageStore, messageCacheKey } from "@/entities/message/model/messageStore";

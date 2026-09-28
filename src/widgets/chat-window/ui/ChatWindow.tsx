@@ -10,10 +10,10 @@ import {
   Tag,
   Typography,
 } from "antd";
-import type { VerifiedChat } from "../../../entities/chat";
-import type { ChatMessage } from "../../../entities/message";
-import { MessageComposer } from "../../../features/send-message";
-import type { GreenApiCredentials } from "../../../shared/api/green-api";
+import type { VerifiedChat } from "@/entities/chat";
+import type { ChatMessage } from "@/entities/message";
+import { MessageComposer } from "@/features/send-message";
+import type { GreenApiCredentials } from "@/shared/api/green-api";
 
 type ChatWindowProps = {
   credentials: GreenApiCredentials;

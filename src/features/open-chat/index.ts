@@ -1,2 +1,2 @@
-export { OpenChatForm } from "./ui/OpenChatForm";
-export { openTelegramChat } from "./model/openChat";
+export { OpenChatForm } from "@/features/open-chat/ui/OpenChatForm";
+export { openTelegramChat } from "@/features/open-chat/model/openChat";

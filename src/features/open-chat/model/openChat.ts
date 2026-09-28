@@ -1,14 +1,14 @@
-import { normalizePhone, type VerifiedChat } from "../../../entities/chat";
+import { normalizePhone, type VerifiedChat } from "@/entities/chat";
 import {
   mapGreenMessage,
   sortMessages,
   type ChatMessage,
-} from "../../../entities/message";
+} from "@/entities/message";
 import {
   checkTelegramAccount,
   getChatHistory,
   type GreenApiCredentials,
-} from "../../../shared/api/green-api";
+} from "@/shared/api/green-api";
 
 export async function openTelegramChat(
   credentials: GreenApiCredentials,

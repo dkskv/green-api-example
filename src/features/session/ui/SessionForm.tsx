@@ -1,8 +1,8 @@
 import { Alert, Button, Card, Flex, Input, Typography } from "antd";
 import { useState, type SubmitEvent } from "react";
-import { validateTelegramSession } from "../../../shared/api/green-api";
-import { saveCredentials } from "../model/sessionStorage";
-import type { GreenApiCredentials } from "../../../shared/api/green-api/types";
+import { validateTelegramSession } from "@/shared/api/green-api";
+import { saveCredentials } from "@/features/session/model/sessionStorage";
+import type { GreenApiCredentials } from "@/shared/api/green-api/types";
 
 const DEFAULT_API_URL = "https://api.green-api.com";
 

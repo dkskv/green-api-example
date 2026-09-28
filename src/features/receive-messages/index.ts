@@ -1,1 +1,1 @@
-export { useReceiveMessages } from "./model/useReceiveMessages";
+export { useReceiveMessages } from "@/features/receive-messages/model/useReceiveMessages";
