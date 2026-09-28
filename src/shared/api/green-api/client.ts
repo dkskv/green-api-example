@@ -1,3 +1,11 @@
+import { z } from "zod";
+import {
+  accountSchema,
+  greenMessageSchema,
+  notificationSchema,
+  settingsSchema,
+  sendMessageSchema,
+} from "./types";
 import type {
   CheckAccountResponse,
   GreenApiCredentials,
@@ -45,7 +53,7 @@ export async function checkTelegramAccount(
 
   if (!response.ok) throw new Error(await getApiError(response));
 
-  return (await response.json()) as CheckAccountResponse;
+  return accountSchema.parse(await response.json());
 }
 
 export async function getChatHistory(
@@ -67,7 +75,7 @@ export async function getChatHistory(
   if (!Array.isArray(data))
     throw new Error("Telegram API вернул некорректный формат истории.");
 
-  return data as GreenMessageDto[];
+  return z.array(greenMessageSchema).parse(data);
 }
 
 export async function sendTelegramMessage(
@@ -83,7 +91,7 @@ export async function sendTelegramMessage(
 
   if (!response.ok) throw new Error(await getApiError(response));
 
-  return (await response.json()) as SendMessageResponse;
+  return sendMessageSchema.parse(await response.json());
 }
 
 export async function getTelegramSettings(
@@ -96,7 +104,7 @@ export async function getTelegramSettings(
 
   if (!response.ok) throw new Error(await getApiError(response));
 
-  return (await response.json()) as TelegramInstanceSettings;
+  return settingsSchema.parse(await response.json());
 }
 
 export async function receiveTelegramNotification(
@@ -117,11 +125,11 @@ export async function receiveTelegramNotification(
     throw new Error(await getApiError(response));
   }
 
-  const raw = await response.text();
+  const raw = (await response.text()).trim();
 
   if (!raw || raw === "null") return null;
 
-  return JSON.parse(raw) as GreenNotificationDto;
+  return notificationSchema.parse(JSON.parse(raw));
 }
 
 export async function acknowledgeTelegramNotification(
@@ -141,6 +149,57 @@ export async function acknowledgeTelegramNotification(
     reason?: string;
   } | null;
 
-  if (result?.result === false)
-    throw new Error(result.reason || "Уведомление не подтверждено.");
+  if (result?.result !== true)
+    throw new Error(result?.reason || "Уведомление не подтверждено.");
+}
+
+export async function validateTelegramSession(
+  credentials: GreenApiCredentials,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(methodUrl(credentials, "getStateInstance"), {
+    signal,
+  });
+  if (!response.ok) throw new Error(await getApiError(response));
+  const { stateInstance } = z
+    .object({ stateInstance: z.string() })
+    .parse(await response.json());
+  if (stateInstance !== "authorized")
+    throw new Error(
+      `Инстанс не готов к работе: ${stateInstance}. Авторизуйте его в GREEN API.`,
+    );
+}
+
+export async function enableTelegramNotifications(
+  credentials: GreenApiCredentials,
+  signal: AbortSignal,
+): Promise<void> {
+  const response = await fetch(methodUrl(credentials, "setSettings"), {
+    method: "POST",
+    signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      incomingWebhook: "yes",
+      outgoingWebhook: "yes",
+      outgoingMessageWebhook: "yes",
+      outgoingAPIMessageWebhook: "yes",
+      deletedMessageWebhook: "yes",
+    }),
+  });
+  if (!response.ok) throw new Error(await getApiError(response));
+  z.object({ saveSettings: z.literal(true) }).parse(await response.json());
+}
+
+export async function deleteTelegramMessage(
+  credentials: GreenApiCredentials,
+  chatId: string,
+  idMessage: string,
+): Promise<void> {
+  const response = await fetch(methodUrl(credentials, "deleteMessage"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chatId, idMessage, onlySenderDelete: false }),
+  });
+  if (!response.ok) throw new Error(await getApiError(response));
+  // DeleteMessage returns HTTP 200 with an empty body.
 }

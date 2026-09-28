@@ -1,5 +1,5 @@
 import { Button, Flex, Input, Typography } from "antd";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { sendChatMessage } from "../model/sendMessage";
 import type { ChatMessage } from "../../../entities/message";
 import type { GreenApiCredentials } from "../../../shared/api/green-api";
@@ -16,11 +16,13 @@ export function MessageComposer({
   onSent,
 }: MessageComposerProps) {
   const [draft, setDraft] = useState("");
+  const draftVersion = useRef(0);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    const version = draftVersion.current;
     const text = draft.trim();
     if (!text || sending) return;
     setSending(true);
@@ -28,7 +30,7 @@ export function MessageComposer({
     try {
       const message = await sendChatMessage(credentials, chatId, text);
       onSent(message);
-      setDraft("");
+      if (version === draftVersion.current) setDraft("");
     } catch (reason) {
       setError(
         `Сообщение не отправлено. Текст сохранён. ${reason instanceof Error ? reason.message : "Попробуйте ещё раз."}`,
@@ -52,7 +54,10 @@ export function MessageComposer({
           aria-label="Текст сообщения"
           placeholder="Написать сообщение…"
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            draftVersion.current += 1;
+            setDraft(event.target.value);
+          }}
           autoSize={{ minRows: 1, maxRows: 4 }}
         />
         <Button

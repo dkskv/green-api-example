@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useState } from "react";
 import {
   Alert,
   Button,
@@ -13,7 +13,6 @@ import {
 import type { VerifiedChat } from "../../../entities/chat";
 import type { ChatMessage } from "../../../entities/message";
 import { MessageComposer } from "../../../features/send-message";
-import { useReceiveMessages } from "../../../features/receive-messages";
 import type { GreenApiCredentials } from "../../../shared/api/green-api";
 
 type ChatWindowProps = {
@@ -23,8 +22,9 @@ type ChatWindowProps = {
   loadingHistory: boolean;
   error: string;
   onRefresh: () => void;
-  onIncoming: (message: ChatMessage) => void;
-  onSent: (message: ChatMessage) => void;
+  connectionState: string;
+  onSent: (chatId: string, message: ChatMessage) => void;
+  onDelete: (chatId: string, id: string) => Promise<void>;
 };
 
 export function ChatWindow({
@@ -34,18 +34,28 @@ export function ChatWindow({
   loadingHistory,
   error,
   onRefresh,
-  onIncoming,
+  connectionState,
   onSent,
+  onDelete,
 }: ChatWindowProps) {
-  const handleIncoming = useCallback(
-    (message: ChatMessage) => onIncoming(message),
-    [onIncoming],
-  );
-  const connection = useReceiveMessages(
-    credentials,
-    chat?.chatId ?? "",
-    handleIncoming,
-  );
+  const [deleting, setDeleting] = useState<string[]>([]);
+  async function remove(chatId: string, id: string) {
+    const key = `${chatId}:${id}`;
+    setDeleting((current) => [...current, key]);
+    try {
+      await onDelete(chatId, id);
+    } finally {
+      setDeleting((current) => current.filter((item) => item !== key));
+    }
+  }
+  const statuses: Record<string, string> = {
+    pending: "В очереди",
+    sent: "Отправлено",
+    delivered: "Доставлено",
+    read: "Прочитано",
+    failed: "Ошибка отправки",
+    noAccount: "Аккаунт не найден",
+  };
 
   return (
     <Card
@@ -54,9 +64,9 @@ export function ChatWindow({
         chat && (
           <Flex align="center" gap="small">
             <Tag>
-              {connection.state === "online"
+              {connectionState === "online"
                 ? "Приём активен"
-                : connection.state === "error"
+                : connectionState === "error"
                   ? "Ошибка приёма"
                   : "Подключение"}
             </Tag>
@@ -71,14 +81,6 @@ export function ChatWindow({
         )
       }
     >
-      {connection.error && (
-        <Alert
-          type="warning"
-          showIcon
-          title={connection.error}
-          style={{ marginBottom: 12 }}
-        />
-      )}
       {error && (
         <Alert
           type="error"
@@ -110,7 +112,7 @@ export function ChatWindow({
                 textAlign: "center",
               }}
             >
-              Последние 100 сообщений. Старая история не подгружается.
+              При открытии загружаются последние 100 сообщений.
             </Typography.Text>
             <List
               split={false}
@@ -145,10 +147,23 @@ export function ChatWindow({
                       </Typography.Text>
                       {message.direction === "outgoing" && (
                         <Typography.Text type="secondary">
-                          {message.status}
+                          {statuses[message.status ?? ""] ?? message.status}
                         </Typography.Text>
                       )}
                     </Flex>
+                    {message.direction === "outgoing" && chat && (
+                      <Button
+                        size="small"
+                        type="text"
+                        danger
+                        loading={deleting.includes(
+                          `${chat.chatId}:${message.id}`,
+                        )}
+                        onClick={() => void remove(chat.chatId, message.id)}
+                      >
+                        Удалить у всех
+                      </Button>
+                    )}
                   </Card>
                 </List.Item>
               )}
@@ -159,9 +174,10 @@ export function ChatWindow({
 
       {chat && (
         <MessageComposer
+          key={chat.chatId}
           credentials={credentials}
           chatId={chat.chatId}
-          onSent={onSent}
+          onSent={(message) => onSent(chat.chatId, message)}
         />
       )}
     </Card>

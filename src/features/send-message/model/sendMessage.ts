@@ -10,15 +10,12 @@ export async function sendChatMessage(
   text: string,
 ) {
   const result = await sendTelegramMessage(credentials, chatId, text);
-  return mapGreenMessage(
-    {
-      idMessage: result.idMessage,
-      type: "outgoing",
-      typeMessage: "textMessage",
-      timestamp: Math.floor(Date.now() / 1000),
-      textMessage: text,
-      statusMessage: "отправлено в Telegram",
-    },
-    0,
-  );
+  return mapGreenMessage({
+    idMessage: result.idMessage,
+    type: "outgoing",
+    typeMessage: "textMessage",
+    timestamp: Math.floor(Date.now() / 1000),
+    textMessage: text,
+    statusMessage: "pending",
+  });
 }

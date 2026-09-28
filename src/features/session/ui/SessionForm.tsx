@@ -1,5 +1,6 @@
 import { Alert, Button, Card, Flex, Input, Typography } from "antd";
 import { useState, type SubmitEvent } from "react";
+import { validateTelegramSession } from "../../../shared/api/green-api";
 import { saveCredentials } from "../model/sessionStorage";
 import type { GreenApiCredentials } from "../../../shared/api/green-api/types";
 
@@ -15,8 +16,11 @@ export function SessionForm({ onReady }: SessionFormProps) {
   const [apiToken, setApiToken] = useState("");
   const [error, setError] = useState("");
 
-  function submit(event: SubmitEvent<HTMLFormElement>): void {
+  const [checking, setChecking] = useState(false);
+
+  async function submit(event: SubmitEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    if (checking) return;
 
     const credentials = {
       apiUrl: apiUrl.trim().replace(/\/+$/, ""),
@@ -40,9 +44,21 @@ export function SessionForm({ onReady }: SessionFormProps) {
       return;
     }
 
-    saveCredentials(credentials);
+    setChecking(true);
     setError("");
-    onReady(credentials);
+    try {
+      await validateTelegramSession(credentials);
+      saveCredentials(credentials);
+      onReady(credentials);
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Не удалось проверить сессию.",
+      );
+    } finally {
+      setChecking(false);
+    }
   }
 
   return (
@@ -53,7 +69,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
       <Typography.Paragraph type="secondary">
         Введите данные Telegram-инстанса Green API.
       </Typography.Paragraph>
-      <form onSubmit={submit}>
+      <form onSubmit={(event) => void submit(event)}>
         <Flex vertical gap="middle">
           <label style={{ display: "grid", gap: 6 }}>
             <Typography.Text>API URL</Typography.Text>
@@ -84,7 +100,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
             />
           </label>
           {error && <Alert type="error" showIcon title={error} />}
-          <Button type="primary" htmlType="submit" block>
+          <Button type="primary" htmlType="submit" block loading={checking}>
             Продолжить
           </Button>
         </Flex>

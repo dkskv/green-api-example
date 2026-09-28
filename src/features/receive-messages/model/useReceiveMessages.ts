@@ -1,123 +1,103 @@
 import { useEffect, useRef, useState } from "react";
-import { mapGreenMessage, type ChatMessage } from "../../../entities/message";
 import {
   acknowledgeTelegramNotification,
+  enableTelegramNotifications,
   getTelegramSettings,
   receiveTelegramNotification,
   type GreenApiCredentials,
+  type GreenNotificationDto,
 } from "../../../shared/api/green-api";
 
-type ConnectionState = "idle" | "connecting" | "online" | "error";
+type ConnectionState = "connecting" | "online" | "error";
 
 export function useReceiveMessages(
   credentials: GreenApiCredentials,
-  chatId: string,
-  onMessage: (message: ChatMessage) => void,
+  onNotification: (notification: GreenNotificationDto) => string | void,
 ) {
   const [state, setState] = useState<ConnectionState>("connecting");
   const [error, setError] = useState("");
-  const messageHandler = useRef(onMessage);
+  const [notice, setNotice] = useState("");
+  const [deliveryError, setDeliveryError] = useState("");
+  const handler = useRef(onNotification);
+  useEffect(() => {
+    handler.current = onNotification;
+  }, [onNotification]);
 
   useEffect(() => {
-    messageHandler.current = onMessage;
-  }, [onMessage]);
-
-  useEffect(() => {
-    if (!chatId) return;
-
     const controller = new AbortController();
-    let stopped = false;
+    const { signal } = controller;
+    let settingsReady = false;
+    let settingsRequested = false;
+    const pause = () =>
+      new Promise<void>((resolve) => {
+        const finish = () => {
+          window.clearTimeout(timer);
+          signal.removeEventListener("abort", finish);
+          resolve();
+        };
+        const timer = window.setTimeout(finish, 1500);
+        signal.addEventListener("abort", finish, { once: true });
+        if (signal.aborted) finish();
+      });
 
-    async function run(): Promise<void> {
-      setState("connecting");
-      try {
-        const settings = await getTelegramSettings(
-          credentials,
-          controller.signal,
-        );
-        if (settings.webhookUrl?.trim()) {
-          throw new Error(
-            "Очистите webhookUrl в настройках Green API для HTTP-приёма.",
-          );
-        }
-        if (settings.incomingWebhook !== "yes") {
-          throw new Error(
-            "Включите «Получать уведомления о входящих сообщениях и файлах» (incomingWebhook = yes).",
-          );
-        }
-
-        while (!stopped) {
+    async function run() {
+      while (!signal.aborted) {
+        try {
+          if (!settingsReady) {
+            const settings = await getTelegramSettings(credentials, signal);
+            if (settings.webhookUrl.trim())
+              throw new Error(
+                "Очистите webhookUrl в настройках GREEN API для HTTP-приёма.",
+              );
+            const enabled = [
+              settings.incomingWebhook,
+              settings.outgoingWebhook,
+              settings.outgoingMessageWebhook,
+              settings.outgoingAPIMessageWebhook,
+              settings.deletedMessageWebhook,
+            ].every((value) => value === "yes");
+            if (!enabled && !settingsRequested) {
+              await enableTelegramNotifications(credentials, signal);
+              settingsRequested = true;
+              if (!signal.aborted)
+                setNotice(
+                  "Уведомления включены. GREEN API применяет настройки и перезапускает инстанс — это может занять до 5 минут.",
+                );
+            }
+            settingsReady = true;
+          }
           const notification = await receiveTelegramNotification(
             credentials,
-            controller.signal,
+            signal,
           );
-          if (!notification) {
-            setState("online");
-            setError("");
-            continue;
-          }
-          if (
-            notification.status === "error" ||
-            (!notification.body && notification.message)
-          ) {
-            throw new Error(
-              notification.message ??
-                notification.code ??
-                "Ошибка ReceiveNotification.",
-            );
-          }
-          const body = notification.body;
-          if (
-            body?.typeWebhook === "incomingMessageReceived" &&
-            body.senderData?.chatId === chatId
-          ) {
-            messageHandler.current(
-              mapGreenMessage(
-                {
-                  idMessage: body.idMessage,
-                  type: "incoming",
-                  timestamp: body.timestamp,
-                  messageData: body.messageData,
-                },
-                0,
-              ),
-            );
-          }
-          if (notification.receiptId !== undefined) {
+          if (signal.aborted) return;
+          if (notification) {
+            const warning = handler.current(notification);
+            if (warning) setDeliveryError(warning);
             await acknowledgeTelegramNotification(
               credentials,
               notification.receiptId,
-              controller.signal,
+              signal,
             );
           }
+          if (signal.aborted) return;
           setState("online");
           setError("");
-        }
-      } catch (reason) {
-        if (
-          stopped ||
-          (reason instanceof DOMException && reason.name === "AbortError")
-        )
-          return;
-        setState("error");
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Ошибка приёма уведомлений.",
-        );
-        if (!controller.signal.aborted) {
-          await new Promise((resolve) => window.setTimeout(resolve, 1500));
-          if (!stopped) void run();
+        } catch (reason) {
+          if (signal.aborted) return;
+          setState("error");
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Ошибка приёма уведомлений.",
+          );
+          await pause();
         }
       }
     }
-
     void run();
-    return () => {
-      stopped = true;
-      controller.abort();
-    };
-  }, [credentials, chatId]);
+    return () => controller.abort();
+  }, [credentials]);
 
-  return { state: chatId ? state : "idle", error: chatId ? error : "" };
+  return { state, error, notice, deliveryError };
 }

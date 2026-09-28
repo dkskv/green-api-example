@@ -8,10 +8,7 @@ export type ChatMessage = {
   status?: string;
 };
 
-export function mapGreenMessage(
-  data: GreenMessageDto,
-  index: number,
-): ChatMessage {
+export function mapGreenMessage(data: GreenMessageDto): ChatMessage {
   const type = data.typeMessage ?? data.messageData?.typeMessage ?? "unknown";
   const text =
     data.textMessage ??
@@ -34,7 +31,7 @@ export function mapGreenMessage(
                 : "Сообщение этого типа пока не поддерживается");
 
   return {
-    id: data.idMessage ?? `history-${data.timestamp ?? 0}-${index}`,
+    id: data.idMessage,
     text,
     direction: data.type === "outgoing" ? "outgoing" : "incoming",
     timestamp: data.timestamp ?? 0,

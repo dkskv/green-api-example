@@ -1,4 +1,7 @@
 export {
+  validateTelegramSession,
+  enableTelegramNotifications,
+  deleteTelegramMessage,
   acknowledgeTelegramNotification,
   checkTelegramAccount,
   getApiError,
