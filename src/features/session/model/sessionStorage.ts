@@ -3,7 +3,6 @@ import type { VerifiedChat } from "../../../entities/chat";
 
 const CREDENTIALS_KEY = "green-api-credentials";
 const ACTIVE_CHAT_KEY = "green-api-active-chat";
-// TODO: Remove persistent browser storage after development; credentials belong behind a server-side auth boundary.
 
 export function readCredentials(): GreenApiCredentials | null {
   try {
@@ -26,8 +25,12 @@ export function clearSession(): void {
 export function readSavedChat(): VerifiedChat | null {
   try {
     const saved = localStorage.getItem(ACTIVE_CHAT_KEY);
+
     if (!saved) return null;
+
+    // todo: подключить zod
     const parsed = JSON.parse(saved) as Partial<VerifiedChat>;
+
     return parsed.phone && parsed.chatId
       ? { phone: parsed.phone, chatId: parsed.chatId }
       : null;

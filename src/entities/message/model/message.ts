@@ -43,5 +43,5 @@ export function mapGreenMessage(
 }
 
 export function sortMessages(messages: ChatMessage[]): ChatMessage[] {
-  return [...messages].sort((left, right) => left.timestamp - right.timestamp);
+  return messages.toSorted((left, right) => left.timestamp - right.timestamp);
 }

@@ -1,5 +1,5 @@
 import { Alert, Button, Card, Flex, Input, Typography } from "antd";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { saveCredentials } from "../model/sessionStorage";
 import type { GreenApiCredentials } from "../../../shared/api/green-api/types";
 
@@ -15,26 +15,31 @@ export function SessionForm({ onReady }: SessionFormProps) {
   const [apiToken, setApiToken] = useState("");
   const [error, setError] = useState("");
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
+
     const credentials = {
       apiUrl: apiUrl.trim().replace(/\/+$/, ""),
       instanceId: instanceId.trim(),
       apiToken: apiToken.trim(),
     };
+
     try {
       const parsedApiUrl = new URL(credentials.apiUrl);
       if (parsedApiUrl.protocol !== "https:")
         throw new Error("HTTPS is required");
+
       credentials.apiUrl = parsedApiUrl.origin;
     } catch {
       setError("Укажите корректный HTTPS API URL.");
       return;
     }
+
     if (!credentials.instanceId || !credentials.apiToken) {
       setError("Укажите ID инстанса и API token");
       return;
     }
+
     saveCredentials(credentials);
     setError("");
     onReady(credentials);
@@ -78,7 +83,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
               required
             />
           </label>
-          {error && <Alert type="error" showIcon message={error} />}
+          {error && <Alert type="error" showIcon title={error} />}
           <Button type="primary" htmlType="submit" block>
             Продолжить
           </Button>

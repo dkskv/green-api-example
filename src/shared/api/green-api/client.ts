@@ -27,6 +27,7 @@ export async function getApiError(response: Response): Promise<string> {
     payload?.data?.reason ??
     payload?.message ??
     payload?.error;
+
   return reason
     ? `HTTP ${response.status}: ${reason}`
     : `HTTP ${response.status}`;
@@ -41,7 +42,9 @@ export async function checkTelegramAccount(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phoneNumber }),
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   return (await response.json()) as CheckAccountResponse;
 }
 
@@ -56,10 +59,14 @@ export async function getChatHistory(
     body: JSON.stringify({ chatId, count: 100 }),
     signal,
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   const data = (await response.json()) as unknown;
+
   if (!Array.isArray(data))
     throw new Error("Telegram API вернул некорректный формат истории.");
+
   return data as GreenMessageDto[];
 }
 
@@ -73,7 +80,9 @@ export async function sendTelegramMessage(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chatId, message }),
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   return (await response.json()) as SendMessageResponse;
 }
 
@@ -84,7 +93,9 @@ export async function getTelegramSettings(
   const response = await fetch(methodUrl(credentials, "getSettings"), {
     signal,
   });
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   return (await response.json()) as TelegramInstanceSettings;
 }
 
@@ -96,6 +107,7 @@ export async function receiveTelegramNotification(
     `${methodUrl(credentials, "receiveNotification")}?receiveTimeout=5`,
     { signal },
   );
+
   if (!response.ok) {
     if (response.status >= 400 && response.status < 500) {
       throw new Error(
@@ -104,8 +116,11 @@ export async function receiveTelegramNotification(
     }
     throw new Error(await getApiError(response));
   }
+
   const raw = await response.text();
+
   if (!raw || raw === "null") return null;
+
   return JSON.parse(raw) as GreenNotificationDto;
 }
 
@@ -118,11 +133,14 @@ export async function acknowledgeTelegramNotification(
     `${instanceUrl(credentials)}/deleteNotification/${encodeURIComponent(credentials.apiToken)}/${receiptId}`,
     { method: "DELETE", signal },
   );
+
   if (!response.ok) throw new Error(await getApiError(response));
+
   const result = (await response.json().catch(() => null)) as {
     result?: boolean;
     reason?: string;
   } | null;
+
   if (result?.result === false)
     throw new Error(result.reason || "Уведомление не подтверждено.");
 }

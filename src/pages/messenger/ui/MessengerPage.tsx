@@ -33,7 +33,8 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     if (!saved) return;
 
     const controller = new AbortController();
-    void getChatHistory(credentials, saved.chatId, controller.signal)
+
+    getChatHistory(credentials, saved.chatId, controller.signal)
       .then((history) => {
         setChat(saved);
         setMessages(sortMessages(history.map(mapGreenMessage)));
@@ -54,12 +55,16 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
 
   async function handleOpen(phone: string): Promise<void> {
     const requestId = ++openRequestRef.current;
+
     setError("");
     setIsOpening(true);
     setIsLoadingHistory(true);
+
     try {
       const result = await openTelegramChat(credentials, phone);
+
       if (requestId !== openRequestRef.current) return;
+
       setChat(result.chat);
       setMessages(result.messages);
       saveActiveChat(result.chat);
@@ -86,10 +91,14 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     setIsLoadingHistory(true);
     try {
       const history = await getChatHistory(credentials, currentChatId);
-      if (chat?.chatId !== currentChatId) return;
+
+      if (chat.chatId !== currentChatId) return;
+
       const normalized = sortMessages(history.map(mapGreenMessage));
+
       setMessages((current) => {
         const historyIds = new Set(normalized.map((message) => message.id));
+
         return sortMessages([
           ...normalized,
           ...current.filter((message) => !historyIds.has(message.id)),

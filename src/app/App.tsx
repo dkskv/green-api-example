@@ -32,9 +32,7 @@ export default function App() {
       <Layout style={{ minHeight: "100vh" }}>
         <Layout.Header>
           <Flex align="center" justify="space-between">
-            <Typography.Title level={4} style={{ margin: 0, color: "inherit" }}>
-              Telegram
-            </Typography.Title>
+            <Typography.Title level={4}>Telegram</Typography.Title>
             {credentials && (
               <Space>
                 <Tag>Сессия активна</Tag>
@@ -44,7 +42,7 @@ export default function App() {
           </Flex>
         </Layout.Header>
         <Layout.Content
-          style={{ width: "min(1100px, 100%)", margin: "0 auto", padding: 24 }}
+          style={{ width: "min(1100px, 100%)", margin: "0 auto" }}
         >
           {credentials ? (
             <MessengerPage credentials={credentials} />

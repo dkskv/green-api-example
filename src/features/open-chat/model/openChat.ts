@@ -15,9 +15,11 @@ export async function openTelegramChat(
   rawPhone: string,
 ): Promise<{ chat: VerifiedChat; messages: ChatMessage[] }> {
   const phone = normalizePhone(rawPhone);
+
   if (!phone) throw new Error("Введите номер с кодом страны: от 8 до 15 цифр.");
 
   const account = await checkTelegramAccount(credentials, Number(phone));
+
   if (account.status === false) {
     throw new Error(
       account.reason ??
@@ -25,6 +27,7 @@ export async function openTelegramChat(
         "Telegram не смог проверить номер.",
     );
   }
+
   if (!account.exist || !account.chatId) {
     throw new Error(
       "Аккаунт Telegram на этом номере не найден или номер скрыт настройками приватности.",
@@ -32,6 +35,7 @@ export async function openTelegramChat(
   }
 
   const history = await getChatHistory(credentials, account.chatId);
+
   return {
     chat: { phone, chatId: account.chatId },
     messages: sortMessages(history.map(mapGreenMessage)),

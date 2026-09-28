@@ -75,7 +75,7 @@ export function ChatWindow({
         <Alert
           type="warning"
           showIcon
-          message={connection.error}
+          title={connection.error}
           style={{ marginBottom: 12 }}
         />
       )}
@@ -83,7 +83,7 @@ export function ChatWindow({
         <Alert
           type="error"
           showIcon
-          message={error}
+          title={error}
           style={{ marginBottom: 12 }}
         />
       )}
@@ -96,7 +96,7 @@ export function ChatWindow({
           <Empty description="Откройте чат по номеру телефона" />
         ) : loadingHistory && messages.length === 0 ? (
           <Flex justify="center" style={{ padding: 32 }}>
-            <Spin tip="Загружаем историю…" />
+            <Spin description="Загружаем историю…" />
           </Flex>
         ) : messages.length === 0 ? (
           <Empty description="История пуста. Начните диалог сообщением." />
