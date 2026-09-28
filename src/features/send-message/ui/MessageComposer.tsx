@@ -3,16 +3,16 @@ import { useRef, useState, type FormEvent } from "react";
 import { SEND_ERROR_MESSAGES } from "@/features/send-message/model/errors";
 import { sendChatMessage } from "@/features/send-message/model/sendMessage";
 import { type ChatMessage } from "@/entities/message";
-import { type GreenApiCredentials } from "@/shared/api/green-api";
+import { type GreenApiClient } from "@/shared/api/green-api";
 
 type MessageComposerProps = {
-  credentials: GreenApiCredentials;
+  client: GreenApiClient;
   chatId: string;
   onSent: (message: ChatMessage) => void;
 };
 
 export function MessageComposer({
-  credentials,
+  client,
   chatId,
   onSent,
 }: MessageComposerProps) {
@@ -32,7 +32,7 @@ export function MessageComposer({
     setErrorMessage("");
 
     try {
-      const message = await sendChatMessage(credentials, chatId, text);
+      const message = await sendChatMessage(client, chatId, text);
 
       onSent(message);
 

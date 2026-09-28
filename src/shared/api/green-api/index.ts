@@ -1,15 +1,4 @@
-export {
-  validateTelegramSession,
-  enableTelegramNotifications,
-  deleteTelegramMessage,
-  acknowledgeTelegramNotification,
-  checkTelegramAccount,
-  getApiError,
-  getChatHistory,
-  getTelegramSettings,
-  receiveTelegramNotification,
-  sendTelegramMessage,
-} from "@/shared/api/green-api/client";
+export { GreenApiClient } from "@/shared/api/green-api/client";
 export type {
   CheckAccountResponse,
   GreenApiCredentials,

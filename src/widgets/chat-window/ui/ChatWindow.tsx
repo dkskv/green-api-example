@@ -17,10 +17,10 @@ import {
 } from "@/features/receive-messages";
 import { type VerifiedChat } from "@/entities/chat";
 import { MessageComposer } from "@/features/send-message";
-import { type GreenApiCredentials } from "@/shared/api/green-api";
+import { type GreenApiClient } from "@/shared/api/green-api";
 
 type ChatWindowProps = {
-  credentials: GreenApiCredentials;
+  client: GreenApiClient;
   chat: VerifiedChat | null;
   messages: ChatMessage[];
   loadingHistory: boolean;
@@ -32,7 +32,7 @@ type ChatWindowProps = {
 };
 
 export function ChatWindow({
-  credentials,
+  client,
   chat,
   messages,
   loadingHistory,
@@ -168,7 +168,7 @@ export function ChatWindow({
       {chat && (
         <MessageComposer
           key={chat.chatId}
-          credentials={credentials}
+          client={client}
           chatId={chat.chatId}
           onSent={(message) => onSent(chat.chatId, message)}
         />

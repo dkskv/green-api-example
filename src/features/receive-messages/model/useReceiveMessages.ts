@@ -6,17 +6,13 @@ import {
 } from "@/features/receive-messages/model/connection";
 import {
   WEBHOOK_SETTING,
-  acknowledgeTelegramNotification,
-  enableTelegramNotifications,
-  getTelegramSettings,
-  receiveTelegramNotification,
-  type GreenApiCredentials,
+  type GreenApiClient,
   type GreenNotificationDto,
 } from "@/shared/api/green-api";
 import { RECEIVE_ERROR_MESSAGES } from "@/features/receive-messages/model/errors";
 
 export function useReceiveMessages(
-  credentials: GreenApiCredentials,
+  client: GreenApiClient,
   onNotification: (notification: GreenNotificationDto) => string | void,
 ) {
   const [state, setState] = useState<ConnectionState>(
@@ -54,7 +50,7 @@ export function useReceiveMessages(
       while (!signal.aborted) {
         try {
           if (!settingsReady) {
-            const settings = await getTelegramSettings(credentials, signal);
+            const settings = await client.getSettings(signal);
 
             if (settings.webhookUrl.trim())
               throw new Error(RECEIVE_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
@@ -68,7 +64,7 @@ export function useReceiveMessages(
             ].every((value) => value === WEBHOOK_SETTING.ENABLED);
 
             if (!enabled && !settingsRequested) {
-              await enableTelegramNotifications(credentials, signal);
+              await client.enableNotifications(signal);
               settingsRequested = true;
 
               if (!signal.aborted) setNotice(NOTIFICATION_SETTINGS_NOTICE);
@@ -77,10 +73,7 @@ export function useReceiveMessages(
             settingsReady = true;
           }
 
-          const notification = await receiveTelegramNotification(
-            credentials,
-            signal,
-          );
+          const notification = await client.receiveNotification(signal);
 
           if (signal.aborted) return;
 
@@ -89,8 +82,7 @@ export function useReceiveMessages(
 
             if (warning) setDeliveryErrorMessage(warning);
 
-            await acknowledgeTelegramNotification(
-              credentials,
+            await client.acknowledgeNotification(
               notification.receiptId,
               signal,
             );
@@ -119,7 +111,7 @@ export function useReceiveMessages(
     void run();
 
     return () => controller.abort();
-  }, [credentials]);
+  }, [client]);
 
   return { state, errorMessage, notice, deliveryErrorMessage };
 }

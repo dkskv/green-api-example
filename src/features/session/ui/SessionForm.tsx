@@ -1,7 +1,7 @@
 import { Alert, Button, Card, Flex, Input, Typography } from "antd";
 import { useState, type SubmitEvent } from "react";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
-import { validateTelegramSession } from "@/shared/api/green-api";
+import { GreenApiClient } from "@/shared/api/green-api";
 import { saveCredentials } from "@/features/session/model/sessionStorage";
 import { type GreenApiCredentials } from "@/shared/api/green-api/types";
 
@@ -53,7 +53,9 @@ export function SessionForm({ onReady }: SessionFormProps) {
     setErrorMessage("");
 
     try {
-      await validateTelegramSession(credentials);
+      const client = new GreenApiClient(credentials);
+
+      await client.validateSession();
       saveCredentials(credentials);
       onReady(credentials);
     } catch (reason) {

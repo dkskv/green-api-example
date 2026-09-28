@@ -1,16 +1,12 @@
 import { MESSAGE_STATUS, mapGreenMessage } from "@/entities/message";
-import {
-  MESSAGE_TYPE,
-  sendTelegramMessage,
-  type GreenApiCredentials,
-} from "@/shared/api/green-api";
+import { MESSAGE_TYPE, type GreenApiClient } from "@/shared/api/green-api";
 
 export async function sendChatMessage(
-  credentials: GreenApiCredentials,
+  client: GreenApiClient,
   chatId: string,
   text: string,
 ) {
-  const result = await sendTelegramMessage(credentials, chatId, text);
+  const result = await client.sendMessage(chatId, text);
 
   return mapGreenMessage({
     idMessage: result.idMessage,

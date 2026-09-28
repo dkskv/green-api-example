@@ -7,15 +7,17 @@ import { useReceiveMessages } from "@/features/receive-messages";
 import { type VerifiedChat } from "@/entities/chat";
 import { createMessageStore, mapGreenMessage } from "@/entities/message";
 import {
-  getChatHistory,
-  deleteTelegramMessage,
+  type GreenApiClient,
   type GreenApiCredentials,
 } from "@/shared/api/green-api";
 import { ChatWindow } from "@/widgets/chat-window";
 
-type MessengerPageProps = { credentials: GreenApiCredentials };
+type MessengerPageProps = {
+  credentials: GreenApiCredentials;
+  client: GreenApiClient;
+};
 
-export function MessengerPage({ credentials }: MessengerPageProps) {
+export function MessengerPage({ credentials, client }: MessengerPageProps) {
   const [store] = useState(() => createMessageStore(credentials));
   const [chat, setChat] = useState<VerifiedChat | null>(readSavedChat);
   const [isOpening, setIsOpening] = useState(false);
@@ -27,7 +29,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
   const historyRequestRef = useRef(0);
   const mounted = useRef(false);
   const activeChatRef = useRef(chat?.chatId);
-  const connection = useReceiveMessages(credentials, store.receive);
+  const connection = useReceiveMessages(client, store.receive);
   const messages = useSyncExternalStore(store.subscribe, () =>
     store.getMessages(chat?.chatId ?? ""),
   );
@@ -39,7 +41,8 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     const requestId = ++historyRequestRef.current;
 
     if (saved) {
-      getChatHistory(credentials, saved.chatId, controller.signal)
+      client
+        .getChatHistory(saved.chatId, controller.signal)
         .then((history) => {
           if (!controller.signal.aborted)
             store.merge(saved.chatId, history.map(mapGreenMessage));
@@ -70,7 +73,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
       mounted.current = false;
       controller.abort();
     };
-  }, [credentials, store]);
+  }, [client, store]);
 
   async function handleOpen(phone: string): Promise<void> {
     const requestId = ++openRequestRef.current;
@@ -81,7 +84,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     setIsLoadingHistory(false);
 
     try {
-      const result = await openTelegramChat(credentials, phone);
+      const result = await openTelegramChat(client, phone);
 
       if (!mounted.current || requestId !== openRequestRef.current) return;
 
@@ -114,7 +117,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
     setIsLoadingHistory(true);
 
     try {
-      const history = await getChatHistory(credentials, chatId);
+      const history = await client.getChatHistory(chatId);
 
       if (!mounted.current) return;
 
@@ -134,7 +137,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
 
   async function deleteMessage(chatId: string, id: string) {
     try {
-      await deleteTelegramMessage(credentials, chatId, id);
+      await client.deleteMessage(chatId, id);
 
       if (mounted.current) store.remove(chatId, id);
     } catch (reason) {
@@ -158,7 +161,7 @@ export function MessengerPage({ credentials }: MessengerPageProps) {
         <Alert type="info" showIcon title={connection.notice} closable />
       )}
       <ChatWindow
-        credentials={credentials}
+        client={client}
         chat={chat}
         messages={messages}
         loadingHistory={isLoadingHistory}

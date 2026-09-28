@@ -5,21 +5,17 @@ import {
   sortMessages,
   type ChatMessage,
 } from "@/entities/message";
-import {
-  checkTelegramAccount,
-  getChatHistory,
-  type GreenApiCredentials,
-} from "@/shared/api/green-api";
+import { type GreenApiClient } from "@/shared/api/green-api";
 
 export async function openTelegramChat(
-  credentials: GreenApiCredentials,
+  client: GreenApiClient,
   rawPhone: string,
 ): Promise<{ chat: VerifiedChat; messages: ChatMessage[] }> {
   const phone = normalizePhone(rawPhone);
 
   if (!phone) throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
 
-  const account = await checkTelegramAccount(credentials, Number(phone));
+  const account = await client.checkAccount(Number(phone));
 
   if (account.status === false) {
     throw new Error(
@@ -33,7 +29,7 @@ export async function openTelegramChat(
     throw new Error(OPEN_CHAT_ERROR_MESSAGES.ACCOUNT_NOT_FOUND);
   }
 
-  const history = await getChatHistory(credentials, account.chatId);
+  const history = await client.getChatHistory(account.chatId);
 
   return {
     chat: { phone, chatId: account.chatId },

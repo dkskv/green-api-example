@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Spin,
@@ -18,23 +18,28 @@ import {
 } from "@/features/session";
 import { MessengerPage } from "@/pages/messenger";
 import { SessionPage } from "@/pages/session";
-import { validateTelegramSession } from "@/shared/api/green-api";
+import { GreenApiClient } from "@/shared/api/green-api";
 import "@/app/styles.css";
 
 export default function App() {
   const [credentials, setCredentials] = useState<GreenApiCredentials | null>(
     readCredentials,
   );
+  const client = useMemo(
+    () => (credentials ? new GreenApiClient(credentials) : null),
+    [credentials],
+  );
 
   const [verified, setVerified] = useState(false);
   const [sessionErrorMessage, setSessionErrorMessage] = useState("");
 
   useEffect(() => {
-    if (!credentials || verified) return;
+    if (!client || verified) return;
 
     const controller = new AbortController();
 
-    validateTelegramSession(credentials, controller.signal)
+    client
+      .validateSession(controller.signal)
       .then(() => {
         if (!controller.signal.aborted) setVerified(true);
       })
@@ -48,7 +53,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [credentials, verified]);
+  }, [client, verified]);
 
   function handleSignOut(): void {
     setVerified(false);
@@ -76,9 +81,9 @@ export default function App() {
         <Layout.Content
           style={{ width: "min(1100px, 100%)", margin: "0 auto" }}
         >
-          {credentials ? (
+          {credentials && client ? (
             verified ? (
-              <MessengerPage credentials={credentials} />
+              <MessengerPage credentials={credentials} client={client} />
             ) : sessionErrorMessage ? (
               <Alert type="error" title={sessionErrorMessage} />
             ) : (
