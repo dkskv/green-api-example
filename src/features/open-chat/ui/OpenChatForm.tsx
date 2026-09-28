@@ -26,7 +26,11 @@ export function OpenChatForm({
         name="open-chat"
         initialValues={{ phone: initialPhone }}
         onFinish={({ phone }) => {
-          if (!loading) return onOpen(phone);
+          if (loading) return;
+
+          const normalizedPhone = normalizePhone(phone);
+
+          if (normalizedPhone) return onOpen(normalizedPhone);
         }}
       >
         <Flex gap="small">

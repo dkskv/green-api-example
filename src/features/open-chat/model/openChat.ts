@@ -1,5 +1,5 @@
 import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
-import { normalizePhone, type VerifiedChat } from "@/entities/chat";
+import { type VerifiedChat } from "@/entities/chat";
 import {
   mapGreenMessage,
   sortMessages,
@@ -9,12 +9,8 @@ import { type GreenApiClient } from "@/shared/api/green-api";
 
 export async function openTelegramChat(
   client: GreenApiClient,
-  rawPhone: string,
+  phone: string,
 ): Promise<{ chat: VerifiedChat; messages: ChatMessage[] }> {
-  const phone = normalizePhone(rawPhone);
-
-  if (!phone) throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
-
   const account = await client.checkAccount(Number(phone));
 
   if (account.status === false) {
