@@ -46,46 +46,52 @@ export default function App() {
     <ConfigProvider locale={enUS} theme={{ algorithm: theme.darkAlgorithm }}>
       <AntApp>
         <Layout className={styles.layout}>
-          <Layout.Header>
-            <Flex align="center" justify="space-between">
-              <Typography.Title level={4}>{t("app.appName")}</Typography.Title>
-              {credentials && (
-                <Space>
-                  <Tag>{t("app.instance", { id: credentials.instanceId })}</Tag>
-                  <Tag>
-                    {verification?.status === "success"
-                      ? t("app.sessionActive")
-                      : t("app.sessionUnverified")}
-                  </Tag>
-                  <Button onClick={signOut}>{t("app.signOut")}</Button>
-                </Space>
-              )}
-            </Flex>
-          </Layout.Header>
-          <Layout.Content className={styles.content}>
-            {credentials && client ? (
-              verification?.status === "success" ? (
-                <MessengerSession
-                  key={`${credentials.apiUrl}:${credentials.instanceId}`}
-                  client={client}
-                />
-              ) : verification?.status === "error" ? (
-                <Alert
-                  type="error"
-                  title={translate(
-                    errorText(
-                      verification.error,
-                      SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
-                    ),
-                  )}
-                />
+          <Flex vertical gap="large">
+            <Layout.Header>
+              <Flex align="center" justify="space-between">
+                <Typography.Title level={4}>
+                  {t("app.appName")}
+                </Typography.Title>
+                {credentials && (
+                  <Space>
+                    <Tag>
+                      {t("app.instance", { id: credentials.instanceId })}
+                    </Tag>
+                    <Tag>
+                      {verification?.status === "success"
+                        ? t("app.sessionActive")
+                        : t("app.sessionUnverified")}
+                    </Tag>
+                    <Button onClick={signOut}>{t("app.signOut")}</Button>
+                  </Space>
+                )}
+              </Flex>
+            </Layout.Header>
+            <Layout.Content className={styles.content}>
+              {credentials && client ? (
+                verification?.status === "success" ? (
+                  <MessengerSession
+                    key={`${credentials.apiUrl}:${credentials.instanceId}`}
+                    client={client}
+                  />
+                ) : verification?.status === "error" ? (
+                  <Alert
+                    type="error"
+                    title={translate(
+                      errorText(
+                        verification.error,
+                        SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
+                      ),
+                    )}
+                  />
+                ) : (
+                  <Spin description={t("app.verifying")} />
+                )
               ) : (
-                <Spin description={t("app.verifying")} />
-              )
-            ) : (
-              <SessionPage onReady={acceptVerifiedSession} />
-            )}
-          </Layout.Content>
+                <SessionPage onReady={acceptVerifiedSession} />
+              )}
+            </Layout.Content>
+          </Flex>
         </Layout>
       </AntApp>
     </ConfigProvider>

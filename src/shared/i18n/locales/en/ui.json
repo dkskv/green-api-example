@@ -1,6 +1,6 @@
 {
   "app": {
-    "appName": "Telegram",
+    "appName": "Telegram (GREEN-API)",
     "instance": "Instance {{id}}",
     "sessionActive": "Session active",
     "sessionUnverified": "Session not verified",
@@ -22,7 +22,7 @@
     "title": "New conversation",
     "description": "Enter a phone number in international format.",
     "phone": "Phone number",
-    "phonePlaceholder": "+7 999 123-45-67",
+    "phonePlaceholder": "79991234567",
     "open": "Open chat"
   },
   "messageComposer": {
@@ -36,7 +36,7 @@
     "loading": "Loading history…",
     "empty": "No messages yet. Send a message to start the conversation.",
     "noChat": "No chat selected",
-    "refresh": "Refresh history",
+    "refresh": "Force refresh history",
     "historyNotice_one": "The latest {{count}} message is loaded when you open a chat.",
     "historyNotice_other": "The latest {{count}} messages are loaded when you open a chat."
   },

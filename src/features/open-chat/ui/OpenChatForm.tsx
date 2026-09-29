@@ -10,7 +10,7 @@ import {
   Typography,
   type FormItemProps,
 } from "antd";
-import { normalizePhoneNumber } from "@/entities/contact";
+import { formatPhoneNumber, normalizePhoneNumber } from "@/entities/contact";
 import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
 
 type OpenChatFormValues = {
@@ -70,7 +70,9 @@ export function OpenChatForm({
               aria-label={t("openChatForm.phone")}
               inputMode="tel"
               autoComplete="tel"
-              placeholder={t("openChatForm.phonePlaceholder")}
+              placeholder={formatPhoneNumber(
+                t("openChatForm.phonePlaceholder"),
+              )}
             />
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={loading}>

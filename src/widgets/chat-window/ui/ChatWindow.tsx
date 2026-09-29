@@ -12,13 +12,14 @@ import {
   Spin,
   Tag,
   Typography,
+  theme,
 } from "antd";
 import { type ChatMessage } from "@/entities/message";
 import {
   CONNECTION_STATE_LABELS,
   type ConnectionState,
 } from "@/features/receive-messages";
-import { type VerifiedContact } from "@/entities/contact";
+import { formatPhoneNumber, type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 import { ChatMessageItem } from "./ChatMessageItem";
 
@@ -63,6 +64,7 @@ export function ChatWindow({
   deletingIds,
   onDelete,
 }: ChatWindowProps) {
+  const { token } = theme.useToken();
   const translate = useDisplayText();
   const { t } = useTranslation("ui");
   const headerActions = contact && (
@@ -112,12 +114,18 @@ export function ChatWindow({
 
   return (
     <Card
-      title={contact ? `+${contact.phone}` : t("chatWindow.noChat")}
+      title={
+        contact ? formatPhoneNumber(contact.phone) : t("chatWindow.noChat")
+      }
       extra={headerActions}
     >
       <Flex vertical gap="middle">
         {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
-        <div className={styles.history} aria-live="polite">
+        <div
+          className={styles.history}
+          style={{ paddingInline: token.paddingSM }}
+          aria-live="polite"
+        >
           {renderHistory()}
         </div>
         {contact && (

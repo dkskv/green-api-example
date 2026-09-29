@@ -9,7 +9,7 @@
   },
   "connection": {
     "connecting": "Connecting",
-    "online": "Receiving messages",
+    "online": "Listening for notifications",
     "error": "Connection error"
   },
   "placeholders": {

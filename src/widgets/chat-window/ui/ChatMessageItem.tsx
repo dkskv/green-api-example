@@ -1,7 +1,7 @@
 import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./ChatMessageItem.module.css";
-import { Button, Card, Flex, List, Typography } from "antd";
+import { Button, Card, Flex, List, Typography, theme } from "antd";
 import { getMessageStatusLabel, type ChatMessage } from "@/entities/message";
 import { formatMessageTime } from "../lib/formatMessageTime";
 
@@ -16,6 +16,7 @@ export function ChatMessageItem({
   deleting,
   onDelete,
 }: ChatMessageItemProps) {
+  const { token } = theme.useToken();
   const translate = useDisplayText();
   const { t, i18n } = useTranslation("ui");
   const outgoing = message.direction === "outgoing";
@@ -23,7 +24,15 @@ export function ChatMessageItem({
 
   return (
     <List.Item className={outgoing ? styles.outgoing : styles.incoming}>
-      <Card size="small" className={styles.card}>
+      <Card
+        size="small"
+        className={styles.card}
+        style={{
+          backgroundColor: outgoing
+            ? token.colorPrimaryBg
+            : token.colorBgContainer,
+        }}
+      >
         <Flex vertical gap="small">
           <Typography.Text className={styles.text}>
             {message.text ||
@@ -44,15 +53,20 @@ export function ChatMessageItem({
             )}
           </Flex>
           {outgoing && (
-            <Button
-              size="small"
-              type="text"
-              danger
-              loading={deleting}
-              onClick={handleDelete}
-            >
-              {t("chatMessageItem.delete")}
-            </Button>
+            <Flex justify="flex-end">
+              <Button
+                size="small"
+                type="text"
+                style={{
+                  color: token.colorTextSecondary,
+                  fontSize: token.fontSizeSM,
+                }}
+                loading={deleting}
+                onClick={handleDelete}
+              >
+                {t("chatMessageItem.delete")}
+              </Button>
+            </Flex>
           )}
         </Flex>
       </Card>
