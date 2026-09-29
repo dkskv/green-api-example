@@ -1,3 +1,4 @@
+import type { DisplayText } from "@/shared/i18n/text";
 import { useEffect, useState } from "react";
 import {
   CONNECTION_STATE,
@@ -10,13 +11,14 @@ import { runNotificationLoop } from "@/features/receive-messages/model/runNotifi
 
 export function useReceiveMessages(
   client: ChatClient,
-  onNotification: (notification: ChatEvent) => string | void,
+  onNotification: (notification: ChatEvent) => DisplayText | void,
 ) {
   const [connection, setConnection] = useState<Connection>({
     status: CONNECTION_STATE.CONNECTING,
   });
-  const [notice, setNotice] = useState("");
-  const [deliveryErrorMessage, setDeliveryErrorMessage] = useState("");
+  const [notice, setNotice] = useState<DisplayText>("");
+  const [deliveryErrorMessage, setDeliveryErrorMessage] =
+    useState<DisplayText>("");
   const handler = useActualRef(onNotification);
 
   useEffect(() => {

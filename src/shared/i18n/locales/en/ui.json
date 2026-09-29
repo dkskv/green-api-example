@@ -1,0 +1,46 @@
+{
+  "app": {
+    "appName": "Telegram",
+    "sessionActive": "Session active",
+    "sessionUnverified": "Session not verified",
+    "signOut": "Sign out",
+    "verifying": "Verifying session…"
+  },
+  "sessionForm": {
+    "title": "Connect instance",
+    "description": "Enter your GREEN API Telegram instance credentials.",
+    "apiUrl": "API URL",
+    "instanceId": "Instance ID",
+    "apiToken": "API token",
+    "tokenPlaceholder": "Enter your token",
+    "instancePlaceholder": "4100XXXXXXXX",
+    "continue": "Continue",
+    "storageNotice": "Credentials are stored in this browser for development. Do not use this storage approach in production."
+  },
+  "openChatForm": {
+    "title": "New conversation",
+    "description": "Enter a phone number in international format.",
+    "phone": "Phone number",
+    "phonePlaceholder": "+7 999 123-45-67",
+    "open": "Open chat"
+  },
+  "messageComposer": {
+    "required": "Enter a message.",
+    "label": "Message text",
+    "placeholder": "Write a message…",
+    "send": "Send"
+  },
+  "chatWindow": {
+    "openChat": "Open a chat using a phone number",
+    "loading": "Loading history…",
+    "empty": "No messages yet. Send a message to start the conversation.",
+    "noChat": "No chat selected",
+    "refresh": "Refresh history",
+    "historyNotice_one": "The latest {{count}} message is loaded when you open a chat.",
+    "historyNotice_other": "The latest {{count}} messages are loaded when you open a chat."
+  },
+  "chatMessageItem": {
+    "empty": "Message has no text content",
+    "delete": "Delete for everyone"
+  }
+}

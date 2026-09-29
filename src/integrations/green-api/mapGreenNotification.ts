@@ -1,3 +1,4 @@
+import { AppError } from "@/shared/i18n/text";
 import { type GreenNotificationDto } from "./api/types";
 import { type ChatEvent } from "@/entities/message";
 import { isFailureStatus } from "@/entities/message/model/status";
@@ -20,7 +21,7 @@ export function mapGreenNotification({
     }
 
     if (!chatId || !body.idMessage || !body.status)
-      throw new Error(GREEN_CHAT_ERRORS.INVALID_STATUS_NOTIFICATION);
+      throw new AppError(GREEN_CHAT_ERRORS.INVALID_STATUS_NOTIFICATION);
 
     return {
       type: "messageStatusChanged",
@@ -41,19 +42,19 @@ export function mapGreenNotification({
   )
     return null;
 
-  if (!chatId) throw new Error(GREEN_CHAT_ERRORS.MISSING_CHAT);
+  if (!chatId) throw new AppError(GREEN_CHAT_ERRORS.MISSING_CHAT);
 
   if (body.messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
     const messageId = body.messageData.deletedMessageData?.stanzaId;
 
     if (!messageId)
-      throw new Error(GREEN_CHAT_ERRORS.MISSING_DELETED_MESSAGE_ID);
+      throw new AppError(GREEN_CHAT_ERRORS.MISSING_DELETED_MESSAGE_ID);
 
     return { type: "messageDeleted", chatId, messageId };
   }
 
   if (!body.idMessage || !body.messageData)
-    throw new Error(GREEN_CHAT_ERRORS.INVALID_NOTIFICATION);
+    throw new AppError(GREEN_CHAT_ERRORS.INVALID_NOTIFICATION);
 
   return {
     type: "messageReceived",

@@ -1,3 +1,5 @@
+import { useDisplayText } from "@/shared/i18n/useDisplayText";
+import { useTranslation } from "@/shared/i18n";
 import styles from "./ChatWindow.module.css";
 import {
   Alert,
@@ -61,11 +63,13 @@ export function ChatWindow({
   deletingIds,
   onDelete,
 }: ChatWindowProps) {
+  const translate = useDisplayText();
+  const { t } = useTranslation("ui");
   const headerActions = contact && (
     <Space size="small">
-      <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
+      <Tag>{translate(CONNECTION_STATE_LABELS[connectionState])}</Tag>
       <Button onClick={onRefresh} loading={loadingHistory}>
-        Refresh history
+        {t("chatWindow.refresh")}
       </Button>
     </Space>
   );
@@ -79,21 +83,19 @@ export function ChatWindow({
   );
   const renderHistory = () => {
     if (!contact) {
-      return <Empty description="Open a chat using a phone number" />;
+      return <Empty description={t("chatWindow.openChat")} />;
     }
 
     if (loadingHistory && messages.length === 0) {
       return (
         <Flex justify="center" className={styles.loading}>
-          <Spin description="Loading history…" />
+          <Spin description={t("chatWindow.loading")} />
         </Flex>
       );
     }
 
     if (messages.length === 0) {
-      return (
-        <Empty description="No messages yet. Send a message to start the conversation." />
-      );
+      return <Empty description={t("chatWindow.empty")} />;
     }
 
     return (
@@ -110,7 +112,7 @@ export function ChatWindow({
 
   return (
     <Card
-      title={contact ? `+${contact.phone}` : "No chat selected"}
+      title={contact ? `+${contact.phone}` : t("chatWindow.noChat")}
       extra={headerActions}
     >
       <Flex vertical gap="middle">

@@ -1,3 +1,5 @@
+import { TranslatedText } from "@/shared/i18n/TranslatedText";
+import { useTranslation } from "@/shared/i18n";
 import styles from "./MessageComposer.module.css";
 import { Button, Flex, Form, Input, Typography } from "antd";
 import { useRef } from "react";
@@ -17,6 +19,7 @@ export function MessageComposer({
   sending,
   errorMessage,
 }: MessageComposerProps) {
+  const { t } = useTranslation("ui");
   const [form] = Form.useForm<MessageComposerValues>();
   const draft = Form.useWatch("draft", form) ?? "";
   const draftVersion = useRef(0);
@@ -51,13 +54,17 @@ export function MessageComposer({
             {
               required: true,
               whitespace: true,
-              message: "Enter a message.",
+              message: (
+                <TranslatedText
+                  value={{ key: "ui:messageComposer.required" }}
+                />
+              ),
             },
           ]}
         >
           <Input.TextArea
-            aria-label="Message text"
-            placeholder="Write a message…"
+            aria-label={t("messageComposer.label")}
+            placeholder={t("messageComposer.placeholder")}
             autoSize={{ minRows: 1, maxRows: 4 }}
           />
         </Form.Item>
@@ -67,7 +74,7 @@ export function MessageComposer({
           disabled={!draft.trim()}
           loading={sending}
         >
-          Send
+          {t("messageComposer.send")}
         </Button>
       </Flex>
       {errorMessage && (

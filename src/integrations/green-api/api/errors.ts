@@ -1,8 +1,12 @@
+import { text } from "@/shared/i18n/text";
+
 export const API_ERROR_MESSAGES = {
-  INVALID_HISTORY: "Telegram API returned an invalid chat history.",
-  NOTIFICATION_NOT_ACKNOWLEDGED: "The notification was not acknowledged.",
+  INVALID_HISTORY: text("errors:api.INVALID_HISTORY"),
+  NOTIFICATION_NOT_ACKNOWLEDGED: text(
+    "errors:api.NOTIFICATION_NOT_ACKNOWLEDGED",
+  ),
   receiveRejected: (status: number) =>
-    `GREEN API rejected ReceiveNotification (HTTP ${status}).`,
+    text("errors:api.receiveRejected", { status }),
   instanceNotReady: (state: string) =>
-    `Instance is not ready: ${state}. Check its authorization in GREEN API.`,
+    text("errors:api.instanceNotReady", { state }),
 } as const;

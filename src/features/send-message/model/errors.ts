@@ -1,4 +1,9 @@
+import { errorText } from "@/shared/i18n/text";
+import { text } from "@/shared/i18n/text";
+
 export const SEND_ERROR_MESSAGES = {
   sendFailed: (reason: unknown) =>
-    `Message not sent. Your draft has been kept. ${reason instanceof Error ? reason.message : "Please try again."}`,
+    text("errors:send.failed", {
+      reason: errorText(reason, text("errors:send.retry")),
+    }),
 } as const;

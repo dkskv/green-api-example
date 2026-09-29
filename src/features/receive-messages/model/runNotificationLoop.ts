@@ -1,3 +1,5 @@
+import type { DisplayText } from "@/shared/i18n/text";
+import { errorText } from "@/shared/i18n/text";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
 import { runPolling } from "@/shared/lib/polling";
@@ -17,7 +19,7 @@ type NotificationLoopOptions = {
   /** Обновление состояния соединения. */
   onConnectionChange: (connection: Connection) => void;
   /** Показ уведомления пользователю. */
-  onNotice: (notice: string) => void;
+  onNotice: (notice: DisplayText) => void;
 };
 
 export async function runNotificationLoop({
@@ -67,10 +69,7 @@ export async function runNotificationLoop({
     onError: (reason) => {
       onConnectionChange({
         status: CONNECTION_STATE.ERROR,
-        message:
-          reason instanceof Error
-            ? reason.message
-            : RECEIVE_ERROR_MESSAGES.RECEIVE_FAILED,
+        message: errorText(reason, RECEIVE_ERROR_MESSAGES.RECEIVE_FAILED),
       });
     },
   });

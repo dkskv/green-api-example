@@ -1,3 +1,5 @@
+import { text } from "@/shared/i18n/text";
+
 export const OPEN_CHAT_ERROR_MESSAGES = {
-  INVALID_PHONE: "Enter a phone number with a country code (8–15 digits).",
+  INVALID_PHONE: text("errors:openChat.INVALID_PHONE"),
 } as const;

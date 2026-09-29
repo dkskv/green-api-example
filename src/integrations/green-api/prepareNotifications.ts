@@ -1,3 +1,4 @@
+import { AppError } from "@/shared/i18n/text";
 import { type GreenApiClient } from "./api/client";
 import { WEBHOOK_SETTING } from "./api/constants";
 import { GREEN_CHAT_ERRORS } from "./errors";
@@ -12,7 +13,7 @@ export async function prepareNotifications(
   signal.throwIfAborted();
 
   if (settings.webhookUrl.trim())
-    throw new Error(GREEN_CHAT_ERRORS.WEBHOOK_URL_CONFIGURED);
+    throw new AppError(GREEN_CHAT_ERRORS.WEBHOOK_URL_CONFIGURED);
 
   const enabled = [
     settings.incomingWebhook,

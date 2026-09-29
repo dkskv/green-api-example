@@ -1,3 +1,4 @@
+import { errorText } from "@/shared/i18n/text";
 import { useState } from "react";
 import { useStore } from "zustand";
 import { contactStore } from "@/features/session";
@@ -40,7 +41,7 @@ export function useMessenger(client: ChatClient) {
     .filter(({ error }) => error)
     .map(({ operation, error, fallback }) => ({
       operation,
-      message: error instanceof Error ? error.message : fallback,
+      message: errorText(error, fallback),
     }));
 
   return {

@@ -1,12 +1,15 @@
+import { text } from "@/shared/i18n/text";
+
 export const GREEN_CHAT_ERRORS = {
-  WEBHOOK_URL_CONFIGURED:
-    "Clear webhookUrl in your GREEN API settings to receive notifications through HTTP polling.",
-  CHECK_FAILED: "Telegram could not verify the phone number.",
-  ACCOUNT_NOT_FOUND:
-    "No Telegram account was found, or the phone number is hidden by privacy settings.",
-  INVALID_STATUS_NOTIFICATION: "Invalid message status notification.",
-  MISSING_CHAT: "The notification is missing a chat ID.",
-  MISSING_DELETED_MESSAGE_ID:
-    "The deletion notification is missing a message ID.",
-  INVALID_NOTIFICATION: "Invalid message notification.",
+  WEBHOOK_URL_CONFIGURED: text("errors:greenApi.WEBHOOK_URL_CONFIGURED"),
+  CHECK_FAILED: text("errors:greenApi.CHECK_FAILED"),
+  ACCOUNT_NOT_FOUND: text("errors:greenApi.ACCOUNT_NOT_FOUND"),
+  INVALID_STATUS_NOTIFICATION: text(
+    "errors:greenApi.INVALID_STATUS_NOTIFICATION",
+  ),
+  MISSING_CHAT: text("errors:greenApi.MISSING_CHAT"),
+  MISSING_DELETED_MESSAGE_ID: text(
+    "errors:greenApi.MISSING_DELETED_MESSAGE_ID",
+  ),
+  INVALID_NOTIFICATION: text("errors:greenApi.INVALID_NOTIFICATION"),
 } as const;

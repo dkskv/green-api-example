@@ -1,8 +1,10 @@
+import { text } from "@/shared/i18n/text";
+
 export const MESSENGER_ERROR_MESSAGES = {
-  OPEN_FAILED: "Could not open the chat.",
-  REFRESH_FAILED: "Could not refresh the chat history.",
-  DELETE_FAILED: "Could not delete the message.",
-  API_ERROR: "API error",
+  OPEN_FAILED: text("errors:messenger.OPEN_FAILED"),
+  REFRESH_FAILED: text("errors:messenger.REFRESH_FAILED"),
+  DELETE_FAILED: text("errors:messenger.DELETE_FAILED"),
+  API_ERROR: text("errors:messenger.API_ERROR"),
   restoreFailed: (reason: string) =>
-    `Could not restore chat history: ${reason}`,
+    text("errors:messenger.restoreFailed", { reason }),
 } as const;

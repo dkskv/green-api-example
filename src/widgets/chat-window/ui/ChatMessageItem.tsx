@@ -1,3 +1,5 @@
+import { useDisplayText } from "@/shared/i18n/useDisplayText";
+import { useTranslation } from "@/shared/i18n";
 import styles from "./ChatMessageItem.module.css";
 import { Button, Card, Flex, List, Typography } from "antd";
 import { getMessageStatusLabel, type ChatMessage } from "@/entities/message";
@@ -14,6 +16,8 @@ export function ChatMessageItem({
   deleting,
   onDelete,
 }: ChatMessageItemProps) {
+  const translate = useDisplayText();
+  const { t, i18n } = useTranslation("ui");
   const outgoing = message.direction === "outgoing";
   const handleDelete = () => onDelete(message.id);
 
@@ -22,15 +26,20 @@ export function ChatMessageItem({
       <Card size="small" className={styles.card}>
         <Flex vertical gap="small">
           <Typography.Text className={styles.text}>
-            {message.text || "Message has no text content"}
+            {message.text ||
+              (message.placeholder
+                ? translate(message.placeholder)
+                : t("chatMessageItem.empty"))}
           </Typography.Text>
           <Flex justify="flex-end" gap="small">
             <Typography.Text type="secondary">
-              {formatMessageTime(message.timestamp)}
+              {message.timestamp
+                ? formatMessageTime(message.timestamp, i18n.resolvedLanguage)
+                : translate({ key: "messages:now" })}
             </Typography.Text>
             {outgoing && (
               <Typography.Text type="secondary">
-                {getMessageStatusLabel(message.status)}
+                {translate(getMessageStatusLabel(message.status) ?? "")}
               </Typography.Text>
             )}
           </Flex>
@@ -42,7 +51,7 @@ export function ChatMessageItem({
               loading={deleting}
               onClick={handleDelete}
             >
-              Delete for everyone
+              {t("chatMessageItem.delete")}
             </Button>
           )}
         </Flex>

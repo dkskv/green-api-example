@@ -1,3 +1,4 @@
+import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { Alert, Flex } from "antd";
 import { useMessenger } from "@/pages/messenger/model/useMessenger";
 import { OpenChatForm } from "@/features/open-chat";
@@ -11,6 +12,7 @@ type MessengerPageProps = {
 };
 
 export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
+  const translate = useDisplayText();
   const messenger = useMessenger(client);
   const { connection, opening, history } = messenger;
 
@@ -18,27 +20,41 @@ export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
     <Flex vertical gap="middle">
       <OpenChatForm loading={opening.isPending} onOpen={opening.openChat} />
       {messenger.errors.map(({ operation, message }) => (
-        <Alert key={operation} type="error" showIcon title={message} />
+        <Alert
+          key={operation}
+          type="error"
+          showIcon
+          title={translate(message)}
+        />
       ))}
       {connection.deliveryErrorMessage && (
-        <Alert type="error" showIcon title={connection.deliveryErrorMessage} />
+        <Alert
+          type="error"
+          showIcon
+          title={translate(connection.deliveryErrorMessage)}
+        />
       )}
       {connection.notice && (
-        <Alert type="info" showIcon title={connection.notice} closable />
+        <Alert
+          type="info"
+          showIcon
+          title={translate(connection.notice)}
+          closable
+        />
       )}
       <ChatWindow
         contact={messenger.activeContact}
         messages={messenger.messages}
         historyNotice={historyNotice}
         loadingHistory={history.isFetching}
-        errorMessage={connection.errorMessage}
+        errorMessage={translate(connection.errorMessage)}
         connectionState={connection.state}
         onRefresh={() => void history.refetch()}
         onSend={messenger.sendMessage}
         sending={messenger.sending}
         sendErrorMessage={
           messenger.sendError
-            ? SEND_ERROR_MESSAGES.sendFailed(messenger.sendError)
+            ? translate(SEND_ERROR_MESSAGES.sendFailed(messenger.sendError))
             : ""
         }
         deletingIds={messenger.deletingIds}

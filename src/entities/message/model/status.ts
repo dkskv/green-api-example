@@ -1,3 +1,6 @@
+import type { DisplayText } from "@/shared/i18n/text";
+import { text } from "@/shared/i18n/text";
+
 export const MESSAGE_STATUS = {
   PENDING: "pending",
   SENT: "sent",
@@ -10,13 +13,13 @@ export const MESSAGE_STATUS = {
 export type MessageStatus =
   (typeof MESSAGE_STATUS)[keyof typeof MESSAGE_STATUS];
 
-export const MESSAGE_STATUS_LABELS: Record<MessageStatus, string> = {
-  [MESSAGE_STATUS.PENDING]: "Queued",
-  [MESSAGE_STATUS.SENT]: "Sent",
-  [MESSAGE_STATUS.DELIVERED]: "Delivered",
-  [MESSAGE_STATUS.READ]: "Read",
-  [MESSAGE_STATUS.FAILED]: "Failed to send",
-  [MESSAGE_STATUS.NO_ACCOUNT]: "Account not found",
+export const MESSAGE_STATUS_LABELS: Record<MessageStatus, DisplayText> = {
+  [MESSAGE_STATUS.PENDING]: text("messages:status.pending"),
+  [MESSAGE_STATUS.SENT]: text("messages:status.sent"),
+  [MESSAGE_STATUS.DELIVERED]: text("messages:status.delivered"),
+  [MESSAGE_STATUS.READ]: text("messages:status.read"),
+  [MESSAGE_STATUS.FAILED]: text("messages:status.failed"),
+  [MESSAGE_STATUS.NO_ACCOUNT]: text("messages:status.no_account"),
 };
 
 const DELIVERY_STATUS_ORDER: Partial<Record<MessageStatus, number>> = {
@@ -36,7 +39,9 @@ export function isFailureStatus(status?: string): boolean {
   );
 }
 
-export function getMessageStatusLabel(status?: string): string | undefined {
+export function getMessageStatusLabel(
+  status?: string,
+): DisplayText | undefined {
   return status && isMessageStatus(status)
     ? MESSAGE_STATUS_LABELS[status]
     : status;

@@ -1,3 +1,6 @@
+import type { DisplayText } from "@/shared/i18n/text";
+import { AppError } from "@/shared/i18n/text";
+import { text } from "@/shared/i18n/text";
 import { type GreenApiCredentials } from "../credentials";
 import { z } from "zod";
 import {
@@ -45,7 +48,7 @@ export class GreenApiClient {
     const data = (await response.json()) as unknown;
 
     if (!Array.isArray(data))
-      throw new Error(API_ERROR_MESSAGES.INVALID_HISTORY);
+      throw new AppError(API_ERROR_MESSAGES.INVALID_HISTORY);
 
     return z.array(greenMessageSchema).parse(data);
   }
@@ -95,7 +98,7 @@ export class GreenApiClient {
     } | null;
 
     if (result?.result !== true)
-      throw new Error(
+      throw new AppError(
         result?.reason || API_ERROR_MESSAGES.NOTIFICATION_NOT_ACKNOWLEDGED,
       );
   }
@@ -107,7 +110,7 @@ export class GreenApiClient {
       .parse(await response.json());
 
     if (stateInstance !== INSTANCE_STATE.AUTHORIZED)
-      throw new Error(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
+      throw new AppError(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
   }
 
   async enableNotifications(signal: AbortSignal): Promise<void> {
@@ -167,15 +170,15 @@ export class GreenApiClient {
         response.status >= 400 &&
         response.status < 500
       )
-        throw new Error(API_ERROR_MESSAGES.receiveRejected(response.status));
+        throw new AppError(API_ERROR_MESSAGES.receiveRejected(response.status));
 
-      throw new Error(await this.getApiError(response));
+      throw new AppError(await this.getApiError(response));
     }
 
     return response;
   }
 
-  private async getApiError(response: Response): Promise<string> {
+  private async getApiError(response: Response): Promise<DisplayText> {
     const payload = (await response.json().catch(() => null)) as {
       message?: string;
       reason?: string;
@@ -189,7 +192,7 @@ export class GreenApiClient {
       payload?.error;
 
     return reason
-      ? `HTTP ${response.status}: ${reason}`
-      : `HTTP ${response.status}`;
+      ? text("errors:api.httpWithReason", { status: response.status, reason })
+      : text("errors:api.http", { status: response.status });
   }
 }

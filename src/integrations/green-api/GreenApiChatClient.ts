@@ -1,3 +1,5 @@
+import type { DisplayText } from "@/shared/i18n/text";
+import { AppError } from "@/shared/i18n/text";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
@@ -6,7 +8,7 @@ import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
 import { prepareNotifications } from "./prepareNotifications";
 import { GREEN_CHAT_ERRORS } from "./errors";
-import { NOTIFICATION_SETTINGS_NOTICE } from "./notices";
+import { getNotificationSettingsNotice } from "./notices";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {
@@ -24,14 +26,14 @@ export class GreenApiChatClient implements ChatClient {
     const account = await this.api.checkAccount(Number(phone));
 
     if (account.status === false)
-      throw new Error(
+      throw new AppError(
         account.reason ??
           account.data?.reason ??
           GREEN_CHAT_ERRORS.CHECK_FAILED,
       );
 
     if (!account.exist || !account.chatId)
-      throw new Error(GREEN_CHAT_ERRORS.ACCOUNT_NOT_FOUND);
+      throw new AppError(GREEN_CHAT_ERRORS.ACCOUNT_NOT_FOUND);
 
     return { phone, chatId: account.chatId };
   }
@@ -61,10 +63,12 @@ export class GreenApiChatClient implements ChatClient {
     return this.api.deleteMessage(chatId, messageId);
   }
 
-  async prepareNotifications(signal: AbortSignal): Promise<string | undefined> {
+  async prepareNotifications(
+    signal: AbortSignal,
+  ): Promise<DisplayText | undefined> {
     const changed = await prepareNotifications(this.api, signal);
 
-    return changed ? NOTIFICATION_SETTINGS_NOTICE : undefined;
+    return changed ? getNotificationSettingsNotice() : undefined;
   }
 
   async receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null> {

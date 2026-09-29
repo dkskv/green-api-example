@@ -1,3 +1,5 @@
+import { TranslatedText } from "@/shared/i18n/TranslatedText";
+import { useTranslation } from "@/shared/i18n";
 import styles from "./OpenChatForm.module.css";
 import {
   Button,
@@ -26,12 +28,16 @@ export function OpenChatForm({
   loading,
   onOpen,
 }: OpenChatFormProps) {
+  const { t } = useTranslation("ui");
   const initialValues = { phone: initialPhone };
   const phoneRules: FormItemProps["rules"] = [
     {
+      message: (
+        <TranslatedText value={OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE} />
+      ),
       validator: async (_, value: string | undefined) => {
         if (!normalizePhoneNumber(value ?? "")) {
-          throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
+          throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE.key);
         }
       },
     },
@@ -45,9 +51,9 @@ export function OpenChatForm({
   };
 
   return (
-    <Card title="New conversation">
+    <Card title={t("openChatForm.title")}>
       <Typography.Paragraph type="secondary">
-        Enter a phone number in international format.
+        {t("openChatForm.description")}
       </Typography.Paragraph>
       <Form<OpenChatFormValues>
         name="open-chat"
@@ -57,14 +63,14 @@ export function OpenChatForm({
         <Flex gap="small">
           <Form.Item name="phone" className={styles.phone} rules={phoneRules}>
             <Input
-              aria-label="Phone number"
+              aria-label={t("openChatForm.phone")}
               inputMode="tel"
               autoComplete="tel"
-              placeholder="+7 999 123-45-67"
+              placeholder={t("openChatForm.phonePlaceholder")}
             />
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={loading}>
-            Open chat
+            {t("openChatForm.open")}
           </Button>
         </Flex>
       </Form>

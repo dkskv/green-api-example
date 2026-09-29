@@ -1,4 +1,9 @@
+import { text } from "@/shared/i18n/text";
+
 export const MESSAGE_ERROR_MESSAGES = {
   sendFailed: (chatId?: string, description?: string) =>
-    `Failed to send a message to chat ${chatId ?? "unknown"}: ${description ?? "unknown error"}`,
+    text("errors:message.sendFailed", {
+      chatId: chatId ?? text("errors:message.unknownChat"),
+      description: description ?? text("errors:message.unknownError"),
+    }),
 } as const;

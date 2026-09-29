@@ -1,3 +1,4 @@
+import { errorText } from "@/shared/i18n/text";
 import { createGreenApiChatClient } from "@/integrations/green-api";
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
@@ -28,9 +29,7 @@ export function useSession() {
         if (!controller.signal.aborted) {
           credentialsStore.setVerification(
             credentials,
-            reason instanceof Error
-              ? reason.message
-              : SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
+            errorText(reason, SESSION_ERROR_MESSAGES.VERIFICATION_FAILED),
           );
         }
       });

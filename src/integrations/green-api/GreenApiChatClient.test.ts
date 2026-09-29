@@ -82,7 +82,7 @@ describe("GreenApiChatClient", () => {
     expect(api.checkAccount).toHaveBeenCalledWith(12345678);
 
     await expect(client.resolveContact("12345678")).rejects.toThrow(
-      "No Telegram account",
+      "errors:greenApi.ACCOUNT_NOT_FOUND",
     );
 
     await expect(client.resolveContact("12345678")).rejects.toThrow(
@@ -139,14 +139,14 @@ describe("GreenApiChatClient", () => {
     expect(await client.prepareNotifications(signal)).toBeUndefined();
     expect(enable).not.toHaveBeenCalled();
 
-    expect(await client.prepareNotifications(signal)).toContain(
-      "Notifications enabled",
-    );
+    expect(await client.prepareNotifications(signal)).toMatchObject({
+      key: "messages:notificationsEnabled",
+    });
 
     expect(enable).toHaveBeenCalledTimes(1);
 
     await expect(client.prepareNotifications(signal)).rejects.toThrow(
-      "Clear webhookUrl",
+      "errors:greenApi.WEBHOOK_URL_CONFIGURED",
     );
 
     expect(enable).toHaveBeenCalledTimes(1);
@@ -225,13 +225,13 @@ describe("mapGreenNotification", () => {
         receiptId: 1,
         body: { typeWebhook: "outgoingMessageStatus", status: "read" },
       }),
-    ).toThrow("Invalid message status");
+    ).toThrow("errors:greenApi.INVALID_STATUS_NOTIFICATION");
 
     expect(() =>
       mapGreenNotification({
         receiptId: 1,
         body: { typeWebhook: "incomingMessageReceived" },
       }),
-    ).toThrow("missing a chat ID");
+    ).toThrow("errors:greenApi.MISSING_CHAT");
   });
 });

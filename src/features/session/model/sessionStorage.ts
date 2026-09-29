@@ -1,3 +1,4 @@
+import type { DisplayText } from "@/shared/i18n/text";
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 import {
@@ -46,7 +47,7 @@ export class ContactStore {
 type CredentialsState = {
   credentials: GreenApiCredentials | null;
   verified: boolean;
-  sessionErrorMessage: string;
+  sessionErrorMessage: DisplayText;
 };
 
 export class CredentialsStore {
@@ -111,7 +112,7 @@ export class CredentialsStore {
 
   setVerification = (
     credentials: GreenApiCredentials,
-    errorMessage = "",
+    errorMessage: DisplayText = "",
   ): void => {
     if (this.state.getState().credentials !== credentials) return;
 
