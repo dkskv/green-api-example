@@ -11,6 +11,7 @@ import { type GreenApiCredentials } from "./credentials";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {
+  /** Создаёт клиент чата по реквизитам подключения к GREEN-API. */
   static create(credentials: GreenApiCredentials): ChatClient {
     return new GreenApiChatClient(new GreenApiClient(credentials));
   }
@@ -18,14 +19,17 @@ export class GreenApiChatClient implements ChatClient {
   readonly historyLimit = CHAT_HISTORY_LIMIT;
   private readonly api: GreenApiClient;
 
+  /** Принимает HTTP-клиент для выполнения запросов к GREEN-API. */
   constructor(api: GreenApiClient) {
     this.api = api;
   }
 
+  /** Проверяет авторизацию инстанса; при неготовности выбрасывает ошибку. */
   validateSession(signal?: AbortSignal): Promise<void> {
     return this.api.validateSession(signal);
   }
 
+  /** Проверяет наличие аккаунта по номеру и возвращает контакт с chatId. */
   async resolveContact(phone: string): Promise<VerifiedContact> {
     const account = await this.api.checkAccount(Number(phone));
 
@@ -42,6 +46,7 @@ export class GreenApiChatClient implements ChatClient {
     return { phone, chatId: account.chatId };
   }
 
+  /** Загружает историю и преобразует сообщения API в модель чата. */
   async getChatHistory(
     chatId: string,
     signal?: AbortSignal,
@@ -51,6 +56,7 @@ export class GreenApiChatClient implements ChatClient {
     return history.map(mapGreenMessage);
   }
 
+  /** Отправляет текст и возвращает сообщение со статусом ожидания доставки. */
   async sendMessage(chatId: string, text: string): Promise<ChatMessage> {
     const result = await this.api.sendMessage(chatId, text);
 
@@ -63,11 +69,16 @@ export class GreenApiChatClient implements ChatClient {
     };
   }
 
+  /** Удаляет сообщение для всех участников чата через API. */
   deleteMessage(chatId: string, messageId: string): Promise<void> {
     return this.api.deleteMessage(chatId, messageId);
   }
 
-  /** Включает все нужные события, если нет внешнего webhook URL. */
+  /**
+   * Включает нужные события перед запуском опроса, если они отключены.
+   * @returns Текст уведомления об изменении настроек или undefined, если они уже готовы.
+   * @throws Если настроен внешний webhook URL.
+   */
   async prepareNotifications(signal: AbortSignal): Promise<string | undefined> {
     const settings = await this.api.getSettings(signal);
 
@@ -92,6 +103,12 @@ export class GreenApiChatClient implements ChatClient {
     return i18n.t("messages:notificationsEnabled");
   }
 
+  /**
+   * Выполняет один long polling запрос; цикл повторения запускается снаружи.
+   * Возвращаемый acknowledge удаляет уведомление из очереди после обработки.
+   * @returns Событие с подтверждением (event может быть null для неизвестного типа)
+   * или null, если уведомления нет либо после запроса обнаружена отмена.
+   */
   async receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null> {
     const notification = await this.api.receiveNotification(signal);
 
