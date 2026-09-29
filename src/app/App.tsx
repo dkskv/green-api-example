@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Spin,
@@ -10,57 +9,20 @@ import {
   Tag,
   Typography,
 } from "antd";
-import {
-  SESSION_ERROR_MESSAGES,
-  clearSession,
-  readCredentials,
-  type GreenApiCredentials,
-} from "@/features/session";
+import { useSession } from "@/features/session";
 import { MessengerSession } from "@/app/MessengerSession";
 import { SessionPage } from "@/pages/session";
-import { GreenApiClient } from "@/shared/api/green-api";
 import "@/app/styles.css";
 
 export default function App() {
-  const [credentials, setCredentials] = useState<GreenApiCredentials | null>(
-    readCredentials,
-  );
-  const client = useMemo(
-    () => (credentials ? new GreenApiClient(credentials) : null),
-    [credentials],
-  );
-
-  const [verified, setVerified] = useState(false);
-  const [sessionErrorMessage, setSessionErrorMessage] = useState("");
-
-  useEffect(() => {
-    if (!client || verified) return;
-
-    const controller = new AbortController();
-
-    client
-      .validateSession(controller.signal)
-      .then(() => {
-        if (!controller.signal.aborted) setVerified(true);
-      })
-      .catch((reason: unknown) => {
-        if (!controller.signal.aborted)
-          setSessionErrorMessage(
-            reason instanceof Error
-              ? reason.message
-              : SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
-          );
-      });
-
-    return () => controller.abort();
-  }, [client, verified]);
-
-  function handleSignOut(): void {
-    setVerified(false);
-    setSessionErrorMessage("");
-    clearSession();
-    setCredentials(null);
-  }
+  const {
+    credentials,
+    client,
+    verified,
+    sessionErrorMessage,
+    signOut,
+    acceptVerifiedSession,
+  } = useSession();
 
   return (
     <AntApp>
@@ -73,7 +35,7 @@ export default function App() {
                 <Tag>
                   {verified ? "Session active" : "Session not verified"}
                 </Tag>
-                <Button onClick={handleSignOut}>Sign out</Button>
+                <Button onClick={signOut}>Sign out</Button>
               </Space>
             )}
           </Flex>
@@ -93,12 +55,7 @@ export default function App() {
               <Spin description="Verifying session…" />
             )
           ) : (
-            <SessionPage
-              onReady={(value) => {
-                setVerified(true);
-                setCredentials(value);
-              }}
-            />
+            <SessionPage onReady={acceptVerifiedSession} />
           )}
         </Layout.Content>
       </Layout>
