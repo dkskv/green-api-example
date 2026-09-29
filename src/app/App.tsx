@@ -16,7 +16,7 @@ import {
   readCredentials,
   type GreenApiCredentials,
 } from "@/features/session";
-import { MessengerPage } from "@/pages/messenger";
+import { MessengerSession } from "@/app/MessengerSession";
 import { SessionPage } from "@/pages/session";
 import { GreenApiClient } from "@/shared/api/green-api";
 import "@/app/styles.css";
@@ -83,7 +83,10 @@ export default function App() {
         >
           {credentials && client ? (
             verified ? (
-              <MessengerPage client={client} />
+              <MessengerSession
+                key={`${credentials.apiUrl}:${credentials.instanceId}`}
+                client={client}
+              />
             ) : sessionErrorMessage ? (
               <Alert type="error" title={sessionErrorMessage} />
             ) : (

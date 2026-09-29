@@ -9,7 +9,7 @@ type OpenChatFormValues = {
 type OpenChatFormProps = {
   initialPhone?: string;
   loading: boolean;
-  onOpen: (phone: string) => Promise<void>;
+  onOpen: (phone: string) => void;
 };
 
 export function OpenChatForm({

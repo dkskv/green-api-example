@@ -1,30 +1,24 @@
 import { Button, Flex, Form, Input, Typography } from "antd";
-import { useRef, useState } from "react";
-import { SEND_ERROR_MESSAGES } from "@/features/send-message/model/errors";
-import { sendChatMessage } from "@/features/send-message/model/sendMessage";
-import { type ChatMessage } from "@/entities/message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { useRef } from "react";
 
 type MessageComposerValues = {
   draft: string;
 };
 
 type MessageComposerProps = {
-  client: GreenApiClient;
-  chatId: string;
-  onSent: (message: ChatMessage) => void;
+  onSend: (text: string) => Promise<boolean>;
+  sending: boolean;
+  errorMessage: string;
 };
 
 export function MessageComposer({
-  client,
-  chatId,
-  onSent,
+  onSend,
+  sending,
+  errorMessage,
 }: MessageComposerProps) {
   const [form] = Form.useForm<MessageComposerValues>();
   const draft = Form.useWatch("draft", form) ?? "";
   const draftVersion = useRef(0);
-  const [sending, setSending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   async function submit(values: MessageComposerValues): Promise<void> {
     const version = draftVersion.current;
@@ -32,20 +26,10 @@ export function MessageComposer({
 
     if (!text || sending) return;
 
-    setSending(true);
-    setErrorMessage("");
+    const sent = await onSend(text);
 
-    try {
-      const message = await sendChatMessage(client, chatId, text);
-
-      onSent(message);
-
-      if (version === draftVersion.current) form.setFieldValue("draft", "");
-    } catch (reason) {
-      setErrorMessage(SEND_ERROR_MESSAGES.sendFailed(reason));
-    } finally {
-      setSending(false);
-    }
+    if (sent && version === draftVersion.current)
+      form.setFieldValue("draft", "");
   }
 
   return (

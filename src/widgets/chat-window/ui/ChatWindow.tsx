@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Alert,
   Button,
@@ -17,45 +16,34 @@ import {
 } from "@/features/receive-messages";
 import { type VerifiedChat } from "@/entities/chat";
 import { MessageComposer } from "@/features/send-message";
-import { type GreenApiClient } from "@/shared/api/green-api";
 
 type ChatWindowProps = {
-  client: GreenApiClient;
   chat: VerifiedChat | null;
   messages: ChatMessage[];
   loadingHistory: boolean;
   errorMessage: string;
   onRefresh: () => void;
   connectionState: ConnectionState;
-  onSent: (chatId: string, message: ChatMessage) => void;
-  onDelete: (chatId: string, id: string) => Promise<void>;
+  onSend: (text: string) => Promise<boolean>;
+  sending: boolean;
+  sendErrorMessage: string;
+  deletingIds: string[];
+  onDelete: (id: string) => void;
 };
 
 export function ChatWindow({
-  client,
   chat,
   messages,
   loadingHistory,
   errorMessage,
   onRefresh,
   connectionState,
-  onSent,
+  onSend,
+  sending,
+  sendErrorMessage,
+  deletingIds,
   onDelete,
 }: ChatWindowProps) {
-  const [deleting, setDeleting] = useState<string[]>([]);
-
-  async function remove(chatId: string, id: string) {
-    const key = `${chatId}:${id}`;
-
-    setDeleting((current) => [...current, key]);
-
-    try {
-      await onDelete(chatId, id);
-    } finally {
-      setDeleting((current) => current.filter((item) => item !== key));
-    }
-  }
-
   return (
     <Card
       title={chat ? `+${chat.phone}` : "No chat selected"}
@@ -149,10 +137,8 @@ export function ChatWindow({
                         size="small"
                         type="text"
                         danger
-                        loading={deleting.includes(
-                          `${chat.chatId}:${message.id}`,
-                        )}
-                        onClick={() => void remove(chat.chatId, message.id)}
+                        loading={deletingIds.includes(message.id)}
+                        onClick={() => onDelete(message.id)}
                       >
                         Delete for everyone
                       </Button>
@@ -168,9 +154,9 @@ export function ChatWindow({
       {chat && (
         <MessageComposer
           key={chat.chatId}
-          client={client}
-          chatId={chat.chatId}
-          onSent={(message) => onSent(chat.chatId, message)}
+          onSend={onSend}
+          sending={sending}
+          errorMessage={sendErrorMessage}
         />
       )}
     </Card>
