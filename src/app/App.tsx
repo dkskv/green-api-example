@@ -83,7 +83,7 @@ export default function App() {
         >
           {credentials && client ? (
             verified ? (
-              <MessengerPage credentials={credentials} client={client} />
+              <MessengerPage client={client} />
             ) : sessionErrorMessage ? (
               <Alert type="error" title={sessionErrorMessage} />
             ) : (

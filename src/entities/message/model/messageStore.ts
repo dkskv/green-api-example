@@ -1,9 +1,7 @@
-import { z } from "zod";
 import { newerStatus, isFailureStatus } from "@/entities/message/model/status";
 import {
   WEBHOOK_TYPE,
   MESSAGE_TYPE,
-  type GreenApiCredentials,
   type GreenNotificationDto,
 } from "@/shared/api/green-api";
 import { MESSAGE_ERROR_MESSAGES } from "@/entities/message/model/errors";
@@ -13,45 +11,17 @@ import {
   type ChatMessage,
 } from "@/entities/message/model/message";
 
-const storedChatSchema = z.object({
-  messages: z.array(
-    z.object({
-      id: z.string(),
-      text: z.string(),
-      direction: z.enum(["incoming", "outgoing"]),
-      timestamp: z.number(),
-      status: z.string().optional(),
-    }),
-  ),
-  statuses: z.record(z.string(), z.string()),
-  deleted: z.array(z.string()),
-});
+type ChatState = {
+  messages: ChatMessage[];
+  statuses: Record<string, string>;
+  deleted: string[];
+};
 
-type StoredChat = z.infer<typeof storedChatSchema>;
-
-const cacheSchema = z.record(z.string(), storedChatSchema);
 const emptyMessages: ChatMessage[] = [];
 
-export function messageCacheKey(credentials: GreenApiCredentials): string {
-  return `green-api-messages:${credentials.apiUrl}:${credentials.instanceId}`;
-}
-
 export class MessageStore {
-  private readonly key: string;
-  private chats: Record<string, StoredChat> = {};
+  private chats: Record<string, ChatState> = {};
   private readonly listeners = new Set<() => void>();
-
-  constructor(credentials: GreenApiCredentials) {
-    this.key = messageCacheKey(credentials);
-
-    try {
-      const saved = sessionStorage.getItem(this.key);
-
-      if (saved) this.chats = cacheSchema.parse(JSON.parse(saved));
-    } catch {
-      /* Ignore invalid or unavailable cached data. */
-    }
-  }
 
   getMessages(chatId: string): ChatMessage[] {
     return this.chats[chatId]?.messages ?? emptyMessages;
@@ -65,17 +35,14 @@ export class MessageStore {
     };
   };
 
-  private update(chatId: string, change: (chat: StoredChat) => StoredChat) {
-    const next = {
+  private update(chatId: string, change: (chat: ChatState) => ChatState) {
+    this.chats = {
       ...this.chats,
       [chatId]: change(
         this.chats[chatId] ?? { messages: [], statuses: {}, deleted: [] },
       ),
     };
 
-    // Persist before acknowledging a notification. Failed storage leaves it in the queue.
-    sessionStorage.setItem(this.key, JSON.stringify(next));
-    this.chats = next;
     this.listeners.forEach((listener) => listener());
   }
 

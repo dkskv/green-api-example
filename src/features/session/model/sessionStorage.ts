@@ -1,5 +1,4 @@
 import { credentialsSchema } from "@/shared/api/green-api/types";
-import { messageCacheKey } from "@/entities/message";
 import { type GreenApiCredentials } from "@/shared/api/green-api";
 import { type VerifiedChat } from "@/entities/chat";
 
@@ -30,10 +29,6 @@ export function saveCredentials(credentials: GreenApiCredentials): void {
 }
 
 export function clearSession(): void {
-  const credentials = readCredentials();
-
-  if (credentials) sessionStorage.removeItem(messageCacheKey(credentials));
-
   localStorage.removeItem(CREDENTIALS_KEY);
   localStorage.removeItem(ACTIVE_CHAT_KEY);
 }

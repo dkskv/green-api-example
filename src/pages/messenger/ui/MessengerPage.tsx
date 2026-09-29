@@ -6,19 +6,15 @@ import { readSavedChat, saveActiveChat } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
 import { type VerifiedChat } from "@/entities/chat";
 import { MessageStore, mapGreenMessage } from "@/entities/message";
-import {
-  type GreenApiClient,
-  type GreenApiCredentials,
-} from "@/shared/api/green-api";
+import { type GreenApiClient } from "@/shared/api/green-api";
 import { ChatWindow } from "@/widgets/chat-window";
 
 type MessengerPageProps = {
-  credentials: GreenApiCredentials;
   client: GreenApiClient;
 };
 
-export function MessengerPage({ credentials, client }: MessengerPageProps) {
-  const [store] = useState(() => new MessageStore(credentials));
+export function MessengerPage({ client }: MessengerPageProps) {
+  const [store] = useState(() => new MessageStore());
   const [chat, setChat] = useState<VerifiedChat | null>(readSavedChat);
   const [isOpening, setIsOpening] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(() =>
