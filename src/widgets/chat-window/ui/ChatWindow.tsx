@@ -22,6 +22,7 @@ import {
 import { formatPhoneNumber, type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 import { ChatMessageItem } from "./ChatMessageItem";
+import { useChatAutoScroll } from "../lib/useChatAutoScroll";
 
 type ChatWindowProps = {
   /** Выбранный контакт. */
@@ -64,6 +65,10 @@ export function ChatWindow({
   deletingIds,
   onDelete,
 }: ChatWindowProps) {
+  const { historyRef, onHistoryScroll } = useChatAutoScroll(
+    contact?.chatId,
+    messages,
+  );
   const { token } = theme.useToken();
   const translate = useDisplayText();
   const { t } = useTranslation("ui");
@@ -122,6 +127,8 @@ export function ChatWindow({
       <Flex vertical gap="middle">
         {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
         <div
+          ref={historyRef}
+          onScroll={onHistoryScroll}
           className={styles.history}
           style={{ paddingInline: token.paddingSM }}
           aria-live="polite"
