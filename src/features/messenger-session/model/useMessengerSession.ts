@@ -1,23 +1,19 @@
-import { errorText } from "@/shared/i18n/text";
 import { GreenApiChatClient } from "@/integrations/green-api";
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
-import { SESSION_ERROR_MESSAGES } from "@/features/messenger-session/model/errors";
 import { credentialsStore } from "./credentialsStore";
-
 import { acceptVerifiedSession, signOut } from "./sessionActions";
 
 export function useMessengerSession() {
-  const { credentials, verified, sessionErrorMessage } = useStore(
-    credentialsStore.state,
-  );
+  const { credentials, verification } = useStore(credentialsStore.state);
+
   const client = useMemo(
     () => (credentials ? GreenApiChatClient.create(credentials) : null),
     [credentials],
   );
 
   useEffect(() => {
-    if (!client || !credentials || verified) return;
+    if (!client || !credentials || verification !== null) return;
 
     const controller = new AbortController();
 
@@ -25,25 +21,24 @@ export function useMessengerSession() {
       .validateSession(controller.signal)
       .then(() => {
         if (!controller.signal.aborted)
-          credentialsStore.setVerification(credentials);
+          credentialsStore.setVerification(credentials, { status: "success" });
       })
       .catch((reason: unknown) => {
         if (!controller.signal.aborted) {
-          credentialsStore.setVerification(
-            credentials,
-            errorText(reason, SESSION_ERROR_MESSAGES.VERIFICATION_FAILED),
-          );
+          credentialsStore.setVerification(credentials, {
+            status: "error",
+            error: reason,
+          });
         }
       });
 
     return () => controller.abort();
-  }, [client, credentials, verified]);
+  }, [client, credentials, verification]);
 
   return {
     credentials,
     client,
-    verified,
-    sessionErrorMessage,
+    verification,
     signOut,
     acceptVerifiedSession,
   };

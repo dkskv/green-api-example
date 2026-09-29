@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { useEffect } from "react";
+import { errorText } from "@/shared/i18n/text";
 import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { useTranslation } from "@/shared/i18n";
 import enUS from "antd/locale/en_US";
@@ -17,7 +18,10 @@ import {
   Typography,
   theme,
 } from "antd";
-import { useMessengerSession } from "@/features/messenger-session";
+import {
+  useMessengerSession,
+  SESSION_ERROR_MESSAGES,
+} from "@/features/messenger-session";
 import { MessengerSession } from "@/app/ui/MessengerSession";
 import { SessionPage } from "@/pages/session";
 import "@/app/styles/index.css";
@@ -35,14 +39,8 @@ export default function App() {
     document.title = t("app.appName");
   }, [t, i18n.resolvedLanguage]);
 
-  const {
-    credentials,
-    client,
-    verified,
-    sessionErrorMessage,
-    signOut,
-    acceptVerifiedSession,
-  } = useMessengerSession();
+  const { credentials, client, verification, signOut, acceptVerifiedSession } =
+    useMessengerSession();
 
   return (
     <ConfigProvider locale={enUS} theme={{ algorithm: theme.darkAlgorithm }}>
@@ -55,7 +53,7 @@ export default function App() {
                 <Space>
                   <Tag>{t("app.instance", { id: credentials.instanceId })}</Tag>
                   <Tag>
-                    {verified
+                    {verification?.status === "success"
                       ? t("app.sessionActive")
                       : t("app.sessionUnverified")}
                   </Tag>
@@ -66,13 +64,21 @@ export default function App() {
           </Layout.Header>
           <Layout.Content className={styles.content}>
             {credentials && client ? (
-              verified ? (
+              verification?.status === "success" ? (
                 <MessengerSession
                   key={`${credentials.apiUrl}:${credentials.instanceId}`}
                   client={client}
                 />
-              ) : sessionErrorMessage ? (
-                <Alert type="error" title={translate(sessionErrorMessage)} />
+              ) : verification?.status === "error" ? (
+                <Alert
+                  type="error"
+                  title={translate(
+                    errorText(
+                      verification.error,
+                      SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
+                    ),
+                  )}
+                />
               ) : (
                 <Spin description={t("app.verifying")} />
               )

@@ -1,9 +1,8 @@
 import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { z } from "zod";
 import { normalizePhoneNumber, type VerifiedContact } from "@/entities/contact";
-import { createSessionStorage } from "./sessionStorage";
 
 const contactSchema = z.object({
   contact: z
@@ -22,7 +21,7 @@ export class ActiveContactStore {
   readonly state = createStore<ContactState>()(
     persist((): ContactState => ({ contact: null }), {
       name: "green-api-active-chat",
-      storage: createSessionStorage<ContactState>("contact"),
+      storage: createJSONStorage<ContactState>(() => localStorage),
       partialize: ({ contact }) => ({ contact }),
       merge: (saved, current) => ({
         ...current,

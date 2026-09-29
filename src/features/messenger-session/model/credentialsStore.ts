@@ -1,10 +1,8 @@
 import { boundMethod } from "@/shared/lib/decorators/boundMethod";
-import type { DisplayText } from "@/shared/i18n/text";
 import { createStore } from "zustand/vanilla";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { z } from "zod";
 import { type GreenApiCredentials } from "@/integrations/green-api";
-import { createSessionStorage } from "./sessionStorage";
 
 const credentialsSchema = z.object({
   credentials: z
@@ -16,10 +14,12 @@ const credentialsSchema = z.object({
     .nullable(),
 });
 
+type VerificationResult =
+  { status: "success" } | { status: "error"; error: unknown };
+
 type CredentialsState = {
   credentials: GreenApiCredentials | null;
-  verified: boolean;
-  sessionErrorMessage: DisplayText;
+  verification: VerificationResult | null;
 };
 
 type PersistedCredentials = Pick<CredentialsState, "credentials">;
@@ -29,19 +29,17 @@ export class CredentialsStore {
     persist(
       (): CredentialsState => ({
         credentials: null,
-        verified: false,
-        sessionErrorMessage: "",
+        verification: null,
       }),
       {
         name: "green-api-credentials",
-        storage: createSessionStorage<PersistedCredentials>("credentials"),
+        storage: createJSONStorage<PersistedCredentials>(() => localStorage),
         partialize: ({ credentials }) => ({ credentials }),
         merge: (saved, current) => ({
           ...current,
           credentials:
             credentialsSchema.safeParse(saved).data?.credentials ?? null,
-          verified: false,
-          sessionErrorMessage: "",
+          verification: null,
         }),
       },
     ),
@@ -51,8 +49,7 @@ export class CredentialsStore {
   save(credentials: GreenApiCredentials): void {
     this.state.setState({
       credentials,
-      verified: true,
-      sessionErrorMessage: "",
+      verification: { status: "success" },
     });
   }
 
@@ -60,8 +57,7 @@ export class CredentialsStore {
   clear(): void {
     this.state.setState({
       credentials: null,
-      verified: false,
-      sessionErrorMessage: "",
+      verification: null,
     });
 
     this.state.persist.clearStorage();
@@ -70,13 +66,12 @@ export class CredentialsStore {
   @boundMethod
   setVerification(
     credentials: GreenApiCredentials,
-    errorMessage: DisplayText = "",
+    result: VerificationResult,
   ): void {
     if (this.state.getState().credentials !== credentials) return;
 
     this.state.setState({
-      verified: !errorMessage,
-      sessionErrorMessage: errorMessage,
+      verification: result,
     });
   }
 }

@@ -30,8 +30,7 @@ it("restores saved credentials and contact without trusting the previous verific
 
   expect(restoredSession.state.getState()).toEqual({
     credentials,
-    verified: false,
-    sessionErrorMessage: "",
+    verification: null,
   });
 });
 
@@ -39,10 +38,22 @@ it.each([
   "{invalid",
   "null",
   '"string"',
-  '{"phone":12345678,"chatId":"chat"}',
-  '{"phone":"+12345678","chatId":"chat"}',
-  '{"phone":"123","chatId":"chat"}',
-  '{"phone":"12345678","chatId":""}',
+  JSON.stringify({
+    state: { contact: { phone: 12345678, chatId: "chat" } },
+    version: 0,
+  }),
+  JSON.stringify({
+    state: { contact: { phone: "+12345678", chatId: "chat" } },
+    version: 0,
+  }),
+  JSON.stringify({
+    state: { contact: { phone: "123", chatId: "chat" } },
+    version: 0,
+  }),
+  JSON.stringify({
+    state: { contact: { phone: "12345678", chatId: "" } },
+    version: 0,
+  }),
 ])("rejects invalid persisted contact: %s", (saved) => {
   localStorage.setItem("green-api-active-chat", saved);
   const restored = new ActiveContactStore();
@@ -54,13 +65,16 @@ it.each([
   "{invalid",
   "null",
   "{}",
-  JSON.stringify({ ...credentials, apiUrl: "http://example.com" }),
+  JSON.stringify({
+    state: { credentials: { ...credentials, apiUrl: "http://example.com" } },
+    version: 0,
+  }),
 ])("rejects invalid persisted credentials: %s", (saved) => {
   localStorage.setItem("green-api-credentials", saved);
   const session = new CredentialsStore();
 
   expect(session.state.getState().credentials).toBeNull();
-  expect(session.state.getState().verified).toBe(false);
+  expect(session.state.getState().verification).toBeNull();
 });
 
 it("preserves the contact on token changes and clears it on account changes", () => {
@@ -86,8 +100,8 @@ it("clears both stores on sign-out and ignores late verification", () => {
   session.save(credentials);
   contacts.save(contact);
   createSessionActions(session, contacts).signOut();
-  session.setVerification(credentials);
-  expect(session.state.getState().verified).toBe(false);
+  session.setVerification(credentials, { status: "success" });
+  expect(session.state.getState().verification).toBeNull();
   session.state.persist.rehydrate();
   contacts.state.persist.rehydrate();
   expect(session.state.getState().credentials).toBeNull();
@@ -108,19 +122,6 @@ it("handles unavailable browser storage during restore", () => {
   expect(session.state.getState().credentials).toBeNull();
 });
 
-it("reads the previous storage format", () => {
-  localStorage.setItem("green-api-credentials", JSON.stringify(credentials));
-  localStorage.setItem("green-api-active-chat", JSON.stringify(contact));
-
-  expect(new CredentialsStore().state.getState()).toEqual({
-    credentials,
-    verified: false,
-    sessionErrorMessage: "",
-  });
-
-  expect(new ActiveContactStore().state.getState().contact).toEqual(contact);
-});
-
 it("persists only credentials and ignores stored verification flags", () => {
   const session = new CredentialsStore();
 
@@ -134,15 +135,14 @@ it("persists only credentials and ignores stored verification flags", () => {
   localStorage.setItem(
     "green-api-credentials",
     JSON.stringify({
-      state: { credentials, verified: true, sessionErrorMessage: "old error" },
+      state: { credentials, verification: { status: "success" } },
       version: 0,
     }),
   );
 
   expect(new CredentialsStore().state.getState()).toEqual({
     credentials,
-    verified: false,
-    sessionErrorMessage: "",
+    verification: null,
   });
 });
 
@@ -182,4 +182,44 @@ it("rejects invalid data inside the persist envelope", () => {
 
   expect(new CredentialsStore().state.getState().credentials).toBeNull();
   expect(new ActiveContactStore().state.getState().contact).toBeNull();
+});
+
+it("keeps the verification error without persisting it and allows a later success", () => {
+  const session = new CredentialsStore();
+  const error = new Error("Network unavailable");
+
+  session.save(credentials);
+  session.setVerification(credentials, { status: "error", error });
+
+  expect(session.state.getState().verification).toEqual({
+    status: "error",
+    error,
+  });
+
+  expect(JSON.parse(localStorage.getItem("green-api-credentials")!)).toEqual({
+    state: { credentials },
+    version: 0,
+  });
+
+  expect(new CredentialsStore().state.getState().verification).toBeNull();
+  session.setVerification(credentials, { status: "success" });
+  expect(session.state.getState().verification).toEqual({ status: "success" });
+});
+
+it("ignores a verification error for replaced credentials", () => {
+  const session = new CredentialsStore();
+  const next = { ...credentials, apiToken: "new-token" };
+
+  session.save(credentials);
+  session.save(next);
+
+  session.setVerification(credentials, {
+    status: "error",
+    error: new Error("Late failure"),
+  });
+
+  expect(session.state.getState()).toEqual({
+    credentials: next,
+    verification: { status: "success" },
+  });
 });
