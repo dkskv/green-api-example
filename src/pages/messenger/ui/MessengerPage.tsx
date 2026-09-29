@@ -1,6 +1,11 @@
 import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { Alert, Flex } from "antd";
-import { useMessenger } from "@/pages/messenger/model/useMessenger";
+import { useState } from "react";
+import { MessageStore } from "@/entities/message";
+import { useReceiveMessages } from "@/features/receive-messages";
+import { useActiveContact } from "../model/useActiveContact";
+import { useConversation } from "../model/useConversation";
+import { getMessengerErrors } from "../model/getMessengerErrors";
 import { OpenChatForm } from "@/features/open-chat";
 import { SEND_ERROR_MESSAGES } from "@/features/send-message";
 import { type ChatClient } from "@/entities/chat";
@@ -13,13 +18,28 @@ type MessengerPageProps = {
 
 export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
   const translate = useDisplayText();
-  const messenger = useMessenger(client);
-  const { connection, opening, history } = messenger;
+  const [store] = useState(() => new MessageStore());
+  const connection = useReceiveMessages(client, store.receive);
+  const selection = useActiveContact(client);
+  const conversation = useConversation(
+    client,
+    store,
+    selection.activeContact?.chatId,
+  );
+  const { history } = conversation;
+  const errors = getMessengerErrors({
+    contact: selection.error,
+    history: history.error,
+    deletion: conversation.deleteError,
+  });
 
   return (
     <Flex vertical gap="middle">
-      <OpenChatForm loading={opening.isPending} onOpen={opening.openChat} />
-      {messenger.errors.map(({ operation, message }) => (
+      <OpenChatForm
+        loading={selection.isPending}
+        onOpen={selection.selectContact}
+      />
+      {errors.map(({ operation, message }) => (
         <Alert
           key={operation}
           type="error"
@@ -43,22 +63,22 @@ export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
         />
       )}
       <ChatWindow
-        contact={messenger.activeContact}
-        messages={messenger.messages}
+        contact={selection.activeContact}
+        messages={conversation.messages}
         historyNotice={historyNotice}
         loadingHistory={history.isFetching}
         errorMessage={translate(connection.errorMessage)}
         connectionState={connection.state}
         onRefresh={() => void history.refetch()}
-        onSend={messenger.sendMessage}
-        sending={messenger.sending}
+        onSend={conversation.sendMessage}
+        sending={conversation.sending}
         sendErrorMessage={
-          messenger.sendError
-            ? translate(SEND_ERROR_MESSAGES.sendFailed(messenger.sendError))
+          conversation.sendError
+            ? translate(SEND_ERROR_MESSAGES.sendFailed(conversation.sendError))
             : ""
         }
-        deletingIds={messenger.deletingIds}
-        onDelete={messenger.deleteMessage}
+        deletingIds={conversation.deletingIds}
+        onDelete={conversation.deleteMessage}
       />
     </Flex>
   );

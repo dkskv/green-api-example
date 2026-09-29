@@ -8,7 +8,7 @@ const messageDataSchema = z.object({
   deletedMessageData: z.object({ stanzaId: z.string().min(1) }).optional(),
 });
 
-export const greenMessageSchema = z.object({
+export const messageSchema = z.object({
   idMessage: z.string().min(1),
   type: z.enum(["incoming", "outgoing"]),
   typeMessage: z.string().optional(),
@@ -16,7 +16,6 @@ export const greenMessageSchema = z.object({
   textMessage: z.string().optional(),
   statusMessage: z.string().optional(),
   caption: z.string().optional(),
-  messageData: messageDataSchema.optional(),
 });
 
 export const notificationSchema = z.object({
@@ -55,3 +54,17 @@ export const settingsSchema = z.object({
 });
 
 export const sendMessageSchema = z.object({ idMessage: z.string().min(1) });
+
+/** Ответ подтверждения получения уведомления. */
+export const acknowledgementSchema = z.object({
+  result: z.boolean().optional(),
+  reason: z.string().optional(),
+});
+
+/** Доступные поля ошибки HTTP API. */
+export const apiErrorSchema = z.object({
+  message: z.string().optional(),
+  reason: z.string().optional(),
+  error: z.string().optional(),
+  data: z.object({ reason: z.string().optional() }).optional(),
+});

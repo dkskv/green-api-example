@@ -28,10 +28,8 @@ describe("GreenApiChatClient", () => {
       {
         idMessage: "1",
         type: "incoming",
-        messageData: {
-          typeMessage: "textMessage",
-          extendedTextMessageData: { text: "hello" },
-        },
+        typeMessage: "textMessage",
+        textMessage: "hello",
         timestamp: 12,
       },
       {

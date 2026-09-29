@@ -1,3 +1,4 @@
+import { getDeletionError } from "./getDeletionError";
 import { useMutation, useMutationState } from "@tanstack/react-query";
 import { sendChatMessage } from "@/features/send-message";
 import { type MessageStore } from "@/entities/message";
@@ -44,10 +45,6 @@ export function useMessageActions(
     }),
   }).filter((mutation) => mutation.variables?.chatId === chatId);
 
-  const latestDeletions = new Map(
-    deletions.map((mutation) => [mutation.variables?.id, mutation]),
-  );
-
   async function sendMessage(text: string): Promise<boolean> {
     if (!chatId) return false;
 
@@ -73,8 +70,6 @@ export function useMessageActions(
     deletingIds: deletions
       .filter((mutation) => mutation.status === "pending")
       .map((mutation) => mutation.variables!.id),
-    deleteError:
-      [...latestDeletions.values()].findLast((mutation) => mutation.error)
-        ?.error ?? null,
+    deleteError: getDeletionError(deletions),
   };
 }

@@ -7,9 +7,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChatClientMock } from "@/entities/chat/testing/createChatClientMock";
 import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
-import { contactStore } from "@/features/session";
+import { contactStore } from "@/features/messenger-session";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
-import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
+import { useActiveContact } from "./useActiveContact";
+import { useConversation } from "./useConversation";
+import { type VerifiedContact } from "@/entities/contact";
 import { useMessageActions } from "@/pages/messenger/model/useMessageActions";
 
 const clients: QueryClient[] = [];
@@ -121,74 +123,169 @@ describe("chat history", () => {
   });
 });
 
-describe("opening chats", () => {
-  it("only selects and persists the latest opening when responses arrive out of order", async () => {
-    const { client, store, wrapper } = setup();
-    const first = deferred<ChatMessage[]>();
-    const second = deferred<ChatMessage[]>();
-    const onOpen = vi.fn(contactStore.save);
+describe("contact selection", () => {
+  it("only persists the latest verification when responses arrive out of order", async () => {
+    const { client, wrapper } = setup();
+    const first = deferred<VerifiedContact>();
+    const second = deferred<VerifiedContact>();
 
-    vi.spyOn(client, "resolveContact").mockImplementation(async (phone) => ({
-      phone: "12345678",
-      chatId: String(phone),
-    }));
-
-    vi.spyOn(client, "getChatHistory").mockImplementation((id) =>
-      id === "12345678" ? first.promise : second.promise,
+    client.resolveContact.mockImplementation((phone) =>
+      phone === "12345678" ? first.promise : second.promise,
     );
 
-    const { result } = renderHook(() => useOpenChat(client, store, onOpen), {
-      wrapper,
-    });
+    const { result } = renderHook(() => useActiveContact(client), { wrapper });
 
-    act(() => result.current.openChat("12345678"));
-    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(1));
-    act(() => result.current.openChat("87654321"));
-    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(2));
+    act(() => result.current.selectContact("12345678"));
+    await waitFor(() => expect(client.resolveContact).toHaveBeenCalledTimes(1));
+    act(() => result.current.selectContact("87654321"));
+    await waitFor(() => expect(client.resolveContact).toHaveBeenCalledTimes(2));
 
     await act(async () => {
-      second.resolve([]);
+      second.resolve({ phone: "87654321", chatId: "b" });
       await second.promise;
     });
 
-    await waitFor(() => expect(onOpen).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(result.current.activeContact?.chatId).toBe("b"));
 
     await act(async () => {
-      first.resolve([]);
+      first.resolve({ phone: "12345678", chatId: "a" });
       await first.promise;
     });
 
-    expect(onOpen).toHaveBeenCalledTimes(1);
-    expect(contactStore.state.getState().contact?.chatId).toBe("87654321");
+    expect(result.current.activeContact?.chatId).toBe("b");
+    contactStore.restore();
+    expect(contactStore.state.getState().contact?.chatId).toBe("b");
+    expect(client.getChatHistory).not.toHaveBeenCalled();
   });
 
-  it("does not restore a saved chat after the page has unmounted", async () => {
-    const { client, store, wrapper } = setup();
-    const response = deferred<ChatMessage[]>();
-    const onOpen = vi.fn(contactStore.save);
+  it("does not select a contact after unmounting", async () => {
+    const { client, wrapper } = setup();
+    const response = deferred<VerifiedContact>();
 
-    vi.spyOn(client, "resolveContact").mockResolvedValue({
-      phone: "12345678",
-      chatId: "a",
+    client.resolveContact.mockReturnValue(response.promise);
+    const { result, unmount } = renderHook(() => useActiveContact(client), {
+      wrapper,
     });
 
-    vi.spyOn(client, "getChatHistory").mockReturnValue(response.promise);
-    const { result, unmount } = renderHook(
-      () => useOpenChat(client, store, onOpen),
-      { wrapper },
-    );
-
-    act(() => result.current.openChat("12345678"));
-    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalled());
+    act(() => result.current.selectContact("12345678"));
+    await waitFor(() => expect(client.resolveContact).toHaveBeenCalled());
     unmount();
 
     await act(async () => {
-      response.resolve([]);
+      response.resolve({ phone: "12345678", chatId: "a" });
       await response.promise;
     });
 
-    expect(onOpen).not.toHaveBeenCalled();
+    contactStore.restore();
     expect(contactStore.state.getState().contact).toBeNull();
+  });
+
+  it("keeps the current contact when verification fails", async () => {
+    const { client, wrapper } = setup();
+    const previous = { phone: "12345678", chatId: "a" };
+
+    contactStore.save(previous);
+    client.resolveContact.mockRejectedValue(new Error("Contact unavailable"));
+    const { result } = renderHook(() => useActiveContact(client), { wrapper });
+
+    act(() => result.current.selectContact("87654321"));
+
+    await waitFor(() =>
+      expect(result.current.error?.message).toBe("Contact unavailable"),
+    );
+
+    expect(result.current.activeContact).toEqual(previous);
+  });
+
+  it("opens before history arrives and can send and retry after a history failure", async () => {
+    const { client, store, wrapper } = setup();
+    const response = deferred<ChatMessage[]>();
+
+    client.resolveContact.mockResolvedValue({ phone: "12345678", chatId: "a" });
+
+    client.getChatHistory
+      .mockReturnValueOnce(response.promise)
+      .mockResolvedValue(snapshot);
+
+    client.sendMessage.mockResolvedValue({
+      id: "sent",
+      text: "hello",
+      direction: "outgoing",
+      timestamp: 1,
+    });
+
+    const { result } = renderHook(
+      () => {
+        const selection = useActiveContact(client);
+        const conversation = useConversation(
+          client,
+          store,
+          selection.activeContact?.chatId,
+        );
+
+        return { selection, conversation };
+      },
+      { wrapper },
+    );
+
+    expect(client.getChatHistory).not.toHaveBeenCalled();
+    act(() => result.current.selection.selectContact("12345678"));
+
+    await waitFor(() =>
+      expect(result.current.selection.activeContact?.chatId).toBe("a"),
+    );
+
+    expect(result.current.selection.isPending).toBe(false);
+    expect(result.current.conversation.history.isFetching).toBe(true);
+    expect(client.getChatHistory).toHaveBeenCalledTimes(1);
+    act(() => response.reject(new Error("History unavailable")));
+
+    await waitFor(() =>
+      expect(result.current.conversation.history.isError).toBe(true),
+    );
+
+    expect(result.current.selection.error).toBeNull();
+    expect(result.current.selection.activeContact?.chatId).toBe("a");
+
+    await act(async () => {
+      expect(await result.current.conversation.sendMessage("hello")).toBe(true);
+      await result.current.conversation.history.refetch();
+    });
+
+    await waitFor(() =>
+      expect(result.current.conversation.history.isSuccess).toBe(true),
+    );
+
+    expect(result.current.conversation.messages.map(({ id }) => id)).toEqual([
+      "deleted",
+      "read",
+      "sent",
+    ]);
+
+    expect(client.getChatHistory).toHaveBeenCalledTimes(2);
+  });
+
+  it("refreshes history on returning to a previously selected chat", async () => {
+    const { client, store, wrapper } = setup();
+
+    client.getChatHistory.mockResolvedValue([]);
+    const { result, rerender } = renderHook(
+      ({ chatId }) => useConversation(client, store, chatId),
+      { initialProps: { chatId: "a" }, wrapper },
+    );
+
+    await waitFor(() => expect(result.current.history.isSuccess).toBe(true));
+    rerender({ chatId: "b" });
+    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.history.isSuccess).toBe(true));
+    rerender({ chatId: "a" });
+    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(3));
+
+    expect(client.getChatHistory.mock.calls.map(([id]) => id)).toEqual([
+      "a",
+      "b",
+      "a",
+    ]);
   });
 });
 

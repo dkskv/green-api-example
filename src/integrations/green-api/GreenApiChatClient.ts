@@ -6,8 +6,8 @@ import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
 import { GreenApiClient } from "./api/client";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
-import { prepareNotifications } from "./prepareNotifications";
-import { GREEN_CHAT_ERRORS } from "./errors";
+import { CHAT_HISTORY_LIMIT, WEBHOOK_SETTING } from "./api/constants";
+import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 import { type GreenApiCredentials } from "./credentials";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
@@ -16,6 +16,7 @@ export class GreenApiChatClient implements ChatClient {
     return new GreenApiChatClient(new GreenApiClient(credentials));
   }
 
+  readonly historyLimit = CHAT_HISTORY_LIMIT;
   private readonly api: GreenApiClient;
 
   constructor(api: GreenApiClient) {
@@ -33,11 +34,11 @@ export class GreenApiChatClient implements ChatClient {
       throw new AppError(
         account.reason ??
           account.data?.reason ??
-          GREEN_CHAT_ERRORS.CHECK_FAILED,
+          GREEN_CHAT_ERROR_MESSAGES.CHECK_FAILED,
       );
 
     if (!account.exist || !account.chatId)
-      throw new AppError(GREEN_CHAT_ERRORS.ACCOUNT_NOT_FOUND);
+      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.ACCOUNT_NOT_FOUND);
 
     return { phone, chatId: account.chatId };
   }
@@ -67,12 +68,31 @@ export class GreenApiChatClient implements ChatClient {
     return this.api.deleteMessage(chatId, messageId);
   }
 
+  /** Включает все нужные события, если нет внешнего webhook URL. */
   async prepareNotifications(
     signal: AbortSignal,
   ): Promise<DisplayText | undefined> {
-    const changed = await prepareNotifications(this.api, signal);
+    const settings = await this.api.getSettings(signal);
 
-    return changed ? text("messages:notificationsEnabled") : undefined;
+    signal.throwIfAborted();
+
+    if (settings.webhookUrl.trim())
+      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
+
+    // Настройки обновляем только если хотя бы одно нужное событие отключено.
+    const enabled = [
+      settings.incomingWebhook,
+      settings.outgoingWebhook,
+      settings.outgoingMessageWebhook,
+      settings.outgoingAPIMessageWebhook,
+      settings.deletedMessageWebhook,
+    ].every((value) => value === WEBHOOK_SETTING.ENABLED);
+
+    if (enabled) return undefined;
+
+    await this.api.enableNotifications(signal);
+
+    return text("messages:notificationsEnabled");
   }
 
   async receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null> {

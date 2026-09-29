@@ -1,10 +1,15 @@
 export type PollingOptions = {
+  /** Отмена опроса и ожидания повтора. */
   signal: AbortSignal;
+  /** Одна итерация; передаёт сигнал отменяемым операциям. */
   execute: (signal: AbortSignal) => Promise<void>;
+  /** Пауза после ошибки, в миллисекундах. */
   retryDelayMs: number;
+  /** Обработчик ошибки итерации. */
   onError: (reason: unknown) => void;
 };
 
+/** Ждёт задержку или отмену перед повтором. */
 function pauseBeforeRetry(signal: AbortSignal, delayMs: number): Promise<void> {
   return new Promise((resolve) => {
     const finish = () => {
@@ -20,8 +25,7 @@ function pauseBeforeRetry(signal: AbortSignal, delayMs: number): Promise<void> {
   });
 }
 
-// Последовательный длительный опрос без задержки после успеха.
-// execute должен передавать сигнал отменяемым операциям.
+/** Последовательно опрашивает до отмены, с задержкой только после ошибки. */
 export async function runPolling({
   signal,
   execute,

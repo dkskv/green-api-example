@@ -5,7 +5,7 @@ import { type ChatEvent } from "@/entities/message";
 import { isFailureStatus } from "@/entities/message/model/status";
 import { WEBHOOK_TYPE, MESSAGE_TYPE } from "./api/constants";
 import { mapGreenMessage } from "./mapGreenMessage";
-import { GREEN_CHAT_ERRORS } from "./errors";
+import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 
 export function mapGreenNotification({
   body,
@@ -22,7 +22,7 @@ export function mapGreenNotification({
     }
 
     if (!chatId || !body.idMessage || !body.status)
-      throw new AppError(GREEN_CHAT_ERRORS.INVALID_STATUS_NOTIFICATION);
+      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
 
     return {
       type: "messageStatusChanged",
@@ -43,19 +43,19 @@ export function mapGreenNotification({
   )
     return null;
 
-  if (!chatId) throw new AppError(GREEN_CHAT_ERRORS.MISSING_CHAT);
+  if (!chatId) throw new AppError(GREEN_CHAT_ERROR_MESSAGES.MISSING_CHAT);
 
   if (body.messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
     const messageId = body.messageData.deletedMessageData?.stanzaId;
 
     if (!messageId)
-      throw new AppError(GREEN_CHAT_ERRORS.MISSING_DELETED_MESSAGE_ID);
+      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
 
     return { type: "messageDeleted", chatId, messageId };
   }
 
   if (!body.idMessage || !body.messageData)
-    throw new AppError(GREEN_CHAT_ERRORS.INVALID_NOTIFICATION);
+    throw new AppError(GREEN_CHAT_ERROR_MESSAGES.INVALID_NOTIFICATION);
 
   return {
     type: "messageReceived",
@@ -67,7 +67,12 @@ export function mapGreenNotification({
           ? "incoming"
           : "outgoing",
       timestamp: body.timestamp,
-      messageData: body.messageData,
+      // История содержит плоские поля; уведомления — вложенные данные.
+      typeMessage: body.messageData.typeMessage,
+      textMessage:
+        body.messageData.textMessageData?.textMessage ??
+        body.messageData.extendedTextMessageData?.text,
+      caption: body.messageData.fileMessageData?.caption,
     }),
   };
 }

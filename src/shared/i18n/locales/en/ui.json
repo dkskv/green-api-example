@@ -1,6 +1,7 @@
 {
   "app": {
     "appName": "Telegram",
+    "instance": "Instance {{id}}",
     "sessionActive": "Session active",
     "sessionUnverified": "Session not verified",
     "signOut": "Sign out",

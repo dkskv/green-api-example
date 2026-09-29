@@ -3,6 +3,7 @@ import { type ChatClient } from "../model/chatClient";
 
 export function createChatClientMock() {
   return {
+    historyLimit: 100,
     validateSession: vi.fn<ChatClient["validateSession"]>(),
     resolveContact: vi.fn<ChatClient["resolveContact"]>(),
     getChatHistory: vi.fn<ChatClient["getChatHistory"]>(),

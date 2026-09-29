@@ -1,0 +1,32 @@
+import { errorText } from "@/shared/i18n/text";
+import { MESSENGER_ERROR_MESSAGES } from "./errors";
+
+/** Подготавливает ошибки операций для отображения на странице. */
+export function getMessengerErrors(errors: {
+  contact: Error | null;
+  history: Error | null;
+  deletion: Error | null;
+}) {
+  return [
+    {
+      operation: "open",
+      error: errors.contact,
+      fallback: MESSENGER_ERROR_MESSAGES.OPEN_FAILED,
+    },
+    {
+      operation: "history",
+      error: errors.history,
+      fallback: MESSENGER_ERROR_MESSAGES.REFRESH_FAILED,
+    },
+    {
+      operation: "delete",
+      error: errors.deletion,
+      fallback: MESSENGER_ERROR_MESSAGES.DELETE_FAILED,
+    },
+  ]
+    .filter(({ error }) => error)
+    .map(({ operation, error, fallback }) => ({
+      operation,
+      message: errorText(error, fallback),
+    }));
+}

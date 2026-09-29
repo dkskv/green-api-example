@@ -2,7 +2,6 @@ import { useTranslation } from "@/shared/i18n";
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MessengerPage } from "@/pages/messenger";
-import { CHAT_HISTORY_LIMIT } from "@/integrations/green-api";
 import { type ChatClient } from "@/entities/chat";
 
 export function MessengerSession({ client }: { client: ChatClient }) {
@@ -20,7 +19,7 @@ export function MessengerSession({ client }: { client: ChatClient }) {
 
   useEffect(
     () => () => {
-      void queryClient.cancelQueries();
+      queryClient.cancelQueries();
     },
     [queryClient],
   );
@@ -30,7 +29,7 @@ export function MessengerSession({ client }: { client: ChatClient }) {
       <MessengerPage
         client={client}
         historyNotice={t("chatWindow.historyNotice", {
-          count: CHAT_HISTORY_LIMIT,
+          count: client.historyLimit,
         })}
       />
     </QueryClientProvider>

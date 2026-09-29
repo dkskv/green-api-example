@@ -23,6 +23,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
+    "experimentalDecorators": true,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]

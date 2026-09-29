@@ -1,3 +1,4 @@
+import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
 import { newerStatus } from "@/entities/message/model/status";
 import { type ChatEvent } from "./chatEvent";
@@ -75,7 +76,8 @@ export class MessageStore {
   }
 
   /** Применяет событие чата или возвращает ошибку доставки. */
-  receive = (event: ChatEvent) => {
+  @boundMethod
+  receive(event: ChatEvent) {
     switch (event.type) {
       case "deliveryFailed":
         return MESSAGE_ERROR_MESSAGES.sendFailed(
@@ -109,5 +111,5 @@ export class MessageStore {
         return;
       }
     }
-  };
+  }
 }

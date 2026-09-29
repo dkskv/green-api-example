@@ -47,7 +47,7 @@ export function MessageComposer({
       }}
     >
       <Flex gap="small" align="flex-end" className={styles.composer}>
-        <Form.Item
+        <Form.Item<MessageComposerValues>
           name="draft"
           className={styles.draft}
           rules={[

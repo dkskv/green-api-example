@@ -1,4 +1,4 @@
-import { SessionForm } from "@/features/session";
+import { SessionForm } from "@/features/messenger-session";
 import { type GreenApiCredentials } from "@/integrations/green-api";
 
 type SessionPageProps = {

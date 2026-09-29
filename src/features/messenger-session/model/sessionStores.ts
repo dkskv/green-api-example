@@ -1,3 +1,4 @@
+import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import type { DisplayText } from "@/shared/i18n/text";
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
@@ -21,7 +22,8 @@ export class ContactStore {
     contact: null,
   }));
 
-  restore = (): void => {
+  @boundMethod
+  restore(): void {
     let contact: VerifiedContact | null = null;
 
     try {
@@ -33,17 +35,19 @@ export class ContactStore {
     }
 
     this.state.setState({ contact });
-  };
+  }
 
-  save = (contact: VerifiedContact): void => {
+  @boundMethod
+  save(contact: VerifiedContact): void {
     localStorage.setItem(ACTIVE_CONTACT_KEY, JSON.stringify(contact));
     this.state.setState({ contact });
-  };
+  }
 
-  clear = (): void => {
+  @boundMethod
+  clear(): void {
     localStorage.removeItem(ACTIVE_CONTACT_KEY);
     this.state.setState({ contact: null });
-  };
+  }
 }
 
 type CredentialsState = {
@@ -64,7 +68,8 @@ export class CredentialsStore {
     this.contacts = contacts;
   }
 
-  restore = (): void => {
+  @boundMethod
+  restore(): void {
     let credentials: GreenApiCredentials | null = null;
 
     try {
@@ -80,9 +85,10 @@ export class CredentialsStore {
       verified: false,
       sessionErrorMessage: "",
     });
-  };
+  }
 
-  save = (credentials: GreenApiCredentials): void => {
+  @boundMethod
+  save(credentials: GreenApiCredentials): void {
     const previous = this.state.getState().credentials;
 
     if (
@@ -99,9 +105,10 @@ export class CredentialsStore {
       verified: true,
       sessionErrorMessage: "",
     });
-  };
+  }
 
-  clear = (): void => {
+  @boundMethod
+  clear(): void {
     localStorage.removeItem(CREDENTIALS_KEY);
     this.contacts.clear();
 
@@ -110,19 +117,20 @@ export class CredentialsStore {
       verified: false,
       sessionErrorMessage: "",
     });
-  };
+  }
 
-  setVerification = (
+  @boundMethod
+  setVerification(
     credentials: GreenApiCredentials,
     errorMessage: DisplayText = "",
-  ): void => {
+  ): void {
     if (this.state.getState().credentials !== credentials) return;
 
     this.state.setState({
       verified: !errorMessage,
       sessionErrorMessage: errorMessage,
     });
-  };
+  }
 }
 
 export const contactStore = new ContactStore();

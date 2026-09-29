@@ -24,7 +24,7 @@ export function useReceiveMessages(
   useEffect(() => {
     const controller = new AbortController();
 
-    void runNotificationLoop({
+    runNotificationLoop({
       client,
       signal: controller.signal,
       onNotification: (notification) => {

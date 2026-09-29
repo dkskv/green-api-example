@@ -2,10 +2,10 @@ import { errorText } from "@/shared/i18n/text";
 import { GreenApiChatClient } from "@/integrations/green-api";
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
-import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
+import { SESSION_ERROR_MESSAGES } from "@/features/messenger-session/model/errors";
 import { credentialsStore } from "./sessionStores";
 
-export function useSession() {
+export function useMessengerSession() {
   const { credentials, verified, sessionErrorMessage } = useStore(
     credentialsStore.state,
   );

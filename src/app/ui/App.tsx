@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { useEffect } from "react";
 import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { useTranslation } from "@/shared/i18n";
@@ -16,7 +17,7 @@ import {
   Typography,
   theme,
 } from "antd";
-import { useSession } from "@/features/session";
+import { useMessengerSession } from "@/features/messenger-session";
 import { MessengerSession } from "@/app/ui/MessengerSession";
 import { SessionPage } from "@/pages/session";
 import "@/app/styles/index.css";
@@ -26,7 +27,11 @@ export default function App() {
   const { t, i18n } = useTranslation("ui");
 
   useEffect(() => {
-    document.documentElement.lang = i18n.resolvedLanguage ?? "en";
+    document.documentElement.lang = z
+      .string()
+      .min(1)
+      .parse(i18n.resolvedLanguage);
+
     document.title = t("app.appName");
   }, [t, i18n.resolvedLanguage]);
 
@@ -37,7 +42,7 @@ export default function App() {
     sessionErrorMessage,
     signOut,
     acceptVerifiedSession,
-  } = useSession();
+  } = useMessengerSession();
 
   return (
     <ConfigProvider locale={enUS} theme={{ algorithm: theme.darkAlgorithm }}>
@@ -48,6 +53,7 @@ export default function App() {
               <Typography.Title level={4}>{t("app.appName")}</Typography.Title>
               {credentials && (
                 <Space>
+                  <Tag>{t("app.instance", { id: credentials.instanceId })}</Tag>
                   <Tag>
                     {verified
                       ? t("app.sessionActive")

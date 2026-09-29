@@ -6,7 +6,7 @@ import messages from "./locales/en/messages.json";
 
 export const resources = { en: { ui, errors, messages } } as const;
 
-void i18n.use(initReactI18next).init({
+i18n.use(initReactI18next).init({
   resources,
   lng: "en",
   fallbackLng: "en",

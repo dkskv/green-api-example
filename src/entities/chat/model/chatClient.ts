@@ -10,6 +10,8 @@ export interface ChatDelivery {
 }
 
 export interface ChatClient {
+  /** Максимальное число сообщений в истории. */
+  readonly historyLimit: number;
   /** Проверка сессии. */
   validateSession(signal?: AbortSignal): Promise<void>;
   /** Проверка контакта по номеру. */

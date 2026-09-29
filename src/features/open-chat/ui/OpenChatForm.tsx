@@ -61,7 +61,11 @@ export function OpenChatForm({
         onFinish={handleFinish}
       >
         <Flex gap="small">
-          <Form.Item name="phone" className={styles.phone} rules={phoneRules}>
+          <Form.Item<OpenChatFormValues>
+            name="phone"
+            className={styles.phone}
+            rules={phoneRules}
+          >
             <Input
               aria-label={t("openChatForm.phone")}
               inputMode="tel"

@@ -11,7 +11,9 @@ import {
 import { API_ERROR_MESSAGES } from "./errors";
 import {
   accountSchema,
-  greenMessageSchema,
+  acknowledgementSchema,
+  apiErrorSchema,
+  messageSchema,
   notificationSchema,
   settingsSchema,
   sendMessageSchema,
@@ -21,42 +23,48 @@ import {
 export class GreenApiClient {
   private readonly credentials: Readonly<GreenApiCredentials>;
 
+  /** Сохраняет копию реквизитов подключения. */
   constructor(credentials: GreenApiCredentials) {
     this.credentials = { ...credentials };
   }
 
+  /** Проверяет наличие аккаунта по номеру. */
   async checkAccount(phoneNumber: number) {
     const response = await this.post("checkAccount", { phoneNumber });
 
     return accountSchema.parse(await response.json());
   }
 
+  /** Загружает и проверяет историю чата. */
   async getChatHistory(chatId: string, signal?: AbortSignal) {
     const response = await this.post(
       "getChatHistory",
       { chatId, count: CHAT_HISTORY_LIMIT },
       signal,
     );
-    const data = (await response.json()) as unknown;
+    const data: unknown = await response.json();
 
     if (!Array.isArray(data))
       throw new AppError(API_ERROR_MESSAGES.INVALID_HISTORY);
 
-    return z.array(greenMessageSchema).parse(data);
+    return z.array(messageSchema).parse(data);
   }
 
+  /** Отправляет текстовое сообщение. */
   async sendMessage(chatId: string, message: string) {
     const response = await this.post("sendMessage", { chatId, message });
 
     return sendMessageSchema.parse(await response.json());
   }
 
+  /** Получает настройки инстанса. */
   async getSettings(signal: AbortSignal) {
     const response = await this.request("getSettings", { signal });
 
     return settingsSchema.parse(await response.json());
   }
 
+  /** Получает следующее уведомление из очереди. */
   async receiveNotification(signal: AbortSignal) {
     const response = await this.request(
       "receiveNotification",
@@ -70,6 +78,7 @@ export class GreenApiClient {
     return notificationSchema.parse(JSON.parse(raw));
   }
 
+  /** Подтверждает обработку уведомления. */
   async acknowledgeNotification(
     receiptId: number,
     signal: AbortSignal,
@@ -79,10 +88,10 @@ export class GreenApiClient {
       { method: "DELETE", signal },
       `/${receiptId}`,
     );
-    const result = (await response.json().catch(() => null)) as {
-      result?: boolean;
-      reason?: string;
-    } | null;
+    const parsed = acknowledgementSchema.safeParse(
+      await response.json().catch(() => null),
+    );
+    const result = parsed.success ? parsed.data : undefined;
 
     if (result?.result !== true)
       throw new AppError(
@@ -90,6 +99,7 @@ export class GreenApiClient {
       );
   }
 
+  /** Проверяет готовность инстанса. */
   async validateSession(signal?: AbortSignal): Promise<void> {
     const response = await this.request("getStateInstance", { signal });
     const { stateInstance } = z
@@ -100,6 +110,7 @@ export class GreenApiClient {
       throw new AppError(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
   }
 
+  /** Включает нужные уведомления. */
   async enableNotifications(signal: AbortSignal): Promise<void> {
     const response = await this.post(
       "setSettings",
@@ -116,6 +127,7 @@ export class GreenApiClient {
     z.object({ saveSettings: z.literal(true) }).parse(await response.json());
   }
 
+  /** Удаляет сообщение для всех участников. */
   async deleteMessage(chatId: string, idMessage: string): Promise<void> {
     // DeleteMessage возвращает HTTP 200 с пустым телом.
     await this.post("deleteMessage", {
@@ -125,12 +137,14 @@ export class GreenApiClient {
     });
   }
 
+  /** Строит URL метода для текущего инстанса. */
   private methodUrl(method: string): string {
     const { apiUrl, instanceId, apiToken } = this.credentials;
 
     return `${apiUrl}/waInstance${encodeURIComponent(instanceId)}/${method}/${encodeURIComponent(apiToken)}`;
   }
 
+  /** Отправляет JSON запрос. */
   private post(
     method: string,
     body: unknown,
@@ -144,6 +158,7 @@ export class GreenApiClient {
     });
   }
 
+  /** Выполняет запрос и обрабатывает HTTP ошибки. */
   private async request(
     method: string,
     init: RequestInit = {},
@@ -165,13 +180,12 @@ export class GreenApiClient {
     return response;
   }
 
+  /** Извлекает текст ошибки из ответа API. */
   private async getApiError(response: Response): Promise<DisplayText> {
-    const payload = (await response.json().catch(() => null)) as {
-      message?: string;
-      reason?: string;
-      error?: string;
-      data?: { reason?: string };
-    } | null;
+    const parsed = apiErrorSchema.safeParse(
+      await response.json().catch(() => null),
+    );
+    const payload = parsed.success ? parsed.data : undefined;
     const reason =
       payload?.reason ??
       payload?.data?.reason ??

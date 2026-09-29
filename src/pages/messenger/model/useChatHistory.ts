@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type MessageStore } from "@/entities/message";
 import { type ChatClient } from "@/entities/chat";
-import { chatHistoryOptions } from "@/pages/messenger/model/chatHistory";
 
 export function useChatHistory(
   client: ChatClient,
@@ -10,7 +9,10 @@ export function useChatHistory(
   chatId?: string,
 ) {
   const history = useQuery({
-    ...chatHistoryOptions(client, chatId ?? ""),
+    queryKey: ["chat-history", chatId],
+    queryFn: ({ signal }) => client.getChatHistory(chatId!, signal),
+    // Повторный выбор чата обновляет историю, пока события продолжают поступать.
+    staleTime: 0,
     enabled: Boolean(chatId),
   });
 
