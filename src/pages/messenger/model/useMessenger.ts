@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useStore } from "zustand";
 import { contactStore } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
-import { MessageStore, emptyMessages } from "@/entities/message";
+import { MessageStore } from "@/entities/message";
 import { type ChatClient } from "@/entities/chat";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
@@ -16,10 +16,8 @@ export function useMessenger(client: ChatClient) {
   const history = useChatHistory(client, store, activeContact?.chatId);
   const opening = useOpenChat(client, store, contactStore.save);
   const actions = useMessageActions(client, store, activeContact?.chatId);
-  const messages = useStore(
-    store.state,
-    (state) =>
-      state.chats[activeContact?.chatId ?? ""]?.messages ?? emptyMessages,
+  const messages = useStore(store.state, (state) =>
+    store.getMessages(activeContact?.chatId, state),
   );
 
   const errors = [

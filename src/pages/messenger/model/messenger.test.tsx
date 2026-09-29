@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChatClientMock } from "@/entities/chat/testing/createChatClientMock";
 import { type ChatMessage } from "@/entities/message";
-import { MessageStore, emptyMessages } from "@/entities/message";
+import { MessageStore } from "@/entities/message";
 import { contactStore } from "@/features/session";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
@@ -317,7 +317,7 @@ it("updates the Zustand subscription after live events and keeps sessions isolat
   const store = new MessageStore();
   const otherSession = new MessageStore();
   const { result } = renderHook(() =>
-    useStore(store.state, (state) => state.chats.a?.messages ?? emptyMessages),
+    useStore(store.state, (state) => store.getMessages("a", state)),
   );
 
   expect(result.current).toEqual([]);

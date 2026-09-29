@@ -10,17 +10,17 @@ type ChatState = {
   deleted: string[];
 };
 
-export const emptyMessages: ChatMessage[] = [];
-
 export class MessageStore {
   readonly state = createStore<{ chats: Record<string, ChatState> }>(() => ({
     chats: {},
   }));
 
-  getMessages(chatId: string): ChatMessage[] {
-    return this.state.getState().chats[chatId]?.messages ?? emptyMessages;
+  /** Возвращает сообщения чата или стабильный пустой массив. */
+  getMessages(chatId?: string, state = this.state.getState()): ChatMessage[] {
+    return (chatId ? state.chats[chatId]?.messages : undefined) ?? [];
   }
 
+  /** Обновляет состояние чата. */
   private update(chatId: string, change: (chat: ChatState) => ChatState) {
     this.state.setState(({ chats }) => ({
       chats: {
@@ -32,6 +32,7 @@ export class MessageStore {
     }));
   }
 
+  /** Объединяет сообщения с учётом статусов и удалений. */
   merge(chatId: string, messages: ChatMessage[]) {
     this.update(chatId, (chat) => {
       const byId = new Map(
@@ -60,6 +61,7 @@ export class MessageStore {
     });
   }
 
+  /** Удаляет сообщение и запоминает удаление. */
   remove(chatId: string, id: string) {
     this.update(chatId, (chat) => ({
       ...chat,
@@ -68,6 +70,7 @@ export class MessageStore {
     }));
   }
 
+  /** Применяет событие чата или возвращает ошибку доставки. */
   receive = (event: ChatEvent) => {
     switch (event.type) {
       case "deliveryFailed":

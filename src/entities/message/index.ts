@@ -1,8 +1,5 @@
 export { type ChatMessage } from "@/entities/message/model/message";
-export {
-  MessageStore,
-  emptyMessages,
-} from "@/entities/message/model/messageStore";
+export { MessageStore } from "@/entities/message/model/messageStore";
 export {
   MESSAGE_STATUS,
   MESSAGE_STATUS_LABELS,
