@@ -4,11 +4,13 @@ import {
   Spin,
   App as AntApp,
   Button,
+  ConfigProvider,
   Flex,
   Layout,
   Space,
   Tag,
   Typography,
+  theme,
 } from "antd";
 import { useSession } from "@/features/session";
 import { MessengerSession } from "@/app/ui/MessengerSession";
@@ -26,38 +28,40 @@ export default function App() {
   } = useSession();
 
   return (
-    <AntApp>
-      <Layout className={styles.layout}>
-        <Layout.Header>
-          <Flex align="center" justify="space-between">
-            <Typography.Title level={4}>Telegram</Typography.Title>
-            {credentials && (
-              <Space>
-                <Tag>
-                  {verified ? "Session active" : "Session not verified"}
-                </Tag>
-                <Button onClick={signOut}>Sign out</Button>
-              </Space>
-            )}
-          </Flex>
-        </Layout.Header>
-        <Layout.Content className={styles.content}>
-          {credentials && client ? (
-            verified ? (
-              <MessengerSession
-                key={`${credentials.apiUrl}:${credentials.instanceId}`}
-                client={client}
-              />
-            ) : sessionErrorMessage ? (
-              <Alert type="error" title={sessionErrorMessage} />
+    <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+      <AntApp>
+        <Layout className={styles.layout}>
+          <Layout.Header>
+            <Flex align="center" justify="space-between">
+              <Typography.Title level={4}>Telegram</Typography.Title>
+              {credentials && (
+                <Space>
+                  <Tag>
+                    {verified ? "Session active" : "Session not verified"}
+                  </Tag>
+                  <Button onClick={signOut}>Sign out</Button>
+                </Space>
+              )}
+            </Flex>
+          </Layout.Header>
+          <Layout.Content className={styles.content}>
+            {credentials && client ? (
+              verified ? (
+                <MessengerSession
+                  key={`${credentials.apiUrl}:${credentials.instanceId}`}
+                  client={client}
+                />
+              ) : sessionErrorMessage ? (
+                <Alert type="error" title={sessionErrorMessage} />
+              ) : (
+                <Spin description="Verifying session…" />
+              )
             ) : (
-              <Spin description="Verifying session…" />
-            )
-          ) : (
-            <SessionPage onReady={acceptVerifiedSession} />
-          )}
-        </Layout.Content>
-      </Layout>
-    </AntApp>
+              <SessionPage onReady={acceptVerifiedSession} />
+            )}
+          </Layout.Content>
+        </Layout>
+      </AntApp>
+    </ConfigProvider>
   );
 }

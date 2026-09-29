@@ -1,1 +1,5 @@
 @import "antd/dist/reset.css";
+
+:root {
+  color-scheme: dark;
+}
