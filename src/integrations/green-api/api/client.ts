@@ -15,12 +15,7 @@ import {
   notificationSchema,
   settingsSchema,
   sendMessageSchema,
-  type CheckAccountResponse,
-  type GreenMessageDto,
-  type GreenNotificationDto,
-  type SendMessageResponse,
-  type TelegramInstanceSettings,
-} from "./types";
+} from "./schemas";
 
 /** HTTP-клиент GREEN-API: запросы и проверка ответов. */
 export class GreenApiClient {
@@ -30,16 +25,13 @@ export class GreenApiClient {
     this.credentials = { ...credentials };
   }
 
-  async checkAccount(phoneNumber: number): Promise<CheckAccountResponse> {
+  async checkAccount(phoneNumber: number) {
     const response = await this.post("checkAccount", { phoneNumber });
 
     return accountSchema.parse(await response.json());
   }
 
-  async getChatHistory(
-    chatId: string,
-    signal?: AbortSignal,
-  ): Promise<GreenMessageDto[]> {
+  async getChatHistory(chatId: string, signal?: AbortSignal) {
     const response = await this.post(
       "getChatHistory",
       { chatId, count: CHAT_HISTORY_LIMIT },
@@ -53,24 +45,19 @@ export class GreenApiClient {
     return z.array(greenMessageSchema).parse(data);
   }
 
-  async sendMessage(
-    chatId: string,
-    message: string,
-  ): Promise<SendMessageResponse> {
+  async sendMessage(chatId: string, message: string) {
     const response = await this.post("sendMessage", { chatId, message });
 
     return sendMessageSchema.parse(await response.json());
   }
 
-  async getSettings(signal: AbortSignal): Promise<TelegramInstanceSettings> {
+  async getSettings(signal: AbortSignal) {
     const response = await this.request("getSettings", { signal });
 
     return settingsSchema.parse(await response.json());
   }
 
-  async receiveNotification(
-    signal: AbortSignal,
-  ): Promise<GreenNotificationDto | null> {
+  async receiveNotification(signal: AbortSignal) {
     const response = await this.request(
       "receiveNotification",
       { signal },

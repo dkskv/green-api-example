@@ -4,7 +4,7 @@ import type { DisplayText } from "@/shared/i18n/text";
 import { errorText } from "@/shared/i18n/text";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./SessionForm.module.css";
-import { createGreenApiChatClient } from "@/integrations/green-api";
+import { GreenApiChatClient } from "@/integrations/green-api";
 import { Alert, Button, Card, Form, Input, Typography } from "antd";
 import { useState } from "react";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
@@ -36,7 +36,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
     setErrorMessage("");
 
     try {
-      const client = createGreenApiChatClient(credentials);
+      const client = GreenApiChatClient.create(credentials);
 
       await client.validateSession();
       onReady(credentials);

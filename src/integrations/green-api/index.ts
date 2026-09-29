@@ -1,3 +1,3 @@
-export { createGreenApiChatClient } from "./createGreenApiChatClient";
-export { credentialsSchema, type GreenApiCredentials } from "./credentials";
+export { GreenApiChatClient } from "./GreenApiChatClient";
+export { type GreenApiCredentials } from "./credentials";
 export { CHAT_HISTORY_LIMIT } from "./api/constants";

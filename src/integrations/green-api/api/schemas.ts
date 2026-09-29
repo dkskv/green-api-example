@@ -18,7 +18,6 @@ export const greenMessageSchema = z.object({
   caption: z.string().optional(),
   messageData: messageDataSchema.optional(),
 });
-export type GreenMessageDto = z.infer<typeof greenMessageSchema>;
 
 export const notificationSchema = z.object({
   receiptId: z.number().int().nonnegative(),
@@ -33,7 +32,6 @@ export const notificationSchema = z.object({
     messageData: messageDataSchema.optional(),
   }),
 });
-export type GreenNotificationDto = z.infer<typeof notificationSchema>;
 
 export const accountSchema = z
   .object({
@@ -46,7 +44,6 @@ export const accountSchema = z
   .refine(
     (value) => value.status === false || typeof value.exist === "boolean",
   );
-export type CheckAccountResponse = z.infer<typeof accountSchema>;
 
 export const settingsSchema = z.object({
   incomingWebhook: z.string(),
@@ -56,6 +53,5 @@ export const settingsSchema = z.object({
   outgoingAPIMessageWebhook: z.string(),
   deletedMessageWebhook: z.string(),
 });
-export type TelegramInstanceSettings = z.infer<typeof settingsSchema>;
+
 export const sendMessageSchema = z.object({ idMessage: z.string().min(1) });
-export type SendMessageResponse = z.infer<typeof sendMessageSchema>;

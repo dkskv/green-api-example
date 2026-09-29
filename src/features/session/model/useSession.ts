@@ -1,16 +1,16 @@
 import { errorText } from "@/shared/i18n/text";
-import { createGreenApiChatClient } from "@/integrations/green-api";
+import { GreenApiChatClient } from "@/integrations/green-api";
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
-import { credentialsStore } from "./sessionStorage";
+import { credentialsStore } from "./sessionStores";
 
 export function useSession() {
   const { credentials, verified, sessionErrorMessage } = useStore(
     credentialsStore.state,
   );
   const client = useMemo(
-    () => (credentials ? createGreenApiChatClient(credentials) : null),
+    () => (credentials ? GreenApiChatClient.create(credentials) : null),
     [credentials],
   );
 

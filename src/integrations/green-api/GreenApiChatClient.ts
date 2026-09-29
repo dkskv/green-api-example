@@ -1,17 +1,21 @@
 import type { DisplayText } from "@/shared/i18n/text";
-import { AppError } from "@/shared/i18n/text";
+import { AppError, text } from "@/shared/i18n/text";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
-import { type GreenApiClient } from "./api/client";
+import { GreenApiClient } from "./api/client";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
 import { prepareNotifications } from "./prepareNotifications";
 import { GREEN_CHAT_ERRORS } from "./errors";
-import { getNotificationSettingsNotice } from "./notices";
+import { type GreenApiCredentials } from "./credentials";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {
+  static create(credentials: GreenApiCredentials): ChatClient {
+    return new GreenApiChatClient(new GreenApiClient(credentials));
+  }
+
   private readonly api: GreenApiClient;
 
   constructor(api: GreenApiClient) {
@@ -68,7 +72,7 @@ export class GreenApiChatClient implements ChatClient {
   ): Promise<DisplayText | undefined> {
     const changed = await prepareNotifications(this.api, signal);
 
-    return changed ? getNotificationSettingsNotice() : undefined;
+    return changed ? text("messages:notificationsEnabled") : undefined;
   }
 
   async receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null> {

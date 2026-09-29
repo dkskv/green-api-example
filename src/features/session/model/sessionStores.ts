@@ -1,14 +1,16 @@
 import type { DisplayText } from "@/shared/i18n/text";
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
-import {
-  credentialsSchema,
-  type GreenApiCredentials,
-} from "@/integrations/green-api";
+import { type GreenApiCredentials } from "@/integrations/green-api";
 import { normalizePhoneNumber, type VerifiedContact } from "@/entities/contact";
 
 const CREDENTIALS_KEY = "green-api-credentials";
 const ACTIVE_CONTACT_KEY = "green-api-active-chat";
+const credentialsSchema = z.object({
+  apiUrl: z.url().refine((value) => new URL(value).protocol === "https:"),
+  instanceId: z.string().trim().min(1),
+  apiToken: z.string().trim().min(1),
+});
 const contactSchema = z.object({
   phone: z.string().refine((phone) => normalizePhoneNumber(phone) === phone),
   chatId: z.string().min(1),

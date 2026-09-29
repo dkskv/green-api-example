@@ -1,9 +1,12 @@
 import { text as descriptor } from "@/shared/i18n/text";
 import { type ChatMessage } from "@/entities/message";
 import { MESSAGE_TYPE_PLACEHOLDERS } from "./placeholders";
-import { type GreenMessageDto } from "./api/types";
+import type { z } from "zod";
+import type { greenMessageSchema } from "./api/schemas";
 
-export function mapGreenMessage(data: GreenMessageDto): ChatMessage {
+export function mapGreenMessage(
+  data: z.infer<typeof greenMessageSchema>,
+): ChatMessage {
   const type = data.typeMessage ?? data.messageData?.typeMessage ?? "unknown";
   const text =
     data.textMessage ??

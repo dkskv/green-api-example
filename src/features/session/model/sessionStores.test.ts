@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
-import { ContactStore, CredentialsStore } from "./sessionStorage";
+import { ContactStore, CredentialsStore } from "./sessionStores";
 
 const credentials = {
   apiUrl: "https://example.com",

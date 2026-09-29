@@ -1,5 +1,6 @@
 import { AppError } from "@/shared/i18n/text";
-import { type GreenNotificationDto } from "./api/types";
+import type { z } from "zod";
+import type { notificationSchema } from "./api/schemas";
 import { type ChatEvent } from "@/entities/message";
 import { isFailureStatus } from "@/entities/message/model/status";
 import { WEBHOOK_TYPE, MESSAGE_TYPE } from "./api/constants";
@@ -8,7 +9,7 @@ import { GREEN_CHAT_ERRORS } from "./errors";
 
 export function mapGreenNotification({
   body,
-}: GreenNotificationDto): ChatEvent | null {
+}: z.infer<typeof notificationSchema>): ChatEvent | null {
   const chatId = body.chatId ?? body.senderData?.chatId;
 
   if (body.typeWebhook === WEBHOOK_TYPE.OUTGOING_MESSAGE_STATUS) {
