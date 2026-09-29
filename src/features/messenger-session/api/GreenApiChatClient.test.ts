@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GreenApiClient } from "./api/GreenApiClient";
-import { WEBHOOK_SETTING } from "./api/constants";
+import { GreenApiClient } from "@/shared/api/green-api";
+import { WEBHOOK_SETTING } from "@/shared/api/green-api";
 import { GreenApiChatClient } from "./GreenApiChatClient";
 import { mapGreenNotification } from "./mapGreenNotification";
 

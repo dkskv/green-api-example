@@ -2,12 +2,12 @@ import { i18n } from "@/shared/i18n";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
-import { GreenApiClient } from "./api/GreenApiClient";
+import { GreenApiClient } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
-import { CHAT_HISTORY_LIMIT, WEBHOOK_SETTING } from "./api/constants";
+import { CHAT_HISTORY_LIMIT, WEBHOOK_SETTING } from "@/shared/api/green-api";
 import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
-import { type GreenApiCredentials } from "./credentials";
+import { type GreenApiCredentials } from "@/shared/api/green-api";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {

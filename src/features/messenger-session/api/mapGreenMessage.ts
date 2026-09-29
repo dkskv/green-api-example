@@ -1,8 +1,8 @@
 import { i18n } from "@/shared/i18n";
 import { type ChatMessage } from "@/entities/message";
-import { MESSAGE_TYPE } from "./api/constants";
+import { MESSAGE_TYPE } from "@/shared/api/green-api";
 import type { z } from "zod";
-import type { messageSchema } from "./api/schemas";
+import type { messageSchema } from "@/shared/api/green-api";
 
 export function mapGreenMessage(
   data: z.infer<typeof messageSchema>,

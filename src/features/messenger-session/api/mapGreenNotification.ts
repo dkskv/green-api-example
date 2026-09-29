@@ -1,8 +1,8 @@
 import type { z } from "zod";
-import type { notificationSchema } from "./api/schemas";
+import type { notificationSchema } from "@/shared/api/green-api";
 import { type ChatEvent } from "@/entities/message";
 import { isFailureStatus } from "@/entities/message";
-import { WEBHOOK_TYPE, MESSAGE_TYPE } from "./api/constants";
+import { WEBHOOK_TYPE, MESSAGE_TYPE } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 

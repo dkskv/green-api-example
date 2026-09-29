@@ -1,5 +1,5 @@
 import { i18n } from "@/shared/i18n";
-import { type GreenApiCredentials } from "../credentials";
+import { type GreenApiCredentials } from "./credentials";
 import { z } from "zod";
 import {
   CHAT_HISTORY_LIMIT,

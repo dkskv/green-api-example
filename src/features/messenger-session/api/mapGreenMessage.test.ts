@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { messageSchema, notificationSchema } from "./api/schemas";
+import { messageSchema, notificationSchema } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
 

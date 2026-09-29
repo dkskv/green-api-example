@@ -1,5 +1,7 @@
-import { SessionForm } from "@/features/messenger-session";
-import { type GreenApiCredentials } from "@/integrations/green-api";
+import {
+  SessionForm,
+  type GreenApiCredentials,
+} from "@/features/messenger-session";
 
 type SessionPageProps = {
   onReady: (credentials: GreenApiCredentials) => void;

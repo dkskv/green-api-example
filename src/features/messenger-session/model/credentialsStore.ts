@@ -2,7 +2,7 @@ import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { z } from "zod";
-import { type GreenApiCredentials } from "@/integrations/green-api";
+import { type GreenApiCredentials } from "@/shared/api/green-api";
 
 const credentialsSchema = z.object({
   credentials: z

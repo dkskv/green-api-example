@@ -1,4 +1,4 @@
-import { GreenApiChatClient } from "@/integrations/green-api";
+import { GreenApiChatClient } from "../api/GreenApiChatClient";
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
 import { credentialsStore } from "./credentialsStore";

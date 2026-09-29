@@ -1,11 +1,11 @@
 import { errorText } from "@/shared/lib/errorText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./SessionForm.module.css";
-import { GreenApiChatClient } from "@/integrations/green-api";
+import { GreenApiChatClient } from "../api/GreenApiChatClient";
 import { Alert, Button, Card, Form, Input, Typography } from "antd";
 import { useState } from "react";
 import { SESSION_ERROR_MESSAGES } from "../model/errors";
-import { type GreenApiCredentials } from "@/integrations/green-api";
+import { type GreenApiCredentials } from "@/shared/api/green-api";
 
 const DEFAULT_API_URL = "https://api.green-api.com";
 

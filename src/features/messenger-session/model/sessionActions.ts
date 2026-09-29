@@ -1,4 +1,4 @@
-import type { GreenApiCredentials } from "@/integrations/green-api";
+import type { GreenApiCredentials } from "@/shared/api/green-api";
 import { contactStore, type ActiveContactStore } from "./contactStore";
 import { credentialsStore, type CredentialsStore } from "./credentialsStore";
 
