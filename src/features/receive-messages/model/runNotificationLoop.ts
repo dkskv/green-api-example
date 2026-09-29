@@ -2,6 +2,7 @@ import {
   type GreenApiClient,
   type GreenNotificationDto,
 } from "@/shared/api/green-api";
+import { runPolling } from "@/shared/lib/polling";
 import {
   CONNECTION_STATE,
   type Connection,
@@ -17,21 +18,6 @@ type NotificationLoopOptions = {
   onSettingsEnabled: () => void;
 };
 
-function pauseBeforeRetry(signal: AbortSignal): Promise<void> {
-  return new Promise((resolve) => {
-    const finish = () => {
-      clearTimeout(timer);
-      signal.removeEventListener("abort", finish);
-      resolve();
-    };
-    const timer = setTimeout(finish, 1500);
-
-    signal.addEventListener("abort", finish, { once: true });
-
-    if (signal.aborted) finish();
-  });
-}
-
 export async function runNotificationLoop({
   client,
   signal,
@@ -45,8 +31,10 @@ export async function runNotificationLoop({
 
   onConnectionChange({ status: CONNECTION_STATE.CONNECTING });
 
-  while (!signal.aborted) {
-    try {
+  await runPolling({
+    signal,
+    retryDelayMs: 1500,
+    execute: async (signal) => {
       if (!prepared) {
         const changed = await prepareNotifications(client, signal);
 
@@ -73,9 +61,8 @@ export async function runNotificationLoop({
       if (signal.aborted) return;
 
       onConnectionChange({ status: CONNECTION_STATE.ONLINE });
-    } catch (reason) {
-      if (signal.aborted) return;
-
+    },
+    onError: (reason) => {
       onConnectionChange({
         status: CONNECTION_STATE.ERROR,
         message:
@@ -83,8 +70,6 @@ export async function runNotificationLoop({
             ? reason.message
             : RECEIVE_ERROR_MESSAGES.RECEIVE_FAILED,
       });
-
-      await pauseBeforeRetry(signal);
-    }
-  }
+    },
+  });
 }
