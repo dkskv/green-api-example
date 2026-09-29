@@ -1,5 +1,5 @@
-import { type ChatMessage, type ChatEvent } from "@/entities/message";
-import { type VerifiedContact } from "@/entities/contact";
+import type { ChatMessage, ChatEvent } from "@/entities/message/@x/chat";
+import type { VerifiedContact } from "@/entities/contact/@x/chat";
 
 export interface ChatDelivery {
   /** Событие; null для неподдерживаемого. */
