@@ -10,6 +10,8 @@ type ChatState = {
   deleted: string[];
 };
 
+const emptyMessages: ChatMessage[] = [];
+
 export class MessageStore {
   readonly state = createStore<{ chats: Record<string, ChatState> }>(() => ({
     chats: {},
@@ -17,7 +19,9 @@ export class MessageStore {
 
   /** Возвращает сообщения чата или стабильный пустой массив. */
   getMessages(chatId?: string, state = this.state.getState()): ChatMessage[] {
-    return (chatId ? state.chats[chatId]?.messages : undefined) ?? [];
+    return (
+      (chatId ? state.chats[chatId]?.messages : undefined) ?? emptyMessages
+    );
   }
 
   /** Обновляет состояние чата. */

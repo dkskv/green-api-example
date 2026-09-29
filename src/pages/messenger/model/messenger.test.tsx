@@ -313,6 +313,22 @@ describe("message actions", () => {
   });
 });
 
+it("keeps empty message snapshots stable without an active or loaded chat", () => {
+  const store = new MessageStore();
+  const { result, rerender } = renderHook(
+    ({ chatId }: { chatId?: string }) =>
+      useStore(store.state, (state) => store.getMessages(chatId, state)),
+    { initialProps: { chatId: undefined } as { chatId?: string } },
+  );
+  const empty = result.current;
+
+  expect(empty).toEqual([]);
+  rerender({ chatId: "missing" });
+  expect(result.current).toBe(empty);
+  act(() => store.merge("other", snapshot));
+  expect(result.current).toBe(empty);
+});
+
 it("updates the Zustand subscription after live events and keeps sessions isolated", () => {
   const store = new MessageStore();
   const otherSession = new MessageStore();
