@@ -1,15 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
-import { mapGreenMessage } from "@/entities/message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 
-export function chatHistoryOptions(client: GreenApiClient, chatId: string) {
+export function chatHistoryOptions(client: ChatClient, chatId: string) {
   return queryOptions({
     queryKey: ["chat-history", chatId],
-    queryFn: async ({ signal }) => {
-      const history = await client.getChatHistory(chatId, signal);
-
-      return history.map(mapGreenMessage);
-    },
+    queryFn: ({ signal }) => client.getChatHistory(chatId, signal),
     // Notifications keep the displayed conversation current. Refresh is explicit.
     staleTime: Infinity,
   });

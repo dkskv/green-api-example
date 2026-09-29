@@ -1,14 +1,14 @@
 import { useMutation, useMutationState } from "@tanstack/react-query";
 import { sendChatMessage } from "@/features/send-message";
 import { type MessageStore } from "@/entities/message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 
 type SendVariables = { chatId: string; text: string };
 
 type DeleteVariables = { chatId: string; id: string };
 
 export function useMessageActions(
-  client: GreenApiClient,
+  client: ChatClient,
   store: MessageStore,
   chatId?: string,
 ) {

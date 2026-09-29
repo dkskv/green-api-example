@@ -1,9 +1,7 @@
+import { type GreenApiCredentials } from "../credentials";
 import { z } from "zod";
-import {
-  INSTANCE_STATE,
-  WEBHOOK_SETTING,
-} from "@/shared/api/green-api/constants";
-import { API_ERROR_MESSAGES } from "@/shared/api/green-api/errors";
+import { INSTANCE_STATE, WEBHOOK_SETTING } from "./constants";
+import { API_ERROR_MESSAGES } from "./errors";
 import {
   accountSchema,
   greenMessageSchema,
@@ -11,13 +9,13 @@ import {
   settingsSchema,
   sendMessageSchema,
   type CheckAccountResponse,
-  type GreenApiCredentials,
   type GreenMessageDto,
   type GreenNotificationDto,
   type SendMessageResponse,
   type TelegramInstanceSettings,
-} from "@/shared/api/green-api/types";
+} from "./types";
 
+/** HTTP-клиент GREEN-API: запросы и проверка ответов. */
 export class GreenApiClient {
   private readonly credentials: Readonly<GreenApiCredentials>;
 

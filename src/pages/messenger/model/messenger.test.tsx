@@ -3,7 +3,8 @@ import { type PropsWithChildren } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GreenApiClient, type GreenMessageDto } from "@/shared/api/green-api";
+import { createChatClientMock } from "@/entities/chat/testing/createChatClientMock";
+import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
 import { readSavedContact } from "@/features/session";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
@@ -16,11 +17,7 @@ function setup() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  const client = new GreenApiClient({
-    apiUrl: "https://example.com",
-    instanceId: "1",
-    apiToken: "test",
-  });
+  const client = createChatClientMock();
   const store = new MessageStore();
 
   clients.push(queryClient);
@@ -46,18 +43,20 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
-const snapshot: GreenMessageDto[] = [
+const snapshot: ChatMessage[] = [
   {
-    idMessage: "deleted",
-    type: "outgoing",
-    statusMessage: "sent",
-    textMessage: "old",
+    id: "deleted",
+    direction: "outgoing",
+    status: "sent",
+    text: "old",
+    timestamp: 0,
   },
   {
-    idMessage: "read",
-    type: "outgoing",
-    statusMessage: "sent",
-    textMessage: "hello",
+    id: "read",
+    direction: "outgoing",
+    status: "sent",
+    text: "hello",
+    timestamp: 0,
   },
 ];
 
@@ -71,20 +70,17 @@ afterEach(() => {
 describe("chat history", () => {
   it("reconciles a delayed snapshot with live deletions and delivery statuses", async () => {
     const { client, store, wrapper } = setup();
-    const response = deferred<GreenMessageDto[]>();
+    const response = deferred<ChatMessage[]>();
 
     vi.spyOn(client, "getChatHistory").mockReturnValue(response.promise);
     renderHook(() => useChatHistory(client, store, "a"), { wrapper });
     store.remove("a", "deleted");
 
     store.receive({
-      receiptId: 1,
-      body: {
-        typeWebhook: "outgoingMessageStatus",
-        chatId: "a",
-        idMessage: "read",
-        status: "read",
-      },
+      type: "messageStatusChanged",
+      chatId: "a",
+      messageId: "read",
+      status: "read",
     });
 
     response.resolve(snapshot);
@@ -126,12 +122,12 @@ describe("chat history", () => {
 describe("opening chats", () => {
   it("only selects and persists the latest opening when responses arrive out of order", async () => {
     const { client, store, wrapper } = setup();
-    const first = deferred<GreenMessageDto[]>();
-    const second = deferred<GreenMessageDto[]>();
+    const first = deferred<ChatMessage[]>();
+    const second = deferred<ChatMessage[]>();
     const onOpen = vi.fn();
 
-    vi.spyOn(client, "checkAccount").mockImplementation(async (phone) => ({
-      exist: true,
+    vi.spyOn(client, "resolveContact").mockImplementation(async (phone) => ({
+      phone: "12345678",
       chatId: String(phone),
     }));
 
@@ -166,11 +162,11 @@ describe("opening chats", () => {
 
   it("does not restore a saved chat after the page has unmounted", async () => {
     const { client, store, wrapper } = setup();
-    const response = deferred<GreenMessageDto[]>();
+    const response = deferred<ChatMessage[]>();
     const onOpen = vi.fn();
 
-    vi.spyOn(client, "checkAccount").mockResolvedValue({
-      exist: true,
+    vi.spyOn(client, "resolveContact").mockResolvedValue({
+      phone: "12345678",
       chatId: "a",
     });
 
@@ -197,12 +193,17 @@ describe("opening chats", () => {
 describe("message actions", () => {
   it("tracks concurrent sends by chat and applies late success to the original chat", async () => {
     const { client, store, wrapper } = setup();
-    const response = deferred<{ idMessage: string }>();
+    const response = deferred<ChatMessage>();
 
     vi.spyOn(client, "sendMessage").mockImplementation((id) =>
       id === "a"
         ? response.promise
-        : Promise.resolve({ idMessage: "b-message" }),
+        : Promise.resolve({
+            id: "b-message",
+            text: "other",
+            direction: "outgoing",
+            timestamp: 0,
+          }),
     );
 
     const { result, rerender } = renderHook(
@@ -227,7 +228,13 @@ describe("message actions", () => {
     expect(result.current.sending).toBe(true);
 
     await act(async () => {
-      response.resolve({ idMessage: "a-message" });
+      response.resolve({
+        id: "a-message",
+        text: "hello",
+        direction: "outgoing",
+        timestamp: 0,
+      });
+
       await sent;
     });
 

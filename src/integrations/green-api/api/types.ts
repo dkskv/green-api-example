@@ -1,19 +1,13 @@
 import { z } from "zod";
 
-export const credentialsSchema = z.object({
-  apiUrl: z.url().refine((value) => new URL(value).protocol === "https:"),
-  instanceId: z.string().trim().min(1),
-  apiToken: z.string().trim().min(1),
-});
-export type GreenApiCredentials = z.infer<typeof credentialsSchema>;
-
-export const messageDataSchema = z.object({
+const messageDataSchema = z.object({
   typeMessage: z.string().optional(),
   textMessageData: z.object({ textMessage: z.string().optional() }).optional(),
   fileMessageData: z.object({ caption: z.string().optional() }).optional(),
   extendedTextMessageData: z.object({ text: z.string().optional() }).optional(),
   deletedMessageData: z.object({ stanzaId: z.string().min(1) }).optional(),
 });
+
 export const greenMessageSchema = z.object({
   idMessage: z.string().min(1),
   type: z.enum(["incoming", "outgoing"]),

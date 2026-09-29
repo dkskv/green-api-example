@@ -1,12 +1,7 @@
-import { newerStatus, isFailureStatus } from "@/entities/message/model/status";
-import {
-  WEBHOOK_TYPE,
-  MESSAGE_TYPE,
-  type GreenNotificationDto,
-} from "@/shared/api/green-api";
+import { newerStatus } from "@/entities/message/model/status";
+import { type ChatEvent } from "./chatEvent";
 import { MESSAGE_ERROR_MESSAGES } from "@/entities/message/model/errors";
 import {
-  mapGreenMessage,
   sortMessages,
   type ChatMessage,
 } from "@/entities/message/model/message";
@@ -84,77 +79,39 @@ export class MessageStore {
     }));
   }
 
-  receive = (notification: GreenNotificationDto) => {
-    const body = notification.body;
-    const chatId = body.chatId ?? body.senderData?.chatId;
-
-    if (body.typeWebhook === WEBHOOK_TYPE.OUTGOING_MESSAGE_STATUS) {
-      if (!body.idMessage && isFailureStatus(body.status)) {
+  receive = (event: ChatEvent) => {
+    switch (event.type) {
+      case "deliveryFailed":
         return MESSAGE_ERROR_MESSAGES.sendFailed(
-          chatId,
-          body.description ?? body.status,
+          event.chatId,
+          event.description,
         );
+      case "messageDeleted":
+        this.remove(event.chatId, event.messageId);
+
+        return;
+      case "messageReceived":
+        this.merge(event.chatId, [event.message]);
+
+        return;
+      case "messageStatusChanged": {
+        const { chatId, messageId: id, status } = event;
+
+        this.update(chatId, (chat) => ({
+          ...chat,
+          statuses: {
+            ...chat.statuses,
+            [id]: newerStatus(chat.statuses[id], status)!,
+          },
+          messages: chat.messages.map((message) =>
+            message.id === id
+              ? { ...message, status: newerStatus(message.status, status) }
+              : message,
+          ),
+        }));
+
+        return;
       }
-
-      if (!chatId || !body.idMessage || !body.status)
-        throw new Error(MESSAGE_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
-
-      const id = body.idMessage;
-      const status = body.status;
-
-      this.update(chatId, (chat) => ({
-        ...chat,
-        statuses: {
-          ...chat.statuses,
-          [id]: newerStatus(chat.statuses[id], status)!,
-        },
-        messages: chat.messages.map((message) =>
-          message.id === id
-            ? { ...message, status: newerStatus(message.status, status) }
-            : message,
-        ),
-      }));
-
-      return;
     }
-
-    if (
-      !(
-        [
-          WEBHOOK_TYPE.INCOMING_MESSAGE,
-          WEBHOOK_TYPE.OUTGOING_MESSAGE,
-          WEBHOOK_TYPE.OUTGOING_API_MESSAGE,
-        ] as readonly string[]
-      ).includes(body.typeWebhook)
-    )
-      return;
-
-    if (!chatId) throw new Error(MESSAGE_ERROR_MESSAGES.MISSING_CHAT);
-
-    if (body.messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
-      const id = body.messageData.deletedMessageData?.stanzaId;
-
-      if (!id)
-        throw new Error(MESSAGE_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
-
-      this.remove(chatId, id);
-
-      return;
-    }
-
-    if (!body.idMessage || !body.messageData)
-      throw new Error(MESSAGE_ERROR_MESSAGES.INVALID_NOTIFICATION);
-
-    this.merge(chatId, [
-      mapGreenMessage({
-        idMessage: body.idMessage,
-        type:
-          body.typeWebhook === WEBHOOK_TYPE.INCOMING_MESSAGE
-            ? "incoming"
-            : "outgoing",
-        timestamp: body.timestamp,
-        messageData: body.messageData,
-      }),
-    ]);
   };
 }

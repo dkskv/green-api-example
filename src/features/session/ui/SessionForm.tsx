@@ -1,9 +1,9 @@
+import { createGreenApiChatClient } from "@/integrations/green-api";
 import { Alert, Button, Card, Form, Input, Typography } from "antd";
 import { useState } from "react";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
-import { GreenApiClient } from "@/shared/api/green-api";
 import { saveCredentials } from "@/features/session/model/sessionStorage";
-import { type GreenApiCredentials } from "@/shared/api/green-api/types";
+import { type GreenApiCredentials } from "@/integrations/green-api";
 
 const DEFAULT_API_URL = "https://api.green-api.com";
 
@@ -29,7 +29,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
     setErrorMessage("");
 
     try {
-      const client = new GreenApiClient(credentials);
+      const client = createGreenApiChatClient(credentials);
 
       await client.validateSession();
       saveCredentials(credentials);

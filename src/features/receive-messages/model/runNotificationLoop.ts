@@ -1,21 +1,18 @@
-import {
-  type GreenApiClient,
-  type GreenNotificationDto,
-} from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
+import { type ChatEvent } from "@/entities/message";
 import { runPolling } from "@/shared/lib/polling";
 import {
   CONNECTION_STATE,
   type Connection,
 } from "@/features/receive-messages/model/connection";
 import { RECEIVE_ERROR_MESSAGES } from "@/features/receive-messages/model/errors";
-import { prepareNotifications } from "@/features/receive-messages/model/prepareNotifications";
 
 type NotificationLoopOptions = {
-  client: GreenApiClient;
+  client: ChatClient;
   signal: AbortSignal;
-  onNotification: (notification: GreenNotificationDto) => void;
+  onNotification: (notification: ChatEvent) => void | Promise<void>;
   onConnectionChange: (connection: Connection) => void;
-  onSettingsEnabled: () => void;
+  onNotice: (notice: string) => void;
 };
 
 export async function runNotificationLoop({
@@ -23,7 +20,7 @@ export async function runNotificationLoop({
   signal,
   onNotification,
   onConnectionChange,
-  onSettingsEnabled,
+  onNotice,
 }: NotificationLoopOptions): Promise<void> {
   let prepared = false;
 
@@ -36,14 +33,14 @@ export async function runNotificationLoop({
     retryDelayMs: 1500,
     execute: async (signal) => {
       if (!prepared) {
-        const changed = await prepareNotifications(client, signal);
+        const notice = await client.prepareNotifications(signal);
 
         if (signal.aborted) return;
 
         // A polling failure must not repeat a successful settings update.
         prepared = true;
 
-        if (changed) onSettingsEnabled();
+        if (notice) onNotice(notice);
       }
 
       const notification = await client.receiveNotification(signal);
@@ -51,11 +48,11 @@ export async function runNotificationLoop({
       if (signal.aborted) return;
 
       if (notification) {
-        onNotification(notification);
+        if (notification.event) await onNotification(notification.event);
 
         if (signal.aborted) return;
 
-        await client.acknowledgeNotification(notification.receiptId, signal);
+        await notification.acknowledge(signal);
       }
 
       if (signal.aborted) return;

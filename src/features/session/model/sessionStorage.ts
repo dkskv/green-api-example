@@ -1,5 +1,5 @@
-import { credentialsSchema } from "@/shared/api/green-api/types";
-import { type GreenApiCredentials } from "@/shared/api/green-api";
+import { credentialsSchema } from "@/integrations/green-api";
+import { type GreenApiCredentials } from "@/integrations/green-api";
 import { type VerifiedContact } from "@/entities/contact";
 
 const CREDENTIALS_KEY = "green-api-credentials";

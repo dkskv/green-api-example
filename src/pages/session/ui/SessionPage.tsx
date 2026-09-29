@@ -1,5 +1,5 @@
 import { SessionForm } from "@/features/session";
-import { type GreenApiCredentials } from "@/shared/api/green-api/types";
+import { type GreenApiCredentials } from "@/integrations/green-api";
 
 type SessionPageProps = {
   onReady: (credentials: GreenApiCredentials) => void;

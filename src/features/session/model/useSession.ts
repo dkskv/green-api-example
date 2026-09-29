@@ -1,20 +1,18 @@
+import { createGreenApiChatClient } from "@/integrations/green-api";
 import { useEffect, useMemo, useState } from "react";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
 import {
   clearSession,
   readCredentials,
 } from "@/features/session/model/sessionStorage";
-import {
-  GreenApiClient,
-  type GreenApiCredentials,
-} from "@/shared/api/green-api";
+import { type GreenApiCredentials } from "@/integrations/green-api";
 
 export function useSession() {
   const [credentials, setCredentials] = useState<GreenApiCredentials | null>(
     readCredentials,
   );
   const client = useMemo(
-    () => (credentials ? new GreenApiClient(credentials) : null),
+    () => (credentials ? createGreenApiChatClient(credentials) : null),
     [credentials],
   );
 

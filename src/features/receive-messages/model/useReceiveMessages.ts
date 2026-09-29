@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import {
   CONNECTION_STATE,
-  NOTIFICATION_SETTINGS_NOTICE,
   type Connection,
 } from "@/features/receive-messages/model/connection";
-import {
-  type GreenApiClient,
-  type GreenNotificationDto,
-} from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
+import { type ChatEvent } from "@/entities/message";
 import { runNotificationLoop } from "@/features/receive-messages/model/runNotificationLoop";
 
 export function useReceiveMessages(
-  client: GreenApiClient,
-  onNotification: (notification: GreenNotificationDto) => string | void,
+  client: ChatClient,
+  onNotification: (notification: ChatEvent) => string | void,
 ) {
   const [connection, setConnection] = useState<Connection>({
     status: CONNECTION_STATE.CONNECTING,
@@ -37,7 +34,7 @@ export function useReceiveMessages(
         if (warning) setDeliveryErrorMessage(warning);
       },
       onConnectionChange: setConnection,
-      onSettingsEnabled: () => setNotice(NOTIFICATION_SETTINGS_NOTICE),
+      onNotice: setNotice,
     });
 
     return () => controller.abort();

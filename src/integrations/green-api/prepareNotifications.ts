@@ -1,5 +1,6 @@
-import { WEBHOOK_SETTING, type GreenApiClient } from "@/shared/api/green-api";
-import { RECEIVE_ERROR_MESSAGES } from "@/features/receive-messages/model/errors";
+import { type GreenApiClient } from "./api/client";
+import { WEBHOOK_SETTING } from "./api/constants";
+import { GREEN_CHAT_ERRORS } from "./errors";
 
 // Returns whether settings were changed during this preparation.
 export async function prepareNotifications(
@@ -11,7 +12,7 @@ export async function prepareNotifications(
   signal.throwIfAborted();
 
   if (settings.webhookUrl.trim())
-    throw new Error(RECEIVE_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
+    throw new Error(GREEN_CHAT_ERRORS.WEBHOOK_URL_CONFIGURED);
 
   const enabled = [
     settings.incomingWebhook,

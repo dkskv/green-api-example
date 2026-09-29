@@ -2,11 +2,11 @@ import { Alert, Flex } from "antd";
 import { useMessenger } from "@/pages/messenger/model/useMessenger";
 import { OpenChatForm } from "@/features/open-chat";
 import { SEND_ERROR_MESSAGES } from "@/features/send-message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 import { ChatWindow } from "@/widgets/chat-window";
 
 type MessengerPageProps = {
-  client: GreenApiClient;
+  client: ChatClient;
 };
 
 export function MessengerPage({ client }: MessengerPageProps) {

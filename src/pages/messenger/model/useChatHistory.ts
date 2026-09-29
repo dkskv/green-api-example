@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type MessageStore } from "@/entities/message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 import { chatHistoryOptions } from "@/pages/messenger/model/chatHistory";
 
 export function useChatHistory(
-  client: GreenApiClient,
+  client: ChatClient,
   store: MessageStore,
   chatId?: string,
 ) {

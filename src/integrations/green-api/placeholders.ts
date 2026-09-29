@@ -1,4 +1,4 @@
-import { MESSAGE_TYPE } from "@/shared/api/green-api";
+import { MESSAGE_TYPE } from "./api/constants";
 
 export const MESSAGE_TYPE_PLACEHOLDERS: Readonly<Record<string, string>> = {
   [MESSAGE_TYPE.TEXT]: "",

@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { resolveTelegramContact } from "@/features/open-chat";
+import { resolveContact } from "@/features/open-chat";
 import { saveActiveContact } from "@/features/session";
 import { type VerifiedContact } from "@/entities/contact";
 import { type MessageStore } from "@/entities/message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 import { chatHistoryOptions } from "@/pages/messenger/model/chatHistory";
 
 export function useOpenChat(
-  client: GreenApiClient,
+  client: ChatClient,
   store: MessageStore,
   onOpen: (contact: VerifiedContact) => void,
 ) {
@@ -15,7 +15,7 @@ export function useOpenChat(
 
   const mutation = useMutation({
     mutationFn: async (phone: string) => {
-      const contact = await resolveTelegramContact(client, phone);
+      const contact = await resolveContact(client, phone);
 
       const messages = await queryClient.query({
         ...chatHistoryOptions(client, contact.chatId),

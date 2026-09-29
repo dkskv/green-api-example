@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MessengerPage } from "@/pages/messenger";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 
-export function MessengerSession({ client }: { client: GreenApiClient }) {
+export function MessengerSession({ client }: { client: ChatClient }) {
   // A new authenticated session gets its own history and mutation cache.
   const [queryClient] = useState(
     () =>

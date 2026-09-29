@@ -3,13 +3,13 @@ import { readSavedContact } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
 import { type VerifiedContact } from "@/entities/contact";
 import { MessageStore } from "@/entities/message";
-import { type GreenApiClient } from "@/shared/api/green-api";
+import { type ChatClient } from "@/entities/chat";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
 import { useMessageActions } from "@/pages/messenger/model/useMessageActions";
 import { MESSENGER_ERROR_MESSAGES } from "@/pages/messenger/model/errors";
 
-export function useMessenger(client: GreenApiClient) {
+export function useMessenger(client: ChatClient) {
   const [store] = useState(() => new MessageStore());
   const [activeContact, setActiveContact] = useState<VerifiedContact | null>(
     readSavedContact,

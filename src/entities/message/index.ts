@@ -1,5 +1,4 @@
 export {
-  mapGreenMessage,
   sortMessages,
   type ChatMessage,
 } from "@/entities/message/model/message";
@@ -10,3 +9,4 @@ export {
   getMessageStatusLabel,
   type MessageStatus,
 } from "@/entities/message/model/status";
+export type { ChatEvent } from "./model/chatEvent";
