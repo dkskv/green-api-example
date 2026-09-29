@@ -2,7 +2,7 @@ import { type GreenApiClient } from "./api/client";
 import { WEBHOOK_SETTING } from "./api/constants";
 import { GREEN_CHAT_ERRORS } from "./errors";
 
-// Returns whether settings were changed during this preparation.
+// Возвращает признак изменения настроек.
 export async function prepareNotifications(
   client: GreenApiClient,
   signal: AbortSignal,

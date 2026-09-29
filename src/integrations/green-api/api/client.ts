@@ -123,7 +123,7 @@ export class GreenApiClient {
   }
 
   async deleteMessage(chatId: string, idMessage: string): Promise<void> {
-    // DeleteMessage returns HTTP 200 with an empty body.
+    // DeleteMessage возвращает HTTP 200 с пустым телом.
     await this.post("deleteMessage", {
       chatId,
       idMessage,

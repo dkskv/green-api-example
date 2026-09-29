@@ -1,4 +1,4 @@
 export {
-  normalizePhoneNumber as normalizePhone,
+  normalizePhoneNumber,
   type VerifiedContact,
 } from "@/entities/contact/model/contact";

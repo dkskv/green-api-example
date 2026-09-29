@@ -10,9 +10,9 @@ import {
   Typography,
 } from "antd";
 import { useSession } from "@/features/session";
-import { MessengerSession } from "@/app/MessengerSession";
+import { MessengerSession } from "@/app/ui/MessengerSession";
 import { SessionPage } from "@/pages/session";
-import "@/app/styles.css";
+import "@/app/styles/index.css";
 
 export default function App() {
   const {

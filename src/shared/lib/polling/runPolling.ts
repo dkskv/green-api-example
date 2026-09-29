@@ -20,8 +20,8 @@ function pauseBeforeRetry(signal: AbortSignal, delayMs: number): Promise<void> {
   });
 }
 
-// Runs sequentially without a success delay, suitable for long polling.
-// execute must pass the signal to any work that needs to be cancelled.
+// Последовательный длительный опрос без задержки после успеха.
+// execute должен передавать сигнал отменяемым операциям.
 export async function runPolling({
   signal,
   execute,

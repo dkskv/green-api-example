@@ -5,7 +5,7 @@ export function chatHistoryOptions(client: ChatClient, chatId: string) {
   return queryOptions({
     queryKey: ["chat-history", chatId],
     queryFn: ({ signal }) => client.getChatHistory(chatId, signal),
-    // Notifications keep the displayed conversation current. Refresh is explicit.
+    // Уведомления обновляют чат; история перезагружается вручную.
     staleTime: Infinity,
   });
 }

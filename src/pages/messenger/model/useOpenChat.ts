@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { resolveContact } from "@/features/open-chat";
 import { saveActiveContact } from "@/features/session";
 import { type VerifiedContact } from "@/entities/contact";
 import { type MessageStore } from "@/entities/message";
@@ -15,7 +14,7 @@ export function useOpenChat(
 
   const mutation = useMutation({
     mutationFn: async (phone: string) => {
-      const contact = await resolveContact(client, phone);
+      const contact = await client.resolveContact(phone);
 
       const messages = await queryClient.query({
         ...chatHistoryOptions(client, contact.chatId),
@@ -28,7 +27,7 @@ export function useOpenChat(
 
   function openChat(phone: string) {
     mutation.mutate(phone, {
-      // Per-call callbacks run only for the latest call while still mounted.
+      // Обработчик вызывается только для последнего запроса до размонтирования.
       onSuccess: ({ contact, messages }) => {
         saveActiveContact(contact);
         store.merge(contact.chatId, messages);

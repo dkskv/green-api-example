@@ -15,7 +15,7 @@ export function useChatHistory(
   });
 
   useEffect(() => {
-    // Query owns the server snapshot; the store reconciles it with live events.
+    // Запрос хранит серверный снимок, стор объединяет его с текущими событиями.
     if (chatId && history.data) store.merge(chatId, history.data);
   }, [chatId, history.data, store]);
 

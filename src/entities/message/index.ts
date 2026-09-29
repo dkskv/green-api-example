@@ -1,7 +1,4 @@
-export {
-  sortMessages,
-  type ChatMessage,
-} from "@/entities/message/model/message";
+export { type ChatMessage } from "@/entities/message/model/message";
 export { MessageStore } from "@/entities/message/model/messageStore";
 export {
   MESSAGE_STATUS,

@@ -1,5 +1,13 @@
-import { Button, Card, Flex, Form, Input, Typography } from "antd";
-import { normalizePhone } from "@/entities/contact";
+import {
+  Button,
+  Card,
+  Flex,
+  Form,
+  Input,
+  Typography,
+  type FormItemProps,
+} from "antd";
+import { normalizePhoneNumber } from "@/entities/contact";
 import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
 
 type OpenChatFormValues = {
@@ -17,6 +25,25 @@ export function OpenChatForm({
   loading,
   onOpen,
 }: OpenChatFormProps) {
+  const initialValues = { phone: initialPhone };
+  const phoneStyle = { flex: 1, minWidth: 0, marginBottom: 0 };
+  const phoneRules: FormItemProps["rules"] = [
+    {
+      validator: async (_, value: string | undefined) => {
+        if (!normalizePhoneNumber(value ?? "")) {
+          throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
+        }
+      },
+    },
+  ];
+  const handleFinish = ({ phone }: OpenChatFormValues) => {
+    if (loading) return;
+
+    const normalizedPhone = normalizePhoneNumber(phone);
+
+    if (normalizedPhone) onOpen(normalizedPhone);
+  };
+
   return (
     <Card title="New conversation">
       <Typography.Paragraph type="secondary">
@@ -24,29 +51,11 @@ export function OpenChatForm({
       </Typography.Paragraph>
       <Form<OpenChatFormValues>
         name="open-chat"
-        initialValues={{ phone: initialPhone }}
-        onFinish={({ phone }) => {
-          if (loading) return;
-
-          const normalizedPhone = normalizePhone(phone);
-
-          if (normalizedPhone) return onOpen(normalizedPhone);
-        }}
+        initialValues={initialValues}
+        onFinish={handleFinish}
       >
         <Flex gap="small">
-          <Form.Item
-            name="phone"
-            style={{ flex: 1, minWidth: 0, marginBottom: 0 }}
-            rules={[
-              {
-                validator: async (_, value: string | undefined) => {
-                  if (!normalizePhone(value ?? "")) {
-                    throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
-                  }
-                },
-              },
-            ]}
-          >
+          <Form.Item name="phone" style={phoneStyle} rules={phoneRules}>
             <Input
               aria-label="Phone number"
               inputMode="tel"

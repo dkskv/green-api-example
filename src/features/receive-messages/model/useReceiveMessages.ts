@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CONNECTION_STATE,
   type Connection,
 } from "@/features/receive-messages/model/connection";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
+import { useActualRef } from "@/shared/lib/useActualRef";
 import { runNotificationLoop } from "@/features/receive-messages/model/runNotificationLoop";
 
 export function useReceiveMessages(
@@ -16,11 +17,7 @@ export function useReceiveMessages(
   });
   const [notice, setNotice] = useState("");
   const [deliveryErrorMessage, setDeliveryErrorMessage] = useState("");
-  const handler = useRef(onNotification);
-
-  useEffect(() => {
-    handler.current = onNotification;
-  }, [onNotification]);
+  const handler = useActualRef(onNotification);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -38,7 +35,7 @@ export function useReceiveMessages(
     });
 
     return () => controller.abort();
-  }, [client]);
+  }, [client, handler]);
 
   return {
     state: connection.status,

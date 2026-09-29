@@ -5,7 +5,3 @@ export type ChatMessage = {
   timestamp: number;
   status?: string;
 };
-
-export function sortMessages(messages: ChatMessage[]): ChatMessage[] {
-  return messages.toSorted((left, right) => left.timestamp - right.timestamp);
-}

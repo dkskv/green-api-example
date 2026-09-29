@@ -1,10 +1,7 @@
 import { newerStatus } from "@/entities/message/model/status";
 import { type ChatEvent } from "./chatEvent";
 import { MESSAGE_ERROR_MESSAGES } from "@/entities/message/model/errors";
-import {
-  sortMessages,
-  type ChatMessage,
-} from "@/entities/message/model/message";
+import { type ChatMessage } from "@/entities/message/model/message";
 
 type ChatState = {
   messages: ChatMessage[];
@@ -62,11 +59,9 @@ export class MessageStore {
 
       return {
         ...chat,
-        messages: sortMessages(
-          [...byId.values()].filter(
-            (message) => !chat.deleted.includes(message.id),
-          ),
-        ),
+        messages: [...byId.values()]
+          .filter((message) => !chat.deleted.includes(message.id))
+          .sort((left, right) => left.timestamp - right.timestamp),
       };
     });
   }

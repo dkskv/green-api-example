@@ -50,7 +50,7 @@ export function newerStatus(
 
   if (!previous) return next;
 
-  // Successful delivery is conclusive; delayed failures cannot undo it.
+  // Поздние ошибки не отменяют подтверждённую доставку.
   if (isFailureStatus(next)) {
     return previous === MESSAGE_STATUS.DELIVERED ||
       previous === MESSAGE_STATUS.READ
@@ -58,7 +58,7 @@ export function newerStatus(
       : next;
   }
 
-  // A queued/sent snapshot cannot clear a failure. Confirmed delivery can.
+  // Снимок очереди или отправки не снимает ошибку; доставка снимает.
   if (isFailureStatus(previous)) {
     return next === MESSAGE_STATUS.DELIVERED || next === MESSAGE_STATUS.READ
       ? next

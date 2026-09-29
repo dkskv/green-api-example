@@ -4,7 +4,7 @@ import { MessengerPage } from "@/pages/messenger";
 import { type ChatClient } from "@/entities/chat";
 
 export function MessengerSession({ client }: { client: ChatClient }) {
-  // A new authenticated session gets its own history and mutation cache.
+  // Каждая сессия получает отдельный кеш истории и мутаций.
   const [queryClient] = useState(
     () =>
       new QueryClient({

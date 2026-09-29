@@ -1,6 +1,6 @@
 import { credentialsSchema } from "@/integrations/green-api";
 import { type GreenApiCredentials } from "@/integrations/green-api";
-import { type VerifiedContact } from "@/entities/contact";
+import { normalizePhoneNumber, type VerifiedContact } from "@/entities/contact";
 
 const CREDENTIALS_KEY = "green-api-credentials";
 const ACTIVE_CONTACT_KEY = "green-api-active-chat";
@@ -42,7 +42,7 @@ export function readSavedContact(): VerifiedContact | null {
     const parsed = JSON.parse(saved) as Partial<VerifiedContact>;
 
     return typeof parsed?.phone === "string" &&
-      /^[1-9]\d{7,14}$/.test(parsed.phone) &&
+      normalizePhoneNumber(parsed.phone) === parsed.phone &&
       typeof parsed.chatId === "string" &&
       parsed.chatId.length > 0
       ? { phone: parsed.phone, chatId: parsed.chatId }

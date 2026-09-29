@@ -73,7 +73,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
                   if (new URL(value?.trim() ?? "").protocol === "https:")
                     return;
                 } catch {
-                  // Invalid URLs use the same field validation message.
+                  // Для некорректного URL используется общая ошибка поля.
                 }
 
                 throw new Error(SESSION_ERROR_MESSAGES.INVALID_API_URL);

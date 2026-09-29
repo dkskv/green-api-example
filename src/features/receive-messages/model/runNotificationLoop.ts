@@ -8,10 +8,15 @@ import {
 import { RECEIVE_ERROR_MESSAGES } from "@/features/receive-messages/model/errors";
 
 type NotificationLoopOptions = {
+  /** Клиент чата. */
   client: ChatClient;
+  /** Сигнал остановки. */
   signal: AbortSignal;
+  /** Обработка события. */
   onNotification: (notification: ChatEvent) => void | Promise<void>;
+  /** Обновление состояния соединения. */
   onConnectionChange: (connection: Connection) => void;
+  /** Показ уведомления пользователю. */
   onNotice: (notice: string) => void;
 };
 
@@ -37,7 +42,7 @@ export async function runNotificationLoop({
 
         if (signal.aborted) return;
 
-        // A polling failure must not repeat a successful settings update.
+        // Ошибка опроса не должна повторять успешную настройку.
         prepared = true;
 
         if (notice) onNotice(notice);

@@ -18,12 +18,14 @@ export function useMessageActions(
       sendChatMessage(client, chatId, text),
     onSuccess: (message, { chatId }) => store.merge(chatId, [message]),
   });
+
   const remove = useMutation({
     mutationKey: ["delete-message"],
     mutationFn: ({ chatId, id }: DeleteVariables) =>
       client.deleteMessage(chatId, id),
     onSuccess: (_, { chatId, id }) => store.remove(chatId, id),
   });
+
   const sends = useMutationState({
     filters: { mutationKey: ["send-message"] },
     select: ({ state }) => ({
@@ -32,6 +34,7 @@ export function useMessageActions(
       error: state.error,
     }),
   }).filter((mutation) => mutation.variables?.chatId === chatId);
+
   const deletions = useMutationState({
     filters: { mutationKey: ["delete-message"] },
     select: ({ state }) => ({
@@ -53,7 +56,7 @@ export function useMessageActions(
 
       return true;
     } catch {
-      // The mutation exposes the error; the composer keeps its draft.
+      // Мутация возвращает ошибку, форма сохраняет черновик.
       return false;
     }
   }

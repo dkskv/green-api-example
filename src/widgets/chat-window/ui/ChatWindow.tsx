@@ -18,16 +18,27 @@ import { type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 
 type ChatWindowProps = {
+  /** Выбранный контакт. */
   contact: VerifiedContact | null;
+  /** Сообщения чата. */
   messages: ChatMessage[];
+  /** Загрузка истории. */
   loadingHistory: boolean;
+  /** Ошибка чата. */
   errorMessage: string;
+  /** Обновление истории. */
   onRefresh: () => void;
+  /** Состояние соединения. */
   connectionState: ConnectionState;
+  /** Отправка; результат — признак успеха. */
   onSend: (text: string) => Promise<boolean>;
+  /** Выполняется отправка. */
   sending: boolean;
+  /** Ошибка отправки. */
   sendErrorMessage: string;
+  /** Идентификаторы удаляемых сообщений. */
   deletingIds: string[];
+  /** Удаление сообщения. */
   onDelete: (id: string) => void;
 };
 
