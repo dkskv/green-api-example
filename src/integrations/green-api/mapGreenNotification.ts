@@ -6,46 +6,59 @@ import { WEBHOOK_TYPE, MESSAGE_TYPE } from "./api/constants";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 
+type GreenNotification = z.infer<typeof notificationSchema>;
+
+type NotificationBody = GreenNotification["body"];
+
+/** Переводит уведомление GREEN-API в событие чата. */
 export function mapGreenNotification({
   body,
-}: z.infer<typeof notificationSchema>): ChatEvent | null {
+}: GreenNotification): ChatEvent | null {
   const chatId = body.chatId ?? body.senderData?.chatId;
 
-  if (body.typeWebhook === WEBHOOK_TYPE.OUTGOING_MESSAGE_STATUS) {
-    if (!body.idMessage && isFailureStatus(body.status)) {
-      return {
-        type: "deliveryFailed",
-        chatId,
-        description: body.description ?? body.status,
-      };
-    }
+  switch (body.typeWebhook) {
+    case WEBHOOK_TYPE.OUTGOING_MESSAGE_STATUS:
+      return mapMessageStatus(body, chatId);
+    case WEBHOOK_TYPE.INCOMING_MESSAGE:
+    case WEBHOOK_TYPE.OUTGOING_MESSAGE:
+    case WEBHOOK_TYPE.OUTGOING_API_MESSAGE:
+      return mapMessageNotification(body, chatId);
+    default:
+      return null;
+  }
+}
 
-    if (!chatId || !body.idMessage || !body.status)
-      throw new Error(GREEN_CHAT_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
-
+function mapMessageStatus(
+  { idMessage, status, description }: NotificationBody,
+  chatId: string | undefined,
+): ChatEvent {
+  if (!idMessage && isFailureStatus(status)) {
     return {
-      type: "messageStatusChanged",
+      type: "deliveryFailed",
       chatId,
-      messageId: body.idMessage,
-      status: body.status,
+      description: description ?? status,
     };
   }
 
-  if (
-    !(
-      [
-        WEBHOOK_TYPE.INCOMING_MESSAGE,
-        WEBHOOK_TYPE.OUTGOING_MESSAGE,
-        WEBHOOK_TYPE.OUTGOING_API_MESSAGE,
-      ] as readonly string[]
-    ).includes(body.typeWebhook)
-  )
-    return null;
+  if (!chatId || !idMessage || !status)
+    throw new Error(GREEN_CHAT_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
 
+  return {
+    type: "messageStatusChanged",
+    chatId,
+    messageId: idMessage,
+    status,
+  };
+}
+
+function mapMessageNotification(
+  { idMessage, typeWebhook, timestamp, messageData }: NotificationBody,
+  chatId: string | undefined,
+): ChatEvent {
   if (!chatId) throw new Error(GREEN_CHAT_ERROR_MESSAGES.MISSING_CHAT);
 
-  if (body.messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
-    const messageId = body.messageData.deletedMessageData?.stanzaId;
+  if (messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
+    const messageId = messageData.deletedMessageData?.stanzaId;
 
     if (!messageId)
       throw new Error(GREEN_CHAT_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
@@ -53,25 +66,25 @@ export function mapGreenNotification({
     return { type: "messageDeleted", chatId, messageId };
   }
 
-  if (!body.idMessage || !body.messageData)
+  if (!idMessage || !messageData)
     throw new Error(GREEN_CHAT_ERROR_MESSAGES.INVALID_NOTIFICATION);
+
+  const direction =
+    typeWebhook === WEBHOOK_TYPE.INCOMING_MESSAGE ? "incoming" : "outgoing";
+  const text =
+    messageData.textMessageData?.textMessage ??
+    messageData.extendedTextMessageData?.text;
 
   return {
     type: "messageReceived",
     chatId,
     message: mapGreenMessage({
-      idMessage: body.idMessage,
-      type:
-        body.typeWebhook === WEBHOOK_TYPE.INCOMING_MESSAGE
-          ? "incoming"
-          : "outgoing",
-      timestamp: body.timestamp,
-      // История содержит плоские поля; уведомления — вложенные данные.
-      typeMessage: body.messageData.typeMessage,
-      textMessage:
-        body.messageData.textMessageData?.textMessage ??
-        body.messageData.extendedTextMessageData?.text,
-      caption: body.messageData.fileMessageData?.caption,
+      idMessage,
+      type: direction,
+      timestamp,
+      typeMessage: messageData.typeMessage,
+      textMessage: text,
+      caption: messageData.fileMessageData?.caption,
     }),
   };
 }
