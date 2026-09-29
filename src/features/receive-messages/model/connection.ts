@@ -7,6 +7,11 @@ export const CONNECTION_STATE = {
 export type ConnectionState =
   (typeof CONNECTION_STATE)[keyof typeof CONNECTION_STATE];
 
+export type Connection =
+  | { status: typeof CONNECTION_STATE.CONNECTING }
+  | { status: typeof CONNECTION_STATE.ONLINE }
+  | { status: typeof CONNECTION_STATE.ERROR; message: string };
+
 export const CONNECTION_STATE_LABELS: Record<ConnectionState, string> = {
   [CONNECTION_STATE.CONNECTING]: "Connecting",
   [CONNECTION_STATE.ONLINE]: "Receiving messages",
