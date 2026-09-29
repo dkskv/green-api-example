@@ -5,6 +5,7 @@ import {
 } from "@/features/receive-messages/model/connection";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
+import { useMounted } from "@/shared/lib/useMounted";
 import { useActualRef } from "@/shared/lib/useActualRef";
 import { runNotificationLoop } from "@/features/receive-messages/model/runNotificationLoop";
 
@@ -17,9 +18,13 @@ export function useReceiveMessages(
   });
   const [notice, setNotice] = useState<string>("");
   const [deliveryErrorMessage, setDeliveryErrorMessage] = useState<string>("");
+  // Ждём завершения проверочного цикла StrictMode: повторные запросы вызывают 429 на dev-аккаунте.
+  const mounted = useMounted();
   const handler = useActualRef(onNotification);
 
   useEffect(() => {
+    if (!mounted) return;
+
     const controller = new AbortController();
 
     runNotificationLoop({
@@ -35,7 +40,7 @@ export function useReceiveMessages(
     });
 
     return () => controller.abort();
-  }, [client, handler]);
+  }, [client, handler, mounted]);
 
   return {
     state: connection.status,

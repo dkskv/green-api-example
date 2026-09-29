@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { useStore } from "zustand";
-import { type PropsWithChildren } from "react";
+import { StrictMode, type PropsWithChildren } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +8,7 @@ import { createChatClientMock } from "@/entities/chat/testing/createChatClientMo
 import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
 import { contactStore } from "@/features/messenger-session";
+import { useReceiveMessages } from "@/features/receive-messages/model/useReceiveMessages";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useActiveContact } from "./useActiveContact";
 import { useConversation } from "./useConversation";
@@ -72,6 +73,26 @@ afterEach(() => {
 });
 
 describe("chat history", () => {
+  it("loads history once in StrictMode and cancels it on unmount", async () => {
+    const { client, store, wrapper: Provider } = setup();
+
+    client.getChatHistory.mockImplementation(() => new Promise(() => {}));
+    const { unmount } = renderHook(() => useChatHistory(client, store, "a"), {
+      wrapper: ({ children }) => (
+        <StrictMode>
+          <Provider>{children}</Provider>
+        </StrictMode>
+      ),
+    });
+
+    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(1));
+    const signal = client.getChatHistory.mock.calls[0][1];
+
+    expect(signal?.aborted).toBe(false);
+    unmount();
+    expect(signal?.aborted).toBe(true);
+  });
+
   it("reconciles a delayed snapshot with live deletions and delivery statuses", async () => {
     const { client, store, wrapper } = setup();
     const response = deferred<ChatMessage[]>();
@@ -115,6 +136,7 @@ describe("chat history", () => {
       { initialProps: { chatId: "a" }, wrapper },
     );
 
+    await waitFor(() => expect(oldSignal).toBeDefined());
     rerender({ chatId: "b" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(oldSignal?.aborted).toBe(true);
@@ -439,4 +461,25 @@ it("updates the Zustand subscription after live events and keeps sessions isolat
   act(() => store.remove("a", "deleted"));
   expect(result.current.map((message) => message.id)).toEqual(["read"]);
   expect(otherSession.getMessages("a")).toEqual([]);
+});
+
+it("starts notification loading once in StrictMode and stops on unmount", async () => {
+  const client = createChatClientMock();
+
+  client.prepareNotifications.mockResolvedValue(undefined);
+  client.receiveNotification.mockImplementation(() => new Promise(() => {}));
+  const { unmount } = renderHook(() => useReceiveMessages(client, () => {}), {
+    wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
+  });
+
+  await waitFor(() =>
+    expect(client.receiveNotification).toHaveBeenCalledTimes(1),
+  );
+
+  expect(client.prepareNotifications).toHaveBeenCalledTimes(1);
+  const signal = client.prepareNotifications.mock.calls[0][0];
+
+  expect(signal.aborted).toBe(false);
+  unmount();
+  expect(signal.aborted).toBe(true);
 });
