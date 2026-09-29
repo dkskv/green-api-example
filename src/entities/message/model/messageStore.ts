@@ -1,9 +1,9 @@
 import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
-import { newerStatus } from "@/entities/message/model/status";
+import { newerStatus } from "./status";
 import { type ChatEvent } from "./chatEvent";
-import { MESSAGE_ERROR_MESSAGES } from "@/entities/message/model/errors";
-import { type ChatMessage } from "@/entities/message/model/message";
+import { MESSAGE_ERROR_MESSAGES } from "./errors";
+import { type ChatMessage } from "./message";
 
 type ChatState = {
   messages: ChatMessage[];

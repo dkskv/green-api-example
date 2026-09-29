@@ -21,9 +21,9 @@ import {
   useMessengerSession,
   SESSION_ERROR_MESSAGES,
 } from "@/features/messenger-session";
-import { MessengerSession } from "@/app/ui/MessengerSession";
+import { MessengerSession } from "./MessengerSession";
 import { SessionPage } from "@/pages/session";
-import "@/app/styles/index.css";
+import "../styles/index.css";
 
 export default function App() {
   const { t, i18n } = useTranslation("ui");

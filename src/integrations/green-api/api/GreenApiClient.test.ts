@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { GreenApiClient } from "./client";
+import { GreenApiClient } from "./GreenApiClient";
 
 const client = new GreenApiClient({
   apiUrl: "https://example.com",

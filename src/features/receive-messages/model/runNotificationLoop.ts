@@ -2,11 +2,8 @@ import { errorText } from "@/shared/lib/errorText";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
 import { runPolling } from "@/shared/lib/polling";
-import {
-  CONNECTION_STATE,
-  type Connection,
-} from "@/features/receive-messages/model/connection";
-import { RECEIVE_ERROR_MESSAGES } from "@/features/receive-messages/model/errors";
+import { CONNECTION_STATE, type Connection } from "./connection";
+import { RECEIVE_ERROR_MESSAGES } from "./errors";
 
 type NotificationLoopOptions = {
   /** Клиент чата. */

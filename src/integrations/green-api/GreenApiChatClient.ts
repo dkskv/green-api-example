@@ -2,7 +2,7 @@ import { i18n } from "@/shared/i18n";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
-import { GreenApiClient } from "./api/client";
+import { GreenApiClient } from "./api/GreenApiClient";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
 import { CHAT_HISTORY_LIMIT, WEBHOOK_SETTING } from "./api/constants";

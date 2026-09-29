@@ -1,3 +1,3 @@
-export { MessageComposer } from "@/features/send-message/ui/MessageComposer";
-export { sendChatMessage } from "@/features/send-message/model/sendMessage";
-export { SEND_ERROR_MESSAGES } from "@/features/send-message/model/errors";
+export { MessageComposer } from "./ui/MessageComposer";
+export { sendChatMessage } from "./model/sendChatMessage";
+export { SEND_ERROR_MESSAGES } from "./model/errors";

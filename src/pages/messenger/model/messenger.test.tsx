@@ -4,16 +4,16 @@ import { StrictMode, type PropsWithChildren } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createChatClientMock } from "@/entities/chat/testing/createChatClientMock";
+import { createChatClientMock } from "@/entities/chat/testing";
 import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
 import { contactStore } from "@/features/messenger-session";
-import { useReceiveMessages } from "@/features/receive-messages/model/useReceiveMessages";
-import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
+import { useReceiveMessages } from "@/features/receive-messages";
+import { useChatHistory } from "./useChatHistory";
 import { useActiveContact } from "./useActiveContact";
 import { useConversation } from "./useConversation";
 import { type VerifiedContact } from "@/entities/contact";
-import { useMessageActions } from "@/pages/messenger/model/useMessageActions";
+import { useMessageActions } from "./useMessageActions";
 
 const clients: QueryClient[] = [];
 

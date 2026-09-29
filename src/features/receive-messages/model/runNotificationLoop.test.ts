@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { createChatClientMock } from "@/entities/chat/testing/createChatClientMock";
+import { createChatClientMock } from "@/entities/chat/testing";
 import { runNotificationLoop } from "./runNotificationLoop";
 
 afterEach(() => {

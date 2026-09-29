@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  CONNECTION_STATE,
-  type Connection,
-} from "@/features/receive-messages/model/connection";
+import { CONNECTION_STATE, type Connection } from "./connection";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
 import { useMounted } from "@/shared/lib/useMounted";
 import { useActualRef } from "@/shared/lib/useActualRef";
-import { runNotificationLoop } from "@/features/receive-messages/model/runNotificationLoop";
+import { runNotificationLoop } from "./runNotificationLoop";
 
 export function useReceiveMessages(
   client: ChatClient,

@@ -4,7 +4,7 @@ import styles from "./SessionForm.module.css";
 import { GreenApiChatClient } from "@/integrations/green-api";
 import { Alert, Button, Card, Form, Input, Typography } from "antd";
 import { useState } from "react";
-import { SESSION_ERROR_MESSAGES } from "@/features/messenger-session/model/errors";
+import { SESSION_ERROR_MESSAGES } from "../model/errors";
 import { type GreenApiCredentials } from "@/integrations/green-api";
 
 const DEFAULT_API_URL = "https://api.green-api.com";

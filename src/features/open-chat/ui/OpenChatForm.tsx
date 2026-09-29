@@ -10,7 +10,7 @@ import {
   type FormItemProps,
 } from "antd";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/entities/contact";
-import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
+import { OPEN_CHAT_ERROR_MESSAGES } from "../model/errors";
 
 type OpenChatFormValues = {
   phone: string;

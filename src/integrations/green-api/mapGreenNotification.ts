@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import type { notificationSchema } from "./api/schemas";
 import { type ChatEvent } from "@/entities/message";
-import { isFailureStatus } from "@/entities/message/model/status";
+import { isFailureStatus } from "@/entities/message";
 import { WEBHOOK_TYPE, MESSAGE_TYPE } from "./api/constants";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";

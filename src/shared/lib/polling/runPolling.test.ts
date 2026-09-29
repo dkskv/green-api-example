@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runPolling } from "@/shared/lib/polling";
+import { runPolling } from ".";
 
 afterEach(() => vi.useRealTimers());
 
