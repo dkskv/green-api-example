@@ -1,7 +1,4 @@
-import { TranslatedText } from "@/shared/i18n/TranslatedText";
-import { useDisplayText } from "@/shared/i18n/useDisplayText";
-import type { DisplayText } from "@/shared/i18n/text";
-import { errorText } from "@/shared/i18n/text";
+import { errorText } from "@/shared/lib/errorText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./SessionForm.module.css";
 import { GreenApiChatClient } from "@/integrations/green-api";
@@ -17,9 +14,8 @@ type SessionFormProps = {
 };
 
 export function SessionForm({ onReady }: SessionFormProps) {
-  const translate = useDisplayText();
   const { t } = useTranslation("ui");
-  const [errorMessage, setErrorMessage] = useState<DisplayText>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const [checking, setChecking] = useState(false);
 
@@ -69,11 +65,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
           label={t("sessionForm.apiUrl")}
           rules={[
             {
-              message: (
-                <TranslatedText
-                  value={SESSION_ERROR_MESSAGES.INVALID_API_URL}
-                />
-              ),
+              message: SESSION_ERROR_MESSAGES.INVALID_API_URL,
               validator: async (_, value: string | undefined) => {
                 try {
                   if (new URL(value?.trim() ?? "").protocol === "https:")
@@ -82,7 +74,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
                   // Для некорректного URL используется общая ошибка поля.
                 }
 
-                throw new Error(SESSION_ERROR_MESSAGES.INVALID_API_URL.key);
+                throw new Error(SESSION_ERROR_MESSAGES.INVALID_API_URL);
               },
             },
           ]}
@@ -96,11 +88,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
             {
               required: true,
               whitespace: true,
-              message: (
-                <TranslatedText
-                  value={SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS}
-                />
-              ),
+              message: SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS,
             },
           ]}
         >
@@ -113,11 +101,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
             {
               required: true,
               whitespace: true,
-              message: (
-                <TranslatedText
-                  value={SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS}
-                />
-              ),
+              message: SESSION_ERROR_MESSAGES.MISSING_CREDENTIALS,
             },
           ]}
         >
@@ -127,7 +111,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
           <Alert
             type="error"
             showIcon
-            title={translate(errorMessage)}
+            title={errorMessage}
             className={styles.error}
           />
         )}

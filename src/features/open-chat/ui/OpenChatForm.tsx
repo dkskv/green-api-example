@@ -1,4 +1,3 @@
-import { TranslatedText } from "@/shared/i18n/TranslatedText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./OpenChatForm.module.css";
 import {
@@ -32,12 +31,10 @@ export function OpenChatForm({
   const initialValues = { phone: initialPhone };
   const phoneRules: FormItemProps["rules"] = [
     {
-      message: (
-        <TranslatedText value={OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE} />
-      ),
+      message: OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE,
       validator: async (_, value: string | undefined) => {
         if (!normalizePhoneNumber(value ?? "")) {
-          throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE.key);
+          throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
         }
       },
     },

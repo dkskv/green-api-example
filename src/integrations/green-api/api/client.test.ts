@@ -16,7 +16,7 @@ it.each([null, { result: "true" }, { result: true, reason: 123 }])(
 
     await expect(
       client.acknowledgeNotification(1, new AbortController().signal),
-    ).rejects.toThrow("errors:api.NOTIFICATION_NOT_ACKNOWLEDGED");
+    ).rejects.toThrow("The notification was not acknowledged.");
   },
 );
 
@@ -32,13 +32,13 @@ it("accepts a validated acknowledgement", async () => {
 });
 
 it.each([
-  [{ reason: { unexpected: true } }, "errors:api.http"],
-  [{ data: { reason: "Unavailable" } }, "errors:api.httpWithReason"],
-])("validates HTTP error bodies: %j", async (payload, key) => {
+  [{ reason: { unexpected: true } }, "HTTP 500"],
+  [{ data: { reason: "Unavailable" } }, "HTTP 500: Unavailable"],
+])("validates HTTP error bodies: %j", async (payload, message) => {
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue(Response.json(payload, { status: 500 })),
   );
 
-  await expect(client.checkAccount(12345678)).rejects.toThrow(key);
+  await expect(client.checkAccount(12345678)).rejects.toThrow(message);
 });

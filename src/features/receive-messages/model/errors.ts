@@ -1,5 +1,5 @@
-import { text } from "@/shared/i18n/text";
+import { i18n } from "@/shared/i18n";
 
 export const RECEIVE_ERROR_MESSAGES = {
-  RECEIVE_FAILED: text("errors:receive.RECEIVE_FAILED"),
+  RECEIVE_FAILED: i18n.t("errors:receive.RECEIVE_FAILED"),
 } as const;

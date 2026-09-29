@@ -1,5 +1,4 @@
-import type { DisplayText } from "@/shared/i18n/text";
-import { AppError, text } from "@/shared/i18n/text";
+import { i18n } from "@/shared/i18n";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
@@ -31,14 +30,14 @@ export class GreenApiChatClient implements ChatClient {
     const account = await this.api.checkAccount(Number(phone));
 
     if (account.status === false)
-      throw new AppError(
+      throw new Error(
         account.reason ??
           account.data?.reason ??
           GREEN_CHAT_ERROR_MESSAGES.CHECK_FAILED,
       );
 
     if (!account.exist || !account.chatId)
-      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.ACCOUNT_NOT_FOUND);
+      throw new Error(GREEN_CHAT_ERROR_MESSAGES.ACCOUNT_NOT_FOUND);
 
     return { phone, chatId: account.chatId };
   }
@@ -69,15 +68,13 @@ export class GreenApiChatClient implements ChatClient {
   }
 
   /** Включает все нужные события, если нет внешнего webhook URL. */
-  async prepareNotifications(
-    signal: AbortSignal,
-  ): Promise<DisplayText | undefined> {
+  async prepareNotifications(signal: AbortSignal): Promise<string | undefined> {
     const settings = await this.api.getSettings(signal);
 
     signal.throwIfAborted();
 
     if (settings.webhookUrl.trim())
-      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
+      throw new Error(GREEN_CHAT_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
 
     // Настройки обновляем только если хотя бы одно нужное событие отключено.
     const enabled = [
@@ -92,7 +89,7 @@ export class GreenApiChatClient implements ChatClient {
 
     await this.api.enableNotifications(signal);
 
-    return text("messages:notificationsEnabled");
+    return i18n.t("messages:notificationsEnabled");
   }
 
   async receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null> {

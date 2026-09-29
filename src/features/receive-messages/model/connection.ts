@@ -1,5 +1,4 @@
-import type { DisplayText } from "@/shared/i18n/text";
-import { text } from "@/shared/i18n/text";
+import { i18n } from "@/shared/i18n";
 
 export const CONNECTION_STATE = {
   CONNECTING: "connecting",
@@ -13,10 +12,10 @@ export type ConnectionState =
 export type Connection =
   | { status: typeof CONNECTION_STATE.CONNECTING }
   | { status: typeof CONNECTION_STATE.ONLINE }
-  | { status: typeof CONNECTION_STATE.ERROR; message: DisplayText };
+  | { status: typeof CONNECTION_STATE.ERROR; message: string };
 
-export const CONNECTION_STATE_LABELS: Record<ConnectionState, DisplayText> = {
-  [CONNECTION_STATE.CONNECTING]: text("messages:connection.connecting"),
-  [CONNECTION_STATE.ONLINE]: text("messages:connection.online"),
-  [CONNECTION_STATE.ERROR]: text("messages:connection.error"),
+export const CONNECTION_STATE_LABELS: Record<ConnectionState, string> = {
+  [CONNECTION_STATE.CONNECTING]: i18n.t("messages:connection.connecting"),
+  [CONNECTION_STATE.ONLINE]: i18n.t("messages:connection.online"),
+  [CONNECTION_STATE.ERROR]: i18n.t("messages:connection.error"),
 };

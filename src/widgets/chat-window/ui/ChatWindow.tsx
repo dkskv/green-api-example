@@ -1,4 +1,3 @@
-import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./ChatWindow.module.css";
 import {
@@ -70,11 +69,10 @@ export function ChatWindow({
     messages,
   );
   const { token } = theme.useToken();
-  const translate = useDisplayText();
   const { t } = useTranslation("ui");
   const headerActions = contact && (
     <Space size="small">
-      <Tag>{translate(CONNECTION_STATE_LABELS[connectionState])}</Tag>
+      <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
       <Button onClick={onRefresh} loading={loadingHistory}>
         {t("chatWindow.refresh")}
       </Button>

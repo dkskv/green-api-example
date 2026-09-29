@@ -1,4 +1,3 @@
-import { AppError } from "@/shared/i18n/text";
 import type { z } from "zod";
 import type { notificationSchema } from "./api/schemas";
 import { type ChatEvent } from "@/entities/message";
@@ -22,7 +21,7 @@ export function mapGreenNotification({
     }
 
     if (!chatId || !body.idMessage || !body.status)
-      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
+      throw new Error(GREEN_CHAT_ERROR_MESSAGES.INVALID_STATUS_NOTIFICATION);
 
     return {
       type: "messageStatusChanged",
@@ -43,19 +42,19 @@ export function mapGreenNotification({
   )
     return null;
 
-  if (!chatId) throw new AppError(GREEN_CHAT_ERROR_MESSAGES.MISSING_CHAT);
+  if (!chatId) throw new Error(GREEN_CHAT_ERROR_MESSAGES.MISSING_CHAT);
 
   if (body.messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
     const messageId = body.messageData.deletedMessageData?.stanzaId;
 
     if (!messageId)
-      throw new AppError(GREEN_CHAT_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
+      throw new Error(GREEN_CHAT_ERROR_MESSAGES.MISSING_DELETED_MESSAGE_ID);
 
     return { type: "messageDeleted", chatId, messageId };
   }
 
   if (!body.idMessage || !body.messageData)
-    throw new AppError(GREEN_CHAT_ERROR_MESSAGES.INVALID_NOTIFICATION);
+    throw new Error(GREEN_CHAT_ERROR_MESSAGES.INVALID_NOTIFICATION);
 
   return {
     type: "messageReceived",

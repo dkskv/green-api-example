@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { useEffect } from "react";
-import { errorText } from "@/shared/i18n/text";
-import { useDisplayText } from "@/shared/i18n/useDisplayText";
+import { errorText } from "@/shared/lib/errorText";
 import { useTranslation } from "@/shared/i18n";
 import enUS from "antd/locale/en_US";
 import styles from "./App.module.css";
@@ -27,7 +26,6 @@ import { SessionPage } from "@/pages/session";
 import "@/app/styles/index.css";
 
 export default function App() {
-  const translate = useDisplayText();
   const { t, i18n } = useTranslation("ui");
 
   useEffect(() => {
@@ -77,11 +75,9 @@ export default function App() {
                 ) : verification?.status === "error" ? (
                   <Alert
                     type="error"
-                    title={translate(
-                      errorText(
-                        verification.error,
-                        SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
-                      ),
+                    title={errorText(
+                      verification.error,
+                      SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
                     )}
                   />
                 ) : (

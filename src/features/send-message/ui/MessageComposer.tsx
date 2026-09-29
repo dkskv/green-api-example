@@ -1,4 +1,3 @@
-import { TranslatedText } from "@/shared/i18n/TranslatedText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./MessageComposer.module.css";
 import { Button, Flex, Form, Input, Typography } from "antd";
@@ -54,11 +53,7 @@ export function MessageComposer({
             {
               required: true,
               whitespace: true,
-              message: (
-                <TranslatedText
-                  value={{ key: "ui:messageComposer.required" }}
-                />
-              ),
+              message: t("messageComposer.required"),
             },
           ]}
         >

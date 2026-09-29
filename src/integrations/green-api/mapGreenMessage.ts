@@ -1,4 +1,4 @@
-import { text as descriptor } from "@/shared/i18n/text";
+import { i18n } from "@/shared/i18n";
 import { type ChatMessage } from "@/entities/message";
 import { MESSAGE_TYPE } from "./api/constants";
 import { MESSAGE_TYPE_PLACEHOLDERS } from "./placeholders";
@@ -16,7 +16,7 @@ export function mapGreenMessage(
     text || isText
       ? undefined
       : (MESSAGE_TYPE_PLACEHOLDERS[type] ??
-        descriptor("messages:placeholders.unsupported"));
+        i18n.t("messages:placeholders.unsupported"));
 
   return {
     id: data.idMessage,

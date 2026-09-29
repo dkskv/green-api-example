@@ -59,12 +59,12 @@ it.each([
 );
 
 it.each([
-  ["imageMessage", "image"],
-  ["videoMessage", "video"],
-  ["audioMessage", "audio"],
-  ["documentMessage", "document"],
-  ["stickerMessage", "sticker"],
-  ["futureMessage", "unsupported"],
+  ["imageMessage", "Images are not displayed yet."],
+  ["videoMessage", "Videos are not displayed yet."],
+  ["audioMessage", "Audio is not supported yet."],
+  ["documentMessage", "Documents are not displayed yet."],
+  ["stickerMessage", "Stickers are not displayed yet."],
+  ["futureMessage", "This message type is not supported yet."],
 ])(
   "shows a placeholder for %s with an empty caption",
   (typeMessage, placeholder) => {
@@ -88,9 +88,7 @@ it.each([
       }),
     );
 
-    expect(history.placeholder).toMatchObject({
-      key: `messages:placeholders.${placeholder}`,
-    });
+    expect(history.placeholder).toBe(placeholder);
 
     expect(event).toEqual({
       type: "messageReceived",

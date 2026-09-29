@@ -1,4 +1,3 @@
-import { useDisplayText } from "@/shared/i18n/useDisplayText";
 import { Alert, Flex } from "antd";
 import { useState } from "react";
 import { MessageStore } from "@/entities/message";
@@ -17,7 +16,6 @@ type MessengerPageProps = {
 };
 
 export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
-  const translate = useDisplayText();
   const [store] = useState(() => new MessageStore());
   const connection = useReceiveMessages(client, store.receive);
   const selection = useActiveContact(client);
@@ -40,41 +38,27 @@ export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
         onOpen={selection.selectContact}
       />
       {errors.map(({ operation, message }) => (
-        <Alert
-          key={operation}
-          type="error"
-          showIcon
-          title={translate(message)}
-        />
+        <Alert key={operation} type="error" showIcon title={message} />
       ))}
       {connection.deliveryErrorMessage && (
-        <Alert
-          type="error"
-          showIcon
-          title={translate(connection.deliveryErrorMessage)}
-        />
+        <Alert type="error" showIcon title={connection.deliveryErrorMessage} />
       )}
       {connection.notice && (
-        <Alert
-          type="info"
-          showIcon
-          title={translate(connection.notice)}
-          closable
-        />
+        <Alert type="info" showIcon title={connection.notice} closable />
       )}
       <ChatWindow
         contact={selection.activeContact}
         messages={conversation.messages}
         historyNotice={historyNotice}
         loadingHistory={history.isFetching}
-        errorMessage={translate(connection.errorMessage)}
+        errorMessage={connection.errorMessage}
         connectionState={connection.state}
         onRefresh={() => void history.refetch()}
         onSend={conversation.sendMessage}
         sending={conversation.sending}
         sendErrorMessage={
           conversation.sendError
-            ? translate(SEND_ERROR_MESSAGES.sendFailed(conversation.sendError))
+            ? SEND_ERROR_MESSAGES.sendFailed(conversation.sendError)
             : ""
         }
         deletingIds={conversation.deletingIds}

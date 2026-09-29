@@ -1,4 +1,3 @@
-import type { DisplayText } from "@/shared/i18n/text";
 import { type ChatMessage, type ChatEvent } from "@/entities/message";
 import { type VerifiedContact } from "@/entities/contact";
 
@@ -23,7 +22,7 @@ export interface ChatClient {
   /** Удаление сообщения. */
   deleteMessage(chatId: string, messageId: string): Promise<void>;
   /** Подготовка приёма с необязательным уведомлением. */
-  prepareNotifications(signal: AbortSignal): Promise<DisplayText | undefined>;
+  prepareNotifications(signal: AbortSignal): Promise<string | undefined>;
   /** Получение события или пустого результата. */
   receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null>;
 }

@@ -1,5 +1,4 @@
-import type { DisplayText } from "@/shared/i18n/text";
-import { errorText } from "@/shared/i18n/text";
+import { errorText } from "@/shared/lib/errorText";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
 import { runPolling } from "@/shared/lib/polling";
@@ -19,7 +18,7 @@ type NotificationLoopOptions = {
   /** Обновление состояния соединения. */
   onConnectionChange: (connection: Connection) => void;
   /** Показ уведомления пользователю. */
-  onNotice: (notice: DisplayText) => void;
+  onNotice: (notice: string) => void;
 };
 
 export async function runNotificationLoop({

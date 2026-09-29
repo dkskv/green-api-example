@@ -1,4 +1,4 @@
-import { errorText } from "@/shared/i18n/text";
+import { errorText } from "@/shared/lib/errorText";
 import { MESSENGER_ERROR_MESSAGES } from "./errors";
 
 /** Подготавливает ошибки операций для отображения на странице. */

@@ -1,6 +1,4 @@
-import type { DisplayText } from "@/shared/i18n/text";
-import { AppError } from "@/shared/i18n/text";
-import { text } from "@/shared/i18n/text";
+import { i18n } from "@/shared/i18n";
 import { type GreenApiCredentials } from "../credentials";
 import { z } from "zod";
 import {
@@ -45,7 +43,7 @@ export class GreenApiClient {
     const data: unknown = await response.json();
 
     if (!Array.isArray(data))
-      throw new AppError(API_ERROR_MESSAGES.INVALID_HISTORY);
+      throw new Error(API_ERROR_MESSAGES.INVALID_HISTORY);
 
     return z.array(messageSchema).parse(data);
   }
@@ -94,7 +92,7 @@ export class GreenApiClient {
     const result = parsed.success ? parsed.data : undefined;
 
     if (result?.result !== true)
-      throw new AppError(
+      throw new Error(
         result?.reason || API_ERROR_MESSAGES.NOTIFICATION_NOT_ACKNOWLEDGED,
       );
   }
@@ -107,7 +105,7 @@ export class GreenApiClient {
       .parse(await response.json());
 
     if (stateInstance !== INSTANCE_STATE.AUTHORIZED)
-      throw new AppError(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
+      throw new Error(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
   }
 
   /** Включает нужные уведомления. */
@@ -172,16 +170,16 @@ export class GreenApiClient {
         response.status >= 400 &&
         response.status < 500
       )
-        throw new AppError(API_ERROR_MESSAGES.receiveRejected(response.status));
+        throw new Error(API_ERROR_MESSAGES.receiveRejected(response.status));
 
-      throw new AppError(await this.getApiError(response));
+      throw new Error(await this.getApiError(response));
     }
 
     return response;
   }
 
   /** Извлекает текст ошибки из ответа API. */
-  private async getApiError(response: Response): Promise<DisplayText> {
+  private async getApiError(response: Response): Promise<string> {
     const parsed = apiErrorSchema.safeParse(
       await response.json().catch(() => null),
     );
@@ -193,7 +191,7 @@ export class GreenApiClient {
       payload?.error;
 
     return reason
-      ? text("errors:api.httpWithReason", { status: response.status, reason })
-      : text("errors:api.http", { status: response.status });
+      ? i18n.t("errors:api.httpWithReason", { status: response.status, reason })
+      : i18n.t("errors:api.http", { status: response.status });
   }
 }
