@@ -9,6 +9,7 @@
     "INVALID_NOTIFICATION": "Invalid message notification."
   },
   "api": {
+    "RATE_LIMITED": "Too many requests (HTTP 429). Please wait a moment and try again.",
     "INVALID_HISTORY": "Telegram API returned an invalid chat history.",
     "NOTIFICATION_NOT_ACKNOWLEDGED": "The notification was not acknowledged.",
     "receiveRejected": "GREEN API rejected ReceiveNotification (HTTP {{status}}).",

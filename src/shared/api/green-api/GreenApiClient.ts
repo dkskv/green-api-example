@@ -165,6 +165,9 @@ export class GreenApiClient {
     const response = await fetch(`${this.methodUrl(method)}${suffix}`, init);
 
     if (!response.ok) {
+      if (response.status === 429)
+        throw new Error(i18n.t("errors:api.RATE_LIMITED"));
+
       if (
         method === "receiveNotification" &&
         response.status >= 400 &&
