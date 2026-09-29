@@ -1,11 +1,11 @@
 import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
-import { type VerifiedChat } from "@/entities/chat";
+import { type VerifiedContact } from "@/entities/contact";
 import { type GreenApiClient } from "@/shared/api/green-api";
 
-export async function openTelegramChat(
+export async function resolveTelegramContact(
   client: GreenApiClient,
   phone: string,
-): Promise<VerifiedChat> {
+): Promise<VerifiedContact> {
   const account = await client.checkAccount(Number(phone));
 
   if (account.status === false) {

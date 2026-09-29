@@ -1,4 +1,4 @@
-export type VerifiedChat = {
+export type VerifiedContact = {
   phone: string;
   chatId: string;
 };

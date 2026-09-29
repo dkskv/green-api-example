@@ -1,9 +1,9 @@
 import { credentialsSchema } from "@/shared/api/green-api/types";
 import { type GreenApiCredentials } from "@/shared/api/green-api";
-import { type VerifiedChat } from "@/entities/chat";
+import { type VerifiedContact } from "@/entities/contact";
 
 const CREDENTIALS_KEY = "green-api-credentials";
-const ACTIVE_CHAT_KEY = "green-api-active-chat";
+const ACTIVE_CONTACT_KEY = "green-api-active-chat";
 
 export function readCredentials(): GreenApiCredentials | null {
   try {
@@ -22,7 +22,7 @@ export function saveCredentials(credentials: GreenApiCredentials): void {
     previous?.apiUrl !== credentials.apiUrl ||
     previous?.instanceId !== credentials.instanceId
   ) {
-    clearSavedChat();
+    clearSavedContact();
   }
 
   localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
@@ -30,16 +30,16 @@ export function saveCredentials(credentials: GreenApiCredentials): void {
 
 export function clearSession(): void {
   localStorage.removeItem(CREDENTIALS_KEY);
-  localStorage.removeItem(ACTIVE_CHAT_KEY);
+  localStorage.removeItem(ACTIVE_CONTACT_KEY);
 }
 
-export function readSavedChat(): VerifiedChat | null {
+export function readSavedContact(): VerifiedContact | null {
   try {
-    const saved = localStorage.getItem(ACTIVE_CHAT_KEY);
+    const saved = localStorage.getItem(ACTIVE_CONTACT_KEY);
 
     if (!saved) return null;
 
-    const parsed = JSON.parse(saved) as Partial<VerifiedChat>;
+    const parsed = JSON.parse(saved) as Partial<VerifiedContact>;
 
     return typeof parsed?.phone === "string" &&
       /^[1-9]\d{7,14}$/.test(parsed.phone) &&
@@ -52,10 +52,10 @@ export function readSavedChat(): VerifiedChat | null {
   }
 }
 
-export function saveActiveChat(chat: VerifiedChat): void {
-  localStorage.setItem(ACTIVE_CHAT_KEY, JSON.stringify(chat));
+export function saveActiveContact(contact: VerifiedContact): void {
+  localStorage.setItem(ACTIVE_CONTACT_KEY, JSON.stringify(contact));
 }
 
-export function clearSavedChat(): void {
-  localStorage.removeItem(ACTIVE_CHAT_KEY);
+export function clearSavedContact(): void {
+  localStorage.removeItem(ACTIVE_CONTACT_KEY);
 }

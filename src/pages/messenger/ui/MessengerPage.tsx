@@ -26,7 +26,7 @@ export function MessengerPage({ client }: MessengerPageProps) {
         <Alert type="info" showIcon title={connection.notice} closable />
       )}
       <ChatWindow
-        chat={messenger.chat}
+        contact={messenger.activeContact}
         messages={messenger.messages}
         loadingHistory={history.isFetching}
         errorMessage={connection.errorMessage}

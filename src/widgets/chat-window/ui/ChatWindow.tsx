@@ -14,11 +14,11 @@ import {
   CONNECTION_STATE_LABELS,
   type ConnectionState,
 } from "@/features/receive-messages";
-import { type VerifiedChat } from "@/entities/chat";
+import { type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 
 type ChatWindowProps = {
-  chat: VerifiedChat | null;
+  contact: VerifiedContact | null;
   messages: ChatMessage[];
   loadingHistory: boolean;
   errorMessage: string;
@@ -32,7 +32,7 @@ type ChatWindowProps = {
 };
 
 export function ChatWindow({
-  chat,
+  contact,
   messages,
   loadingHistory,
   errorMessage,
@@ -46,15 +46,15 @@ export function ChatWindow({
 }: ChatWindowProps) {
   return (
     <Card
-      title={chat ? `+${chat.phone}` : "No chat selected"}
+      title={contact ? `+${contact.phone}` : "No chat selected"}
       extra={
-        chat && (
+        contact && (
           <Flex align="center" gap="small">
             <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
             <Button
               onClick={onRefresh}
               loading={loadingHistory}
-              disabled={!chat}
+              disabled={!contact}
             >
               Refresh history
             </Button>
@@ -75,7 +75,7 @@ export function ChatWindow({
         style={{ maxHeight: "60vh", minHeight: 280, overflowY: "auto" }}
         aria-live="polite"
       >
-        {!chat ? (
+        {!contact ? (
           <Empty description="Open a chat using a phone number" />
         ) : loadingHistory && messages.length === 0 ? (
           <Flex justify="center" style={{ padding: 32 }}>
@@ -132,7 +132,7 @@ export function ChatWindow({
                         </Typography.Text>
                       )}
                     </Flex>
-                    {message.direction === "outgoing" && chat && (
+                    {message.direction === "outgoing" && contact && (
                       <Button
                         size="small"
                         type="text"
@@ -151,9 +151,9 @@ export function ChatWindow({
         )}
       </div>
 
-      {chat && (
+      {contact && (
         <MessageComposer
-          key={chat.chatId}
+          key={contact.chatId}
           onSend={onSend}
           sending={sending}
           errorMessage={sendErrorMessage}

@@ -1,5 +1,5 @@
 import { Button, Card, Flex, Form, Input, Typography } from "antd";
-import { normalizePhone } from "@/entities/chat";
+import { normalizePhone } from "@/entities/contact";
 import { OPEN_CHAT_ERROR_MESSAGES } from "@/features/open-chat/model/errors";
 
 type OpenChatFormValues = {

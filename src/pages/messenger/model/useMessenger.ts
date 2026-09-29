@@ -1,7 +1,7 @@
 import { useState, useSyncExternalStore } from "react";
-import { readSavedChat } from "@/features/session";
+import { readSavedContact } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
-import { type VerifiedChat } from "@/entities/chat";
+import { type VerifiedContact } from "@/entities/contact";
 import { MessageStore } from "@/entities/message";
 import { type GreenApiClient } from "@/shared/api/green-api";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
@@ -11,13 +11,15 @@ import { MESSENGER_ERROR_MESSAGES } from "@/pages/messenger/model/errors";
 
 export function useMessenger(client: GreenApiClient) {
   const [store] = useState(() => new MessageStore());
-  const [chat, setChat] = useState<VerifiedChat | null>(readSavedChat);
+  const [activeContact, setActiveContact] = useState<VerifiedContact | null>(
+    readSavedContact,
+  );
   const connection = useReceiveMessages(client, store.receive);
-  const history = useChatHistory(client, store, chat?.chatId);
-  const opening = useOpenChat(client, store, setChat);
-  const actions = useMessageActions(client, store, chat?.chatId);
+  const history = useChatHistory(client, store, activeContact?.chatId);
+  const opening = useOpenChat(client, store, setActiveContact);
+  const actions = useMessageActions(client, store, activeContact?.chatId);
   const messages = useSyncExternalStore(store.subscribe, () =>
-    store.getMessages(chat?.chatId ?? ""),
+    store.getMessages(activeContact?.chatId ?? ""),
   );
 
   const errors = [
@@ -43,5 +45,13 @@ export function useMessenger(client: GreenApiClient) {
       message: error instanceof Error ? error.message : fallback,
     }));
 
-  return { chat, messages, connection, history, opening, errors, ...actions };
+  return {
+    activeContact,
+    messages,
+    connection,
+    history,
+    opening,
+    errors,
+    ...actions,
+  };
 }

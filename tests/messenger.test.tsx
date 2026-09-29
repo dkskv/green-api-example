@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GreenApiClient, type GreenMessageDto } from "@/shared/api/green-api";
 import { MessageStore } from "@/entities/message";
-import { readSavedChat } from "@/features/session";
+import { readSavedContact } from "@/features/session";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
 import { useMessageActions } from "@/pages/messenger/model/useMessageActions";
@@ -161,7 +161,7 @@ describe("opening chats", () => {
     });
 
     expect(onOpen).toHaveBeenCalledTimes(1);
-    expect(readSavedChat()?.chatId).toBe("87654321");
+    expect(readSavedContact()?.chatId).toBe("87654321");
   });
 
   it("does not restore a saved chat after the page has unmounted", async () => {
@@ -190,7 +190,7 @@ describe("opening chats", () => {
     });
 
     expect(onOpen).not.toHaveBeenCalled();
-    expect(readSavedChat()).toBeNull();
+    expect(readSavedContact()).toBeNull();
   });
 });
 

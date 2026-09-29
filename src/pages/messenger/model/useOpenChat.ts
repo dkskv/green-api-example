@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { openTelegramChat } from "@/features/open-chat";
-import { saveActiveChat } from "@/features/session";
-import { type VerifiedChat } from "@/entities/chat";
+import { resolveTelegramContact } from "@/features/open-chat";
+import { saveActiveContact } from "@/features/session";
+import { type VerifiedContact } from "@/entities/contact";
 import { type MessageStore } from "@/entities/message";
 import { type GreenApiClient } from "@/shared/api/green-api";
 import { chatHistoryOptions } from "@/pages/messenger/model/chatHistory";
@@ -9,28 +9,30 @@ import { chatHistoryOptions } from "@/pages/messenger/model/chatHistory";
 export function useOpenChat(
   client: GreenApiClient,
   store: MessageStore,
-  onOpen: (chat: VerifiedChat) => void,
+  onOpen: (contact: VerifiedContact) => void,
 ) {
   const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationFn: async (phone: string) => {
-      const chat = await openTelegramChat(client, phone);
-      const messages = await queryClient.fetchQuery({
-        ...chatHistoryOptions(client, chat.chatId),
+      const contact = await resolveTelegramContact(client, phone);
+
+      const messages = await queryClient.query({
+        ...chatHistoryOptions(client, contact.chatId),
         staleTime: 0,
       });
 
-      return { chat, messages };
+      return { contact, messages };
     },
   });
 
   function openChat(phone: string) {
     mutation.mutate(phone, {
       // Per-call callbacks run only for the latest call while still mounted.
-      onSuccess: ({ chat, messages }) => {
-        saveActiveChat(chat);
-        store.merge(chat.chatId, messages);
-        onOpen(chat);
+      onSuccess: ({ contact, messages }) => {
+        saveActiveContact(contact);
+        store.merge(contact.chatId, messages);
+        onOpen(contact);
       },
     });
   }
