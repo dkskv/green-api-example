@@ -40,14 +40,20 @@ export function ChatMessageItem({
                 ? translate(message.placeholder)
                 : t("chatMessageItem.empty"))}
           </Typography.Text>
-          <Flex justify="flex-end" gap="small">
-            <Typography.Text type="secondary">
+          <Flex justify="space-between" gap="small">
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: token.fontSizeSM }}
+            >
               {message.timestamp
                 ? formatMessageTime(message.timestamp, i18n.resolvedLanguage)
                 : translate({ key: "messages:now" })}
             </Typography.Text>
             {outgoing && (
-              <Typography.Text type="secondary">
+              <Typography.Text
+                type="secondary"
+                style={{ fontSize: token.fontSizeSM }}
+              >
                 {translate(getMessageStatusLabel(message.status) ?? "")}
               </Typography.Text>
             )}

@@ -37,8 +37,8 @@
     "empty": "No messages yet. Send a message to start the conversation.",
     "noChat": "No chat selected",
     "refresh": "Force refresh history",
-    "historyNotice_one": "The latest {{count}} message is loaded when you open a chat.",
-    "historyNotice_other": "The latest {{count}} messages are loaded when you open a chat."
+    "historyNotice_one": "The latest {{count}} message is loaded when you open a chat. Loading older messages on scroll and message list virtualization are not supported in this MVP.",
+    "historyNotice_other": "The latest {{count}} messages are loaded when you open a chat. Loading older messages on scroll and message list virtualization are not supported in this MVP."
   },
   "chatMessageItem": {
     "empty": "Message has no text content",
