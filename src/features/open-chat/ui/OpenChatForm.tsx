@@ -1,3 +1,4 @@
+import styles from "./OpenChatForm.module.css";
 import {
   Button,
   Card,
@@ -26,7 +27,6 @@ export function OpenChatForm({
   onOpen,
 }: OpenChatFormProps) {
   const initialValues = { phone: initialPhone };
-  const phoneStyle = { flex: 1, minWidth: 0, marginBottom: 0 };
   const phoneRules: FormItemProps["rules"] = [
     {
       validator: async (_, value: string | undefined) => {
@@ -55,7 +55,7 @@ export function OpenChatForm({
         onFinish={handleFinish}
       >
         <Flex gap="small">
-          <Form.Item name="phone" style={phoneStyle} rules={phoneRules}>
+          <Form.Item name="phone" className={styles.phone} rules={phoneRules}>
             <Input
               aria-label="Phone number"
               inputMode="tel"

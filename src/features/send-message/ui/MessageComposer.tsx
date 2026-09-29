@@ -1,3 +1,4 @@
+import styles from "./MessageComposer.module.css";
 import { Button, Flex, Form, Input, Typography } from "antd";
 import { useRef } from "react";
 
@@ -42,17 +43,10 @@ export function MessageComposer({
         draftVersion.current += 1;
       }}
     >
-      <Flex
-        gap="small"
-        style={{
-          alignItems: "flex-end",
-          borderTop: "1px solid #f0f0f0",
-          paddingTop: 12,
-        }}
-      >
+      <Flex gap="small" align="flex-end" className={styles.composer}>
         <Form.Item
           name="draft"
-          style={{ flex: 1, minWidth: 0, marginBottom: 0 }}
+          className={styles.draft}
           rules={[
             {
               required: true,

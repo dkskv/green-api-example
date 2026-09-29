@@ -1,0 +1,9 @@
+.composer {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+.draft.draft {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}

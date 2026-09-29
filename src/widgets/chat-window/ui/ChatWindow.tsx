@@ -1,4 +1,4 @@
-import { type CSSProperties } from "react";
+import styles from "./ChatWindow.module.css";
 import {
   Alert,
   Button,
@@ -19,14 +19,6 @@ import {
 import { type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 import { ChatMessageItem } from "./ChatMessageItem";
-
-const historyStyle: CSSProperties = {
-  maxHeight: "60vh",
-  minHeight: 280,
-  overflowY: "auto",
-};
-const loadingStyle: CSSProperties = { padding: 32 };
-const noticeStyle: CSSProperties = { textAlign: "center" };
 
 type ChatWindowProps = {
   /** Выбранный контакт. */
@@ -92,7 +84,7 @@ export function ChatWindow({
 
     if (loadingHistory && messages.length === 0) {
       return (
-        <Flex justify="center" style={loadingStyle}>
+        <Flex justify="center" className={styles.loading}>
           <Spin description="Loading history…" />
         </Flex>
       );
@@ -107,7 +99,7 @@ export function ChatWindow({
     return (
       <Flex vertical gap="small">
         {historyNotice && (
-          <Typography.Text type="secondary" style={noticeStyle}>
+          <Typography.Text type="secondary" className={styles.notice}>
             {historyNotice}
           </Typography.Text>
         )}
@@ -123,7 +115,7 @@ export function ChatWindow({
     >
       <Flex vertical gap="middle">
         {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
-        <div style={historyStyle} aria-live="polite">
+        <div className={styles.history} aria-live="polite">
           {renderHistory()}
         </div>
         {contact && (

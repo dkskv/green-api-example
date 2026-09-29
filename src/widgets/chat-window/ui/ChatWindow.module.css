@@ -1,0 +1,11 @@
+.history {
+  max-height: 60vh;
+  min-height: 280px;
+  overflow-y: auto;
+}
+.loading {
+  padding: 32px;
+}
+.notice {
+  text-align: center;
+}

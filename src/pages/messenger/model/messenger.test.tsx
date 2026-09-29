@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
+import { useStore } from "zustand";
 import { type PropsWithChildren } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChatClientMock } from "@/entities/chat/testing/createChatClientMock";
 import { type ChatMessage } from "@/entities/message";
-import { MessageStore } from "@/entities/message";
-import { readSavedContact } from "@/features/session";
+import { MessageStore, emptyMessages } from "@/entities/message";
+import { contactStore } from "@/features/session";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
 import { useMessageActions } from "@/pages/messenger/model/useMessageActions";
@@ -63,6 +64,7 @@ const snapshot: ChatMessage[] = [
 afterEach(() => {
   cleanup();
   clients.splice(0).forEach((client) => client.clear());
+  contactStore.clear();
   localStorage.clear();
   vi.restoreAllMocks();
 });
@@ -124,7 +126,7 @@ describe("opening chats", () => {
     const { client, store, wrapper } = setup();
     const first = deferred<ChatMessage[]>();
     const second = deferred<ChatMessage[]>();
-    const onOpen = vi.fn();
+    const onOpen = vi.fn(contactStore.save);
 
     vi.spyOn(client, "resolveContact").mockImplementation(async (phone) => ({
       phone: "12345678",
@@ -157,13 +159,13 @@ describe("opening chats", () => {
     });
 
     expect(onOpen).toHaveBeenCalledTimes(1);
-    expect(readSavedContact()?.chatId).toBe("87654321");
+    expect(contactStore.state.getState().contact?.chatId).toBe("87654321");
   });
 
   it("does not restore a saved chat after the page has unmounted", async () => {
     const { client, store, wrapper } = setup();
     const response = deferred<ChatMessage[]>();
-    const onOpen = vi.fn();
+    const onOpen = vi.fn(contactStore.save);
 
     vi.spyOn(client, "resolveContact").mockResolvedValue({
       phone: "12345678",
@@ -186,7 +188,7 @@ describe("opening chats", () => {
     });
 
     expect(onOpen).not.toHaveBeenCalled();
-    expect(readSavedContact()).toBeNull();
+    expect(contactStore.state.getState().contact).toBeNull();
   });
 });
 
@@ -309,4 +311,19 @@ describe("message actions", () => {
       "first",
     ]);
   });
+});
+
+it("updates the Zustand subscription after live events and keeps sessions isolated", () => {
+  const store = new MessageStore();
+  const otherSession = new MessageStore();
+  const { result } = renderHook(() =>
+    useStore(store.state, (state) => state.chats.a?.messages ?? emptyMessages),
+  );
+
+  expect(result.current).toEqual([]);
+  act(() => store.merge("a", snapshot));
+  expect(result.current).toHaveLength(2);
+  act(() => store.remove("a", "deleted"));
+  expect(result.current.map((message) => message.id)).toEqual(["read"]);
+  expect(otherSession.getMessages("a")).toEqual([]);
 });

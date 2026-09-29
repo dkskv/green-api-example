@@ -1,0 +1,14 @@
+.incoming.incoming {
+  justify-content: flex-start;
+  border: 0;
+}
+.outgoing.outgoing {
+  justify-content: flex-end;
+  border: 0;
+}
+.card {
+  max-width: 78%;
+}
+.text {
+  white-space: pre-wrap;
+}

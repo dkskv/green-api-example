@@ -1,8 +1,8 @@
-import { useState, useSyncExternalStore } from "react";
-import { readSavedContact } from "@/features/session";
+import { useState } from "react";
+import { useStore } from "zustand";
+import { contactStore } from "@/features/session";
 import { useReceiveMessages } from "@/features/receive-messages";
-import { type VerifiedContact } from "@/entities/contact";
-import { MessageStore } from "@/entities/message";
+import { MessageStore, emptyMessages } from "@/entities/message";
 import { type ChatClient } from "@/entities/chat";
 import { useChatHistory } from "@/pages/messenger/model/useChatHistory";
 import { useOpenChat } from "@/pages/messenger/model/useOpenChat";
@@ -11,15 +11,15 @@ import { MESSENGER_ERROR_MESSAGES } from "@/pages/messenger/model/errors";
 
 export function useMessenger(client: ChatClient) {
   const [store] = useState(() => new MessageStore());
-  const [activeContact, setActiveContact] = useState<VerifiedContact | null>(
-    readSavedContact,
-  );
+  const activeContact = useStore(contactStore.state, (state) => state.contact);
   const connection = useReceiveMessages(client, store.receive);
   const history = useChatHistory(client, store, activeContact?.chatId);
-  const opening = useOpenChat(client, store, setActiveContact);
+  const opening = useOpenChat(client, store, contactStore.save);
   const actions = useMessageActions(client, store, activeContact?.chatId);
-  const messages = useSyncExternalStore(store.subscribe, () =>
-    store.getMessages(activeContact?.chatId ?? ""),
+  const messages = useStore(
+    store.state,
+    (state) =>
+      state.chats[activeContact?.chatId ?? ""]?.messages ?? emptyMessages,
   );
 
   const errors = [

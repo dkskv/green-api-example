@@ -1,8 +1,8 @@
+import styles from "./SessionForm.module.css";
 import { createGreenApiChatClient } from "@/integrations/green-api";
 import { Alert, Button, Card, Form, Input, Typography } from "antd";
 import { useState } from "react";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
-import { saveCredentials } from "@/features/session/model/sessionStorage";
 import { type GreenApiCredentials } from "@/integrations/green-api";
 
 const DEFAULT_API_URL = "https://api.green-api.com";
@@ -32,7 +32,6 @@ export function SessionForm({ onReady }: SessionFormProps) {
       const client = createGreenApiChatClient(credentials);
 
       await client.validateSession();
-      saveCredentials(credentials);
       onReady(credentials);
     } catch (reason) {
       setErrorMessage(
@@ -46,10 +45,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
   }
 
   return (
-    <Card
-      title="Connect instance"
-      style={{ width: "min(440px, 100%)", margin: "7vh auto 0" }}
-    >
+    <Card title="Connect instance" className={styles.card}>
       <Typography.Paragraph type="secondary">
         Enter your GREEN API Telegram instance credentials.
       </Typography.Paragraph>
@@ -114,7 +110,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
             type="error"
             showIcon
             title={errorMessage}
-            style={{ marginBottom: 16 }}
+            className={styles.error}
           />
         )}
         <Button type="primary" htmlType="submit" block loading={checking}>
@@ -124,7 +120,7 @@ export function SessionForm({ onReady }: SessionFormProps) {
       <Alert
         type="warning"
         showIcon
-        style={{ marginTop: 16 }}
+        className={styles.notice}
         title="Credentials are stored in this browser for development. Do not use this storage approach in production."
       />
     </Card>

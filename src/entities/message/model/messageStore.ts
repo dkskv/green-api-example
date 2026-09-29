@@ -1,3 +1,4 @@
+import { createStore } from "zustand/vanilla";
 import { newerStatus } from "@/entities/message/model/status";
 import { type ChatEvent } from "./chatEvent";
 import { MESSAGE_ERROR_MESSAGES } from "@/entities/message/model/errors";
@@ -9,33 +10,26 @@ type ChatState = {
   deleted: string[];
 };
 
-const emptyMessages: ChatMessage[] = [];
+export const emptyMessages: ChatMessage[] = [];
 
 export class MessageStore {
-  private chats: Record<string, ChatState> = {};
-  private readonly listeners = new Set<() => void>();
+  readonly state = createStore<{ chats: Record<string, ChatState> }>(() => ({
+    chats: {},
+  }));
 
   getMessages(chatId: string): ChatMessage[] {
-    return this.chats[chatId]?.messages ?? emptyMessages;
+    return this.state.getState().chats[chatId]?.messages ?? emptyMessages;
   }
 
-  subscribe = (listener: () => void) => {
-    this.listeners.add(listener);
-
-    return () => {
-      this.listeners.delete(listener);
-    };
-  };
-
   private update(chatId: string, change: (chat: ChatState) => ChatState) {
-    this.chats = {
-      ...this.chats,
-      [chatId]: change(
-        this.chats[chatId] ?? { messages: [], statuses: {}, deleted: [] },
-      ),
-    };
-
-    this.listeners.forEach((listener) => listener());
+    this.state.setState(({ chats }) => ({
+      chats: {
+        ...chats,
+        [chatId]: change(
+          chats[chatId] ?? { messages: [], statuses: {}, deleted: [] },
+        ),
+      },
+    }));
   }
 
   merge(chatId: string, messages: ChatMessage[]) {

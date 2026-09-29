@@ -1,0 +1,10 @@
+.card {
+  width: min(440px, 100%);
+  margin: 7vh auto 0;
+}
+.error {
+  margin-bottom: 16px;
+}
+.notice {
+  margin-top: 16px;
+}

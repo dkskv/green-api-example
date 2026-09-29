@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { saveActiveContact } from "@/features/session";
 import { type VerifiedContact } from "@/entities/contact";
 import { type MessageStore } from "@/entities/message";
 import { type ChatClient } from "@/entities/chat";
@@ -29,7 +28,6 @@ export function useOpenChat(
     mutation.mutate(phone, {
       // Обработчик вызывается только для последнего запроса до размонтирования.
       onSuccess: ({ contact, messages }) => {
-        saveActiveContact(contact);
         store.merge(contact.chatId, messages);
         onOpen(contact);
       },

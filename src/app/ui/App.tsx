@@ -1,3 +1,4 @@
+import styles from "./App.module.css";
 import {
   Alert,
   Spin,
@@ -26,7 +27,7 @@ export default function App() {
 
   return (
     <AntApp>
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout className={styles.layout}>
         <Layout.Header>
           <Flex align="center" justify="space-between">
             <Typography.Title level={4}>Telegram</Typography.Title>
@@ -40,9 +41,7 @@ export default function App() {
             )}
           </Flex>
         </Layout.Header>
-        <Layout.Content
-          style={{ width: "min(1100px, 100%)", margin: "0 auto" }}
-        >
+        <Layout.Content className={styles.content}>
           {credentials && client ? (
             verified ? (
               <MessengerSession

@@ -1,64 +1,49 @@
 import { createGreenApiChatClient } from "@/integrations/green-api";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useStore } from "zustand";
 import { SESSION_ERROR_MESSAGES } from "@/features/session/model/errors";
-import {
-  clearSession,
-  readCredentials,
-} from "@/features/session/model/sessionStorage";
-import { type GreenApiCredentials } from "@/integrations/green-api";
+import { credentialsStore } from "./sessionStorage";
 
 export function useSession() {
-  const [credentials, setCredentials] = useState<GreenApiCredentials | null>(
-    readCredentials,
+  const { credentials, verified, sessionErrorMessage } = useStore(
+    credentialsStore.state,
   );
   const client = useMemo(
     () => (credentials ? createGreenApiChatClient(credentials) : null),
     [credentials],
   );
 
-  const [verified, setVerified] = useState(false);
-  const [sessionErrorMessage, setSessionErrorMessage] = useState("");
-
   useEffect(() => {
-    if (!client || verified) return;
+    if (!client || !credentials || verified) return;
 
     const controller = new AbortController();
 
     client
       .validateSession(controller.signal)
       .then(() => {
-        if (!controller.signal.aborted) setVerified(true);
+        if (!controller.signal.aborted)
+          credentialsStore.setVerification(credentials);
       })
       .catch((reason: unknown) => {
-        if (!controller.signal.aborted)
-          setSessionErrorMessage(
+        if (!controller.signal.aborted) {
+          credentialsStore.setVerification(
+            credentials,
             reason instanceof Error
               ? reason.message
               : SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
           );
+        }
       });
 
     return () => controller.abort();
-  }, [client, verified]);
-
-  function signOut(): void {
-    setVerified(false);
-    setSessionErrorMessage("");
-    clearSession();
-    setCredentials(null);
-  }
-
-  function acceptVerifiedSession(value: GreenApiCredentials): void {
-    setVerified(true);
-    setCredentials(value);
-  }
+  }, [client, credentials, verified]);
 
   return {
     credentials,
     client,
     verified,
     sessionErrorMessage,
-    signOut,
-    acceptVerifiedSession,
+    signOut: credentialsStore.clear,
+    acceptVerifiedSession: credentialsStore.save,
   };
 }
