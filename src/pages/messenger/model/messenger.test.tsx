@@ -153,7 +153,7 @@ describe("contact selection", () => {
     });
 
     expect(result.current.activeContact?.chatId).toBe("b");
-    contactStore.restore();
+    contactStore.state.persist.rehydrate();
     expect(contactStore.state.getState().contact?.chatId).toBe("b");
     expect(client.getChatHistory).not.toHaveBeenCalled();
   });
@@ -176,7 +176,7 @@ describe("contact selection", () => {
       await response.promise;
     });
 
-    contactStore.restore();
+    contactStore.state.persist.rehydrate();
     expect(contactStore.state.getState().contact).toBeNull();
   });
 

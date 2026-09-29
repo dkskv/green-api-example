@@ -3,7 +3,9 @@ import { GreenApiChatClient } from "@/integrations/green-api";
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
 import { SESSION_ERROR_MESSAGES } from "@/features/messenger-session/model/errors";
-import { credentialsStore } from "./sessionStores";
+import { credentialsStore } from "./credentialsStore";
+
+import { acceptVerifiedSession, signOut } from "./sessionActions";
 
 export function useMessengerSession() {
   const { credentials, verified, sessionErrorMessage } = useStore(
@@ -42,7 +44,7 @@ export function useMessengerSession() {
     client,
     verified,
     sessionErrorMessage,
-    signOut: credentialsStore.clear,
-    acceptVerifiedSession: credentialsStore.save,
+    signOut,
+    acceptVerifiedSession,
   };
 }
