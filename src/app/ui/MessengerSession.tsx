@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MessengerPage } from "@/pages/messenger";
+import { CHAT_HISTORY_LIMIT } from "@/integrations/green-api";
 import { type ChatClient } from "@/entities/chat";
 
 export function MessengerSession({ client }: { client: ChatClient }) {
@@ -24,7 +25,10 @@ export function MessengerSession({ client }: { client: ChatClient }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MessengerPage client={client} />
+      <MessengerPage
+        client={client}
+        historyNotice={`The latest ${CHAT_HISTORY_LIMIT} messages are loaded when you open a chat.`}
+      />
     </QueryClientProvider>
   );
 }

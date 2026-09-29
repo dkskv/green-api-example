@@ -1,6 +1,10 @@
 import { type GreenApiCredentials } from "../credentials";
 import { z } from "zod";
-import { INSTANCE_STATE, WEBHOOK_SETTING } from "./constants";
+import {
+  CHAT_HISTORY_LIMIT,
+  INSTANCE_STATE,
+  WEBHOOK_SETTING,
+} from "./constants";
 import { API_ERROR_MESSAGES } from "./errors";
 import {
   accountSchema,
@@ -35,7 +39,7 @@ export class GreenApiClient {
   ): Promise<GreenMessageDto[]> {
     const response = await this.post(
       "getChatHistory",
-      { chatId, count: 100 },
+      { chatId, count: CHAT_HISTORY_LIMIT },
       signal,
     );
     const data = (await response.json()) as unknown;

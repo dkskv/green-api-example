@@ -7,9 +7,10 @@ import { ChatWindow } from "@/widgets/chat-window";
 
 type MessengerPageProps = {
   client: ChatClient;
+  historyNotice?: string;
 };
 
-export function MessengerPage({ client }: MessengerPageProps) {
+export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
   const messenger = useMessenger(client);
   const { connection, opening, history } = messenger;
 
@@ -28,6 +29,7 @@ export function MessengerPage({ client }: MessengerPageProps) {
       <ChatWindow
         contact={messenger.activeContact}
         messages={messenger.messages}
+        historyNotice={historyNotice}
         loadingHistory={history.isFetching}
         errorMessage={connection.errorMessage}
         connectionState={connection.state}

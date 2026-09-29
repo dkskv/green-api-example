@@ -18,3 +18,5 @@ export const MESSAGE_TYPE = {
 
 export const INSTANCE_STATE = { AUTHORIZED: "authorized" } as const;
 export const WEBHOOK_SETTING = { ENABLED: "yes", DISABLED: "no" } as const;
+
+export const CHAT_HISTORY_LIMIT = 100;

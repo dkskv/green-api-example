@@ -1,3 +1,4 @@
+import { type CSSProperties } from "react";
 import {
   Alert,
   Button,
@@ -5,23 +6,35 @@ import {
   Empty,
   Flex,
   List,
+  Space,
   Spin,
   Tag,
   Typography,
 } from "antd";
-import { getMessageStatusLabel, type ChatMessage } from "@/entities/message";
+import { type ChatMessage } from "@/entities/message";
 import {
   CONNECTION_STATE_LABELS,
   type ConnectionState,
 } from "@/features/receive-messages";
 import { type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
+import { ChatMessageItem } from "./ChatMessageItem";
+
+const historyStyle: CSSProperties = {
+  maxHeight: "60vh",
+  minHeight: 280,
+  overflowY: "auto",
+};
+const loadingStyle: CSSProperties = { padding: 32 };
+const noticeStyle: CSSProperties = { textAlign: "center" };
 
 type ChatWindowProps = {
   /** Выбранный контакт. */
   contact: VerifiedContact | null;
   /** Сообщения чата. */
   messages: ChatMessage[];
+  /** Подсказка об истории. */
+  historyNotice?: string;
   /** Загрузка истории. */
   loadingHistory: boolean;
   /** Ошибка чата. */
@@ -45,6 +58,7 @@ type ChatWindowProps = {
 export function ChatWindow({
   contact,
   messages,
+  historyNotice,
   loadingHistory,
   errorMessage,
   onRefresh,
@@ -55,121 +69,72 @@ export function ChatWindow({
   deletingIds,
   onDelete,
 }: ChatWindowProps) {
+  const headerActions = contact && (
+    <Space size="small">
+      <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
+      <Button onClick={onRefresh} loading={loadingHistory}>
+        Refresh history
+      </Button>
+    </Space>
+  );
+  const renderMessage = (message: ChatMessage) => (
+    <ChatMessageItem
+      key={message.id}
+      message={message}
+      deleting={deletingIds.includes(message.id)}
+      onDelete={onDelete}
+    />
+  );
+  const renderHistory = () => {
+    if (!contact) {
+      return <Empty description="Open a chat using a phone number" />;
+    }
+
+    if (loadingHistory && messages.length === 0) {
+      return (
+        <Flex justify="center" style={loadingStyle}>
+          <Spin description="Loading history…" />
+        </Flex>
+      );
+    }
+
+    if (messages.length === 0) {
+      return (
+        <Empty description="No messages yet. Send a message to start the conversation." />
+      );
+    }
+
+    return (
+      <Flex vertical gap="small">
+        {historyNotice && (
+          <Typography.Text type="secondary" style={noticeStyle}>
+            {historyNotice}
+          </Typography.Text>
+        )}
+        <List split={false} dataSource={messages} renderItem={renderMessage} />
+      </Flex>
+    );
+  };
+
   return (
     <Card
       title={contact ? `+${contact.phone}` : "No chat selected"}
-      extra={
-        contact && (
-          <Flex align="center" gap="small">
-            <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
-            <Button
-              onClick={onRefresh}
-              loading={loadingHistory}
-              disabled={!contact}
-            >
-              Refresh history
-            </Button>
-          </Flex>
-        )
-      }
+      extra={headerActions}
     >
-      {errorMessage && (
-        <Alert
-          type="error"
-          showIcon
-          title={errorMessage}
-          style={{ marginBottom: 12 }}
-        />
-      )}
-
-      <div
-        style={{ maxHeight: "60vh", minHeight: 280, overflowY: "auto" }}
-        aria-live="polite"
-      >
-        {!contact ? (
-          <Empty description="Open a chat using a phone number" />
-        ) : loadingHistory && messages.length === 0 ? (
-          <Flex justify="center" style={{ padding: 32 }}>
-            <Spin description="Loading history…" />
-          </Flex>
-        ) : messages.length === 0 ? (
-          <Empty description="No messages yet. Send a message to start the conversation." />
-        ) : (
-          <>
-            <Typography.Text
-              type="secondary"
-              style={{
-                display: "block",
-                marginBottom: 12,
-                textAlign: "center",
-              }}
-            >
-              The latest 100 messages are loaded when you open a chat.
-            </Typography.Text>
-            <List
-              split={false}
-              dataSource={messages}
-              renderItem={(message) => (
-                <List.Item
-                  key={message.id}
-                  style={{
-                    justifyContent:
-                      message.direction === "outgoing"
-                        ? "flex-end"
-                        : "flex-start",
-                    border: 0,
-                  }}
-                >
-                  <Card size="small" style={{ maxWidth: "78%" }}>
-                    <Typography.Paragraph
-                      style={{ margin: 0, whiteSpace: "pre-wrap" }}
-                    >
-                      {message.text || "Message has no text content"}
-                    </Typography.Paragraph>
-                    <Flex justify="flex-end" gap={8} style={{ marginTop: 6 }}>
-                      <Typography.Text type="secondary">
-                        {message.timestamp
-                          ? new Date(
-                              message.timestamp * 1000,
-                            ).toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "now"}
-                      </Typography.Text>
-                      {message.direction === "outgoing" && (
-                        <Typography.Text type="secondary">
-                          {getMessageStatusLabel(message.status)}
-                        </Typography.Text>
-                      )}
-                    </Flex>
-                    {message.direction === "outgoing" && contact && (
-                      <Button
-                        size="small"
-                        type="text"
-                        danger
-                        loading={deletingIds.includes(message.id)}
-                        onClick={() => onDelete(message.id)}
-                      >
-                        Delete for everyone
-                      </Button>
-                    )}
-                  </Card>
-                </List.Item>
-              )}
-            />
-          </>
+      <Flex vertical gap="middle">
+        {errorMessage && <Alert type="error" showIcon title={errorMessage} />}
+        <div style={historyStyle} aria-live="polite">
+          {renderHistory()}
+        </div>
+        {contact && (
+          <MessageComposer
+            key={contact.chatId}
+            onSend={onSend}
+            sending={sending}
+            errorMessage={sendErrorMessage}
+          />
         )}
-      </div>
-
-      {contact && (
-        <MessageComposer
-          key={contact.chatId}
-          onSend={onSend}
-          sending={sending}
-          errorMessage={sendErrorMessage}
-        />
-      )}
+      </Flex>
     </Card>
   );
 }
