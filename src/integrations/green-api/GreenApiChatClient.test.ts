@@ -36,7 +36,7 @@ describe("GreenApiChatClient", () => {
         idMessage: "2",
         type: "outgoing",
         statusMessage: "read",
-        caption: "caption",
+        typeMessage: "imageMessage",
       },
     ]);
 
@@ -45,7 +45,8 @@ describe("GreenApiChatClient", () => {
       {
         id: "2",
         direction: "outgoing",
-        text: "caption",
+        text: "",
+        placeholder: "This message type is not supported yet.",
         timestamp: 0,
         status: "read",
       },
@@ -160,7 +161,10 @@ describe("mapGreenNotification", () => {
           typeWebhook: "incomingMessageReceived",
           senderData: { chatId: "chat" },
           idMessage: "message",
-          messageData: { textMessageData: { textMessage: "hello" } },
+          messageData: {
+            typeMessage: "textMessage",
+            textMessageData: { textMessage: "hello" },
+          },
         },
       }),
     ).toEqual({

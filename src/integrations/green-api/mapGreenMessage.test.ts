@@ -16,12 +16,6 @@ it.each([
     { extendedTextMessageData: { text: "https://example.com" } },
     "https://example.com",
   ],
-  [
-    "imageMessage",
-    { caption: "photo" },
-    { fileMessageData: { caption: "photo" } },
-    "photo",
-  ],
 ])(
   "maps %s consistently from history and notifications",
   (typeMessage, historyFields, messageFields, text) => {
@@ -59,44 +53,50 @@ it.each([
 );
 
 it.each([
-  ["imageMessage", "Images are not displayed yet."],
-  ["videoMessage", "Videos are not displayed yet."],
-  ["audioMessage", "Audio is not supported yet."],
-  ["documentMessage", "Documents are not displayed yet."],
-  ["stickerMessage", "Stickers are not displayed yet."],
-  ["futureMessage", "This message type is not supported yet."],
-])(
-  "shows a placeholder for %s with an empty caption",
-  (typeMessage, placeholder) => {
-    const history = mapGreenMessage(
-      messageSchema.parse({
+  "imageMessage",
+  "videoMessage",
+  "audioMessage",
+  "documentMessage",
+  "stickerMessage",
+  "futureMessage",
+  undefined,
+])("uses the same placeholder for unsupported type %s", (typeMessage) => {
+  const history = mapGreenMessage(
+    messageSchema.parse({
+      idMessage: "1",
+      type: "incoming",
+      typeMessage,
+      textMessage: "unsupported text",
+      caption: "photo caption",
+    }),
+  );
+  const event = mapGreenNotification(
+    notificationSchema.parse({
+      receiptId: 1,
+      body: {
+        typeWebhook: "incomingMessageReceived",
         idMessage: "1",
-        type: "incoming",
-        typeMessage,
-        caption: "",
-      }),
-    );
-    const event = mapGreenNotification(
-      notificationSchema.parse({
-        receiptId: 1,
-        body: {
-          typeWebhook: "incomingMessageReceived",
-          idMessage: "1",
-          senderData: { chatId: "chat" },
-          messageData: { typeMessage, fileMessageData: { caption: "" } },
+        senderData: { chatId: "chat" },
+        messageData: {
+          typeMessage,
+          textMessageData: { textMessage: "unsupported text" },
+          fileMessageData: { caption: "photo caption" },
         },
-      }),
-    );
+      },
+    }),
+  );
 
-    expect(history.placeholder).toBe(placeholder);
+  expect(history).toMatchObject({
+    text: "",
+    placeholder: "This message type is not supported yet.",
+  });
 
-    expect(event).toEqual({
-      type: "messageReceived",
-      chatId: "chat",
-      message: history,
-    });
-  },
-);
+  expect(event).toEqual({
+    type: "messageReceived",
+    chatId: "chat",
+    message: history,
+  });
+});
 
 it("does not label an empty text message as unsupported", () => {
   expect(

@@ -8,11 +8,6 @@ export const WEBHOOK_TYPE = {
 export const MESSAGE_TYPE = {
   TEXT: "textMessage",
   EXTENDED_TEXT: "extendedTextMessage",
-  IMAGE: "imageMessage",
-  VIDEO: "videoMessage",
-  AUDIO: "audioMessage",
-  DOCUMENT: "documentMessage",
-  STICKER: "stickerMessage",
   DELETED: "deletedMessage",
 } as const;
 

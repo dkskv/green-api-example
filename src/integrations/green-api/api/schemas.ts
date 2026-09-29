@@ -3,7 +3,6 @@ import { z } from "zod";
 const messageDataSchema = z.object({
   typeMessage: z.string().optional(),
   textMessageData: z.object({ textMessage: z.string().optional() }).optional(),
-  fileMessageData: z.object({ caption: z.string().optional() }).optional(),
   extendedTextMessageData: z.object({ text: z.string().optional() }).optional(),
   deletedMessageData: z.object({ stanzaId: z.string().min(1) }).optional(),
 });
@@ -15,7 +14,6 @@ export const messageSchema = z.object({
   timestamp: z.number().nonnegative().optional(),
   textMessage: z.string().optional(),
   statusMessage: z.string().optional(),
-  caption: z.string().optional(),
 });
 
 export const notificationSchema = z.object({

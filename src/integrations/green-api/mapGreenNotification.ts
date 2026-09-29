@@ -84,7 +84,6 @@ function mapMessageNotification(
       timestamp,
       typeMessage: messageData.typeMessage,
       textMessage: text,
-      caption: messageData.fileMessageData?.caption,
     }),
   };
 }

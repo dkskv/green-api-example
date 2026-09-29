@@ -13,11 +13,6 @@
     "error": "Connection error"
   },
   "placeholders": {
-    "image": "Images are not displayed yet.",
-    "video": "Videos are not displayed yet.",
-    "audio": "Audio is not supported yet.",
-    "document": "Documents are not displayed yet.",
-    "sticker": "Stickers are not displayed yet.",
     "unsupported": "This message type is not supported yet."
   },
   "notificationsEnabled": "Notifications enabled. GREEN API may take up to 5 minutes to apply the settings and restart the instance.",
