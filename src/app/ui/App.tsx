@@ -45,30 +45,36 @@ export default function App() {
       <AntApp>
         <Layout className={styles.layout}>
           <Flex vertical gap="large">
-            <Flex
-              component={Layout.Header}
-              align="center"
-              justify="space-between"
-            >
-              <ConfigProvider
-                theme={{ components: { Typography: { titleMarginBottom: 0 } } }}
+            <Layout.Header>
+              <Flex
+                className={styles.headerContent}
+                align="center"
+                justify="space-between"
               >
-                <Typography.Title level={4}>
-                  {t("app.appName")}
-                </Typography.Title>
-              </ConfigProvider>
-              {credentials && (
-                <Space>
-                  <Tag>{t("app.instance", { id: credentials.instanceId })}</Tag>
-                  <Tag>
-                    {verification?.status === "success"
-                      ? t("app.sessionActive")
-                      : t("app.sessionUnverified")}
-                  </Tag>
-                  <Button onClick={signOut}>{t("app.signOut")}</Button>
-                </Space>
-              )}
-            </Flex>
+                <ConfigProvider
+                  theme={{
+                    components: { Typography: { titleMarginBottom: 0 } },
+                  }}
+                >
+                  <Typography.Title level={4}>
+                    {t("app.appName")}
+                  </Typography.Title>
+                </ConfigProvider>
+                {credentials && (
+                  <Space>
+                    <Tag>
+                      {t("app.instance", { id: credentials.instanceId })}
+                    </Tag>
+                    <Tag>
+                      {verification?.status === "success"
+                        ? t("app.sessionActive")
+                        : t("app.sessionUnverified")}
+                    </Tag>
+                    <Button onClick={signOut}>{t("app.signOut")}</Button>
+                  </Space>
+                )}
+              </Flex>
+            </Layout.Header>
             <Layout.Content className={styles.content}>
               {credentials && client ? (
                 verification?.status === "success" ? (

@@ -1,6 +1,9 @@
 .layout {
   min-height: 100vh;
 }
+.headerContent {
+  height: 100%;
+}
 .content {
   width: min(1100px, 100%);
   margin: 0 auto;
