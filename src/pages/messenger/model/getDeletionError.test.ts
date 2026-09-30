@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { getDeletionError } from "./getDeletionError";
 
-it("hides an old failure when the same deletion is retried", () => {
+it("скрывает прежнюю ошибку при повторном удалении", () => {
   const failure = new Error("failed");
 
   expect(
@@ -12,7 +12,7 @@ it("hides an old failure when the same deletion is retried", () => {
   ).toBeNull();
 });
 
-it("keeps failures of other messages after a successful retry", () => {
+it("сохраняет ошибки других сообщений после успешного повтора", () => {
   const remaining = new Error("other deletion failed");
 
   expect(

@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { GreenApiClient } from "@/shared/api/green-api";
-import { GreenApiChatClient } from "./GreenApiChatClient";
+import { initializeGreenApiSession } from "./initializeGreenApiSession";
 
 const enabled = {
   webhookUrl: "",
@@ -25,7 +25,7 @@ function setup() {
   const controller = new AbortController();
 
   return {
-    client: new GreenApiChatClient(api),
+    api,
     validate,
     settings,
     update,
@@ -39,34 +39,34 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("checks an already configured session without changing settings or receiving messages", async () => {
-  const { client, validate, settings, update, receive, controller } = setup();
+it("проверяет настроенную сессию без изменения настроек и получения сообщений", async () => {
+  const { api, validate, settings, update, receive, controller } = setup();
 
-  await client.initializeSession(controller.signal);
+  await initializeGreenApiSession(api, controller.signal);
   expect(validate).toHaveBeenCalledWith(controller.signal);
   expect(settings).toHaveBeenCalledWith(controller.signal);
   expect(update).not.toHaveBeenCalled();
   expect(receive).not.toHaveBeenCalled();
 });
 
-it("rejects an external webhook without changing its settings", async () => {
-  const { client, settings, update, controller } = setup();
+it("отклоняет сессию с внешним вебхуком без изменения настроек", async () => {
+  const { api, settings, update, controller } = setup();
 
   settings.mockResolvedValue({
     ...enabled,
     webhookUrl: "https://example.com/webhook",
   });
 
-  await expect(client.initializeSession(controller.signal)).rejects.toThrow(
-    "WEBHOOK_URL_CONFIGURED",
-  );
+  await expect(
+    initializeGreenApiSession(api, controller.signal),
+  ).rejects.toThrow("WEBHOOK_URL_CONFIGURED");
 
   expect(update).not.toHaveBeenCalled();
 });
 
-it("updates once and waits for both enabled settings and authorization after restart", async () => {
+it("обновляет настройки один раз и ожидает их включения и авторизации после перезапуска", async () => {
   vi.useFakeTimers();
-  const { client, settings, validate, update, controller } = setup();
+  const { api, settings, validate, update, controller } = setup();
 
   settings
     .mockResolvedValueOnce(disabled)
@@ -79,7 +79,7 @@ it("updates once and waits for both enabled settings and authorization after res
     .mockResolvedValue();
 
   const done = vi.fn();
-  const task = client.initializeSession(controller.signal).then(done);
+  const task = initializeGreenApiSession(api, controller.signal).then(done);
 
   await vi.advanceTimersByTimeAsync(10000);
   expect(update).toHaveBeenCalledTimes(1);
@@ -90,12 +90,12 @@ it("updates once and waits for both enabled settings and authorization after res
   expect(validate).toHaveBeenCalledTimes(3);
 });
 
-it("cancels readiness waiting without further requests", async () => {
+it("отменяет ожидание готовности без новых запросов", async () => {
   vi.useFakeTimers();
-  const { client, settings, controller } = setup();
+  const { api, settings, controller } = setup();
 
   settings.mockResolvedValue(disabled);
-  const task = client.initializeSession(controller.signal);
+  const task = initializeGreenApiSession(api, controller.signal);
   const rejected = expect(task).rejects.toMatchObject({ name: "AbortError" });
 
   await vi.advanceTimersByTimeAsync(0);
@@ -105,14 +105,14 @@ it("cancels readiness waiting without further requests", async () => {
   expect(settings).toHaveBeenCalledTimes(1);
 });
 
-it("fails session initialization when readiness times out", async () => {
+it("завершает инициализацию с ошибкой по истечении времени ожидания готовности", async () => {
   vi.useFakeTimers();
-  const { client, settings, controller } = setup();
+  const { api, settings, controller } = setup();
   const timeout = new AbortController();
 
   vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeout.signal);
   settings.mockResolvedValue(disabled);
-  const task = client.initializeSession(controller.signal);
+  const task = initializeGreenApiSession(api, controller.signal);
   const rejected = expect(task).rejects.toThrow("SETTINGS_TIMEOUT");
 
   await vi.advanceTimersByTimeAsync(0);

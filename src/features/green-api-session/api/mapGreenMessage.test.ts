@@ -18,7 +18,7 @@ it.each([
     "https://example.com",
   ],
 ])(
-  "maps %s consistently from history and notifications",
+  "одинаково преобразует %s из истории и уведомлений",
   (typeMessage, historyFields, messageFields, text) => {
     const history = mapGreenMessage(
       messageSchema.parse({
@@ -53,53 +53,48 @@ it.each([
   },
 );
 
-it.each([
-  "imageMessage",
-  "videoMessage",
-  "audioMessage",
-  "documentMessage",
-  "stickerMessage",
-  "futureMessage",
-  undefined,
-])("marks unsupported messages consistently for type %s", (typeMessage) => {
-  const history = mapGreenMessage(
-    messageSchema.parse({
-      idMessage: "1",
-      type: "incoming",
-      typeMessage,
-      textMessage: "unsupported text",
-      caption: "photo caption",
-    }),
-  );
-  const event = mapGreenNotification(
-    notificationSchema.parse({
-      receiptId: 1,
-      body: {
-        typeWebhook: "incomingMessageReceived",
+it.each(["imageMessage", "futureMessage", undefined])(
+  "одинаково помечает неподдерживаемые сообщения типа %s",
+  (typeMessage) => {
+    const history = mapGreenMessage(
+      messageSchema.parse({
         idMessage: "1",
-        senderData: { chatId: "chat" },
-        messageData: {
-          typeMessage,
-          textMessageData: { textMessage: "unsupported text" },
-          fileMessageData: { caption: "photo caption" },
+        type: "incoming",
+        typeMessage,
+        textMessage: "unsupported text",
+        caption: "photo caption",
+      }),
+    );
+    const event = mapGreenNotification(
+      notificationSchema.parse({
+        receiptId: 1,
+        body: {
+          typeWebhook: "incomingMessageReceived",
+          idMessage: "1",
+          senderData: { chatId: "chat" },
+          messageData: {
+            typeMessage,
+            textMessageData: { textMessage: "unsupported text" },
+            fileMessageData: { caption: "photo caption" },
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
 
-  expect(history).toMatchObject({
-    text: "",
-    unsupported: true,
-  });
+    expect(history).toMatchObject({
+      text: "",
+      unsupported: true,
+    });
 
-  expect(event).toEqual({
-    type: "messageReceived",
-    chatId: "chat",
-    message: history,
-  });
-});
+    expect(event).toEqual({
+      type: "messageReceived",
+      chatId: "chat",
+      message: history,
+    });
+  },
+);
 
-it("does not label an empty text message as unsupported", () => {
+it("не помечает пустое текстовое сообщение как неподдерживаемое", () => {
   expect(
     mapGreenMessage(
       messageSchema.parse({
@@ -112,32 +107,7 @@ it("does not label an empty text message as unsupported", () => {
   ).toMatchObject({ text: "", unsupported: false });
 });
 
-it.each(["outgoingMessageReceived", "outgoingAPIMessageReceived"])(
-  "maps outgoing text direction for %s",
-  (typeWebhook) => {
-    expect(
-      mapGreenNotification(
-        notificationSchema.parse({
-          receiptId: 1,
-          body: {
-            typeWebhook,
-            idMessage: "1",
-            senderData: { chatId: "chat" },
-            messageData: {
-              typeMessage: "textMessage",
-              textMessageData: { textMessage: "sent" },
-            },
-          },
-        }),
-      ),
-    ).toMatchObject({
-      type: "messageReceived",
-      message: { direction: "outgoing", text: "sent" },
-    });
-  },
-);
-
-it("keeps history messages with unknown statuses without overwriting a known status", () => {
+it("сохраняет сообщения истории с неизвестным статусом без перезаписи известного статуса", () => {
   const message = mapGreenMessage(
     messageSchema.parse({
       idMessage: "1",

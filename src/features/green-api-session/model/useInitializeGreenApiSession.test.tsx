@@ -42,7 +42,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("blocks duplicate submissions and opens the session only after initialization", async () => {
+it("блокирует повторную отправку и открывает сессию после инициализации", async () => {
   const { result, initialize, onReady } = setup();
   let finish!: () => void;
 
@@ -66,7 +66,7 @@ it("blocks duplicate submissions and opens the session only after initialization
   expect(onReady).toHaveBeenCalledExactlyOnceWith(credentials);
 });
 
-it("exposes errors without automatic retries and clears them on a new submission", async () => {
+it("показывает ошибки без автоматических повторов и сбрасывает их при новой отправке", async () => {
   const { result, initialize, onReady } = setup();
   const failure = new Error("Unavailable");
 
@@ -94,7 +94,7 @@ it("exposes errors without automatic retries and clears them on a new submission
 });
 
 it.each(["resolve", "reject"])(
-  "aborts on unmount and ignores late %s",
+  "отменяет запрос при размонтировании и игнорирует поздний результат: %s",
   async (outcome) => {
     const { result, initialize, onReady, unmount } = setup();
     let resolve!: () => void;

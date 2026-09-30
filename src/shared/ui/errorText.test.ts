@@ -10,7 +10,7 @@ afterEach(async () => {
   await i18n.init(originalOptions);
 });
 
-it("translates an existing error using the current language", async () => {
+it("переводит существующую ошибку на текущий язык", async () => {
   const error = new GreenApiError("RECEIVE_REJECTED", { status: 403 });
 
   expect(errorText(error, "fallback")).toBe(
@@ -34,7 +34,7 @@ it("translates an existing error using the current language", async () => {
   expect(error.code).toBe("RECEIVE_REJECTED");
 });
 
-it("preserves the HTTP status and provider reason when formatting errors", () => {
+it("сохраняет статус HTTP и причину ошибки провайдера", () => {
   expect(
     errorText(
       new GreenApiError("HTTP_ERROR_WITH_REASON", {
@@ -46,7 +46,7 @@ it("preserves the HTTP status and provider reason when formatting errors", () =>
   ).toBe("HTTP 500: Unavailable");
 });
 
-it("preserves external error messages and uses the fallback for other values", () => {
+it("сохраняет текст внешних ошибок и использует запасной текст для остальных значений", () => {
   expect(errorText(new Error("Network failed"), "fallback")).toBe(
     "Network failed",
   );

@@ -3,8 +3,8 @@ import { runPolling } from ".";
 
 afterEach(() => vi.useRealTimers());
 
-describe("runPolling", () => {
-  it("does not start when already aborted", async () => {
+describe("Цикл опроса", () => {
+  it("не запускается с уже отменённым сигналом", async () => {
     const execute = vi.fn();
     const onError = vi.fn();
 
@@ -19,7 +19,7 @@ describe("runPolling", () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it("waits for each operation before starting the next one", async () => {
+  it("ожидает завершения операции перед запуском следующей", async () => {
     const controller = new AbortController();
     let finish!: () => void;
     const pending = new Promise<void>((resolve) => {
@@ -48,7 +48,7 @@ describe("runPolling", () => {
     expect(execute).toHaveBeenCalledTimes(2);
   });
 
-  it("waits before retrying and cancels the retry timer on abort", async () => {
+  it("выдерживает задержку перед повтором и сбрасывает таймер при отмене", async () => {
     vi.useFakeTimers();
 
     const controller = new AbortController();
@@ -73,7 +73,7 @@ describe("runPolling", () => {
     expect(execute).toHaveBeenCalledTimes(2);
   });
 
-  it("does not report or retry an operation rejected during cancellation", async () => {
+  it("не сообщает об ошибке и не повторяет операцию при отмене", async () => {
     const controller = new AbortController();
     const onError = vi.fn();
     const execute = vi.fn(async (signal: AbortSignal) => {

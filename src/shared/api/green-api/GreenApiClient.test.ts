@@ -10,7 +10,7 @@ const client = new GreenApiClient({
 afterEach(() => vi.unstubAllGlobals());
 
 it.each([null, { result: "true" }, { result: true, reason: 123 }])(
-  "rejects malformed acknowledgements: %j",
+  "отклоняет некорректное подтверждение: %j",
   async (payload) => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(payload)));
 
@@ -20,7 +20,7 @@ it.each([null, { result: "true" }, { result: true, reason: 123 }])(
   },
 );
 
-it("accepts a validated acknowledgement", async () => {
+it("принимает корректное подтверждение", async () => {
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue(Response.json({ result: true })),
@@ -38,7 +38,7 @@ it.each([
     "HTTP_ERROR_WITH_REASON",
     { status: 500, reason: "Unavailable" },
   ],
-])("validates HTTP error bodies: %j", async (payload, code, details) => {
+])("проверяет тело ошибки HTTP: %j", async (payload, code, details) => {
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue(Response.json(payload, { status: 500 })),

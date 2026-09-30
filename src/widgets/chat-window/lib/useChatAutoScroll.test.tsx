@@ -46,7 +46,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("opens at the bottom and follows messages even when they are taller than the threshold", () => {
+it("открывает чат внизу и прокручивает вслед за сообщениями выше порога", () => {
   const { history, update, scrollTo } = setup();
 
   expect(history.scrollTop).toBe(700);
@@ -55,7 +55,7 @@ it("opens at the bottom and follows messages even when they are taller than the 
   expect(history.scrollTop).toBe(1200);
 });
 
-it("preserves the reading position and resumes following near the bottom", () => {
+it("сохраняет позицию чтения и возобновляет прокрутку возле конца", () => {
   const { history, update, scrollTo } = setup();
 
   scrollTo(200);
@@ -67,7 +67,7 @@ it("preserves the reading position and resumes following near the bottom", () =>
   expect(history.scrollTop).toBe(1500);
 });
 
-it("starts following again when switching chats, including delayed history loading", () => {
+it("возобновляет прокрутку при смене чата и отложенной загрузке истории", () => {
   const { history, update, scrollTo } = setup();
 
   scrollTo(200);
@@ -77,7 +77,7 @@ it("starts following again when switching chats, including delayed history loadi
   expect(history.scrollTop).toBe(1000);
 });
 
-it("follows when a previously short conversation becomes scrollable", () => {
+it("прокручивает короткий чат, когда сообщения перестают помещаться", () => {
   const { history, update, scrollTo } = setup();
 
   update(200, "short");

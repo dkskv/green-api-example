@@ -5,7 +5,7 @@ import { useBypassStrictMode } from "./useBypassStrictMode";
 
 afterEach(() => vi.unstubAllEnvs());
 
-it("is ready on the first production render without scheduling another render", async () => {
+it("готов при первом рендере в рабочем режиме без дополнительного рендера", async () => {
   vi.stubEnv("PROD", true);
   let renders = 0;
   const { result, unmount } = renderHook(() => {

@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { boundMethod } from "./boundMethod";
 
-it("keeps callbacks bound to their own instance with a stable reference", () => {
+it("привязывает обработчики к своему экземпляру и сохраняет ссылку", () => {
   class Counter {
     value = 0;
 

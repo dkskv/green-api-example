@@ -8,7 +8,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-it("retries receive failures and acknowledges after handling", async () => {
+it("повторяет получение после ошибки и подтверждает уведомление после обработки", async () => {
   vi.useFakeTimers();
 
   const controller = new AbortController();
@@ -58,7 +58,7 @@ it("retries receive failures and acknowledges after handling", async () => {
   ).toEqual(["connecting", "error", "online"]);
 });
 
-it("does not acknowledge a failed handler and processes redelivery before acknowledging", async () => {
+it("не подтверждает уведомление при ошибке обработчика и обрабатывает повторную доставку", async () => {
   vi.useFakeTimers();
   const client = createChatClientMock();
   const controller = new AbortController();
@@ -97,7 +97,7 @@ it("does not acknowledge a failed handler and processes redelivery before acknow
   expect(acknowledge).toHaveBeenCalledTimes(1);
 });
 
-it("acknowledges irrelevant deliveries without passing them to the handler", async () => {
+it("подтверждает нерелевантные уведомления без вызова обработчика", async () => {
   const client = createChatClientMock();
   const controller = new AbortController();
   const acknowledge = vi.fn(async () => {
@@ -118,7 +118,7 @@ it("acknowledges irrelevant deliveries without passing them to the handler", asy
   expect(acknowledge).toHaveBeenCalledWith(controller.signal);
 });
 
-it("does not acknowledge when cancelled during handling", async () => {
+it("не подтверждает уведомление при отмене во время обработки", async () => {
   const client = createChatClientMock();
   const controller = new AbortController();
   const acknowledge = vi.fn();
