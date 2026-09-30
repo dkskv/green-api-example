@@ -11,7 +11,7 @@ const credentialsSchema = z.object({
   credentials: greenApiCredentialsSchema.nullable(),
 });
 
-type VerificationResult =
+export type VerificationResult =
   { status: "success" } | { status: "error"; error: unknown };
 
 type CredentialsState = {

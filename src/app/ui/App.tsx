@@ -3,17 +3,15 @@ import enUS from "antd/locale/en_US";
 import styles from "./App.module.css";
 import {
   App as AntApp,
-  Button,
   ConfigProvider,
   Flex,
   Layout,
-  Space,
-  Tag,
   Typography,
   theme,
 } from "antd";
 import { useGreenApiSession } from "@/features/green-api-session";
 import { AppContent } from "./AppContent";
+import { SessionStatusBar } from "./SessionStatusBar";
 import { useDocumentLocalization } from "../model/useDocumentLocalization";
 import "../styles/index.css";
 
@@ -40,17 +38,11 @@ export function App() {
                   {t("app.appName")}
                 </Typography.Title>
                 {credentials && (
-                  <Space>
-                    <Tag>
-                      {t("app.instance", { id: credentials.instanceId })}
-                    </Tag>
-                    <Tag>
-                      {verification?.status === "success"
-                        ? t("app.sessionActive")
-                        : t("app.sessionUnverified")}
-                    </Tag>
-                    <Button onClick={signOut}>{t("app.signOut")}</Button>
-                  </Space>
+                  <SessionStatusBar
+                    instanceId={credentials.instanceId}
+                    status={verification?.status}
+                    onSignOut={signOut}
+                  />
                 )}
               </Flex>
             </Layout.Header>
