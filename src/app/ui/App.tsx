@@ -12,7 +12,7 @@ import {
 import { useGreenApiSession } from "@/features/green-api-session";
 import { AppContent } from "./AppContent";
 import { SessionStatusBar } from "./SessionStatusBar";
-import { useDocumentLocalization } from "../model/useDocumentLocalization";
+import { useDocumentLocalization } from "./useDocumentLocalization";
 import "../styles/index.css";
 
 export function App() {
