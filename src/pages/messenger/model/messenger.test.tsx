@@ -12,9 +12,9 @@ import { contactStore } from "@/features/green-api-session";
 import { useChatNotifications } from "@/features/chat-notifications";
 import { useChatHistory } from "./useChatHistory";
 import { useActiveContact } from "./useActiveContact";
-import { useConversation } from "./useConversation";
+import { useSendMessage } from "./useSendMessage";
 import { type VerifiedContact } from "@/entities/contact";
-import { useMessageActions } from "./useMessageActions";
+import { useDeleteMessage } from "./useDeleteMessage";
 
 const clients: QueryClient[] = [];
 
@@ -235,13 +235,14 @@ describe("contact selection", () => {
     const { result } = renderHook(
       () => {
         const selection = useActiveContact(client);
-        const conversation = useConversation(
-          client,
-          store,
-          selection.activeContact?.chatId,
+        const chatId = selection.activeContact?.chatId;
+        const historyQuery = useChatHistory(client, store, chatId);
+        const messages = useStore(store.state, (state) =>
+          store.getMessages(chatId, state),
         );
+        const send = useSendMessage(client, store, chatId);
 
-        return { selection, conversation };
+        return { selection, historyQuery, messages, send };
       },
       { wrapper },
     );
@@ -254,27 +255,25 @@ describe("contact selection", () => {
     );
 
     expect(result.current.selection.isPending).toBe(false);
-    expect(result.current.conversation.history.isFetching).toBe(true);
+    expect(result.current.historyQuery.isFetching).toBe(true);
     expect(client.getChatHistory).toHaveBeenCalledTimes(1);
     act(() => response.reject(new Error("History unavailable")));
 
-    await waitFor(() =>
-      expect(result.current.conversation.history.isError).toBe(true),
-    );
+    await waitFor(() => expect(result.current.historyQuery.isError).toBe(true));
 
     expect(result.current.selection.error).toBeNull();
     expect(result.current.selection.activeContact?.chatId).toBe("a");
 
     await act(async () => {
-      expect(await result.current.conversation.sendMessage("hello")).toBe(true);
-      await result.current.conversation.history.refetch();
+      expect(await result.current.send.sendMessage("hello")).toBe(true);
+      await result.current.historyQuery.refetch();
     });
 
     await waitFor(() =>
-      expect(result.current.conversation.history.isSuccess).toBe(true),
+      expect(result.current.historyQuery.isSuccess).toBe(true),
     );
 
-    expect(result.current.conversation.messages.map(({ id }) => id)).toEqual([
+    expect(result.current.messages.map(({ id }) => id)).toEqual([
       "deleted",
       "read",
       "sent",
@@ -288,14 +287,14 @@ describe("contact selection", () => {
 
     client.getChatHistory.mockResolvedValue([]);
     const { result, rerender } = renderHook(
-      ({ chatId }) => useConversation(client, store, chatId),
+      ({ chatId }) => useChatHistory(client, store, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
 
-    await waitFor(() => expect(result.current.history.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     rerender({ chatId: "b" });
     await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(result.current.history.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     rerender({ chatId: "a" });
     await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(3));
 
@@ -324,7 +323,7 @@ describe("message actions", () => {
     );
 
     const { result, rerender } = renderHook(
-      ({ chatId }) => useMessageActions(client, store, chatId),
+      ({ chatId }) => useSendMessage(client, store, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
     let sent!: Promise<boolean>;
@@ -365,7 +364,7 @@ describe("message actions", () => {
 
     vi.spyOn(client, "sendMessage").mockRejectedValue(new Error("send failed"));
     const { result, rerender } = renderHook(
-      ({ chatId }) => useMessageActions(client, store, chatId),
+      ({ chatId }) => useSendMessage(client, store, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
 
@@ -397,7 +396,7 @@ describe("message actions", () => {
       id === "first" ? first.promise : second.promise,
     );
 
-    const { result } = renderHook(() => useMessageActions(client, store, "a"), {
+    const { result } = renderHook(() => useDeleteMessage(client, store, "a"), {
       wrapper,
     });
 

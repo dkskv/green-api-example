@@ -10,7 +10,10 @@ import {
   useChatNotifications,
 } from "@/features/chat-notifications";
 import { useActiveContact } from "../model/useActiveContact";
-import { useConversation } from "../model/useConversation";
+import { useStore } from "zustand";
+import { useChatHistory } from "../model/useChatHistory";
+import { useSendMessage } from "../model/useSendMessage";
+import { useDeleteMessage } from "../model/useDeleteMessage";
 import { getMessengerErrors } from "./getMessengerErrors";
 import { OpenChatForm } from "@/features/open-chat";
 import { errorText } from "@/shared/ui/errorText";
@@ -35,20 +38,25 @@ export function MessengerPage(props: MessengerPageProps) {
 function MessengerContent({ client, historyNotice }: MessengerPageProps) {
   const { t } = useTranslation(["ui", "errors"]);
   const [store] = useState(() => new MessageStore());
+
   const { onNotification, deliveryError } = useChatNotificationHandler(store);
   const connection = useChatNotifications({ client, onNotification });
+
   const selection = useActiveContact(client);
-  const conversation = useConversation(
-    client,
-    store,
-    selection.activeContact?.chatId,
+  const chatId = selection.activeContact?.chatId;
+
+  const historyQuery = useChatHistory(client, store, chatId);
+  const messages = useStore(store.state, (state) =>
+    store.getMessages(chatId, state),
   );
-  const { history } = conversation;
+  const send = useSendMessage(client, store, chatId);
+  const deletion = useDeleteMessage(client, store, chatId);
+
   const errors = getMessengerErrors(
     {
       contact: selection.error,
-      history: history.error,
-      deletion: conversation.deleteError,
+      history: historyQuery.error,
+      deletion: deletion.deleteError,
     },
     t,
   );
@@ -75,33 +83,30 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
       )}
       <ChatWindow
         contact={selection.activeContact}
-        messages={conversation.messages}
+        messages={messages}
         historyNotice={
           historyNotice ??
           t("chatWindow.historyNotice", { count: client.historyLimit })
         }
-        loadingHistory={history.isFetching}
+        loadingHistory={historyQuery.isFetching}
         errorMessage={
           connection.status === CONNECTION_STATE.ERROR
             ? errorText(connection.error, t("errors:receive.receiveFailed"))
             : ""
         }
         connectionState={connection.status}
-        onRefresh={() => void history.refetch()}
-        onSend={conversation.sendMessage}
-        sending={conversation.sending}
+        onRefresh={() => void historyQuery.refetch()}
+        onSend={send.sendMessage}
+        sending={send.sending}
         sendErrorMessage={
-          conversation.sendError
+          send.sendError
             ? t("errors:send.failed", {
-                reason: errorText(
-                  conversation.sendError,
-                  t("errors:send.retry"),
-                ),
+                reason: errorText(send.sendError, t("errors:send.retry")),
               })
             : ""
         }
-        deletingIds={conversation.deletingIds}
-        onDelete={conversation.deleteMessage}
+        deletingIds={deletion.deletingIds}
+        onDelete={deletion.deleteMessage}
       />
     </Flex>
   );
