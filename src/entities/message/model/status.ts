@@ -21,13 +21,6 @@ export const MESSAGE_STATUS_LABELS: Record<MessageStatus, string> = {
   [MESSAGE_STATUS.NO_ACCOUNT]: i18n.t("messages:status.no_account"),
 };
 
-const DELIVERY_STATUS_ORDER: Partial<Record<MessageStatus, number>> = {
-  [MESSAGE_STATUS.PENDING]: 0,
-  [MESSAGE_STATUS.SENT]: 1,
-  [MESSAGE_STATUS.DELIVERED]: 2,
-  [MESSAGE_STATUS.READ]: 3,
-};
-
 export function isFailureStatus(status?: MessageStatus): boolean {
   return (
     status === MESSAGE_STATUS.FAILED || status === MESSAGE_STATUS.NO_ACCOUNT
@@ -40,6 +33,19 @@ export function getMessageStatusLabel(
   return status ? MESSAGE_STATUS_LABELS[status] : undefined;
 }
 
+const STATUS_PRIORITY: Record<MessageStatus, number> = {
+  [MESSAGE_STATUS.PENDING]: 0,
+  [MESSAGE_STATUS.SENT]: 1,
+  [MESSAGE_STATUS.FAILED]: 2,
+  [MESSAGE_STATUS.NO_ACCOUNT]: 2,
+  [MESSAGE_STATUS.DELIVERED]: 3,
+  [MESSAGE_STATUS.READ]: 4,
+};
+
+/**
+ * Предотвращает откат статуса, когда история и уведомления приходят не по порядку.
+ * Подтверждённая доставка имеет приоритет над ошибкой.
+ */
 export function newerStatus(
   previous?: MessageStatus,
   next?: MessageStatus,
@@ -48,30 +54,5 @@ export function newerStatus(
 
   if (!previous) return next;
 
-  // Поздние ошибки не отменяют подтверждённую доставку.
-  if (isFailureStatus(next)) {
-    return previous === MESSAGE_STATUS.DELIVERED ||
-      previous === MESSAGE_STATUS.READ
-      ? previous
-      : next;
-  }
-
-  // Снимок очереди или отправки не снимает ошибку; доставка снимает.
-  if (isFailureStatus(previous)) {
-    return next === MESSAGE_STATUS.DELIVERED || next === MESSAGE_STATUS.READ
-      ? next
-      : previous;
-  }
-
-  const previousRank = DELIVERY_STATUS_ORDER[previous];
-  const nextRank = DELIVERY_STATUS_ORDER[next];
-
-  if (
-    previousRank !== undefined &&
-    nextRank !== undefined &&
-    previousRank > nextRank
-  )
-    return previous;
-
-  return next;
+  return STATUS_PRIORITY[previous] > STATUS_PRIORITY[next] ? previous : next;
 }
