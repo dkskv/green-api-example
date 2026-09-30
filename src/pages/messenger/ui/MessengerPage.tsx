@@ -8,7 +8,7 @@ import { MessageStore } from "@/entities/message";
 import {
   CONNECTION_STATE,
   useChatNotifications,
-} from "@/features/receive-messages";
+} from "@/features/chat-notifications";
 import { useActiveContact } from "../model/useActiveContact";
 import { useConversation } from "../model/useConversation";
 import { getMessengerErrors } from "../model/getMessengerErrors";

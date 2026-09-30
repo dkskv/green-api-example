@@ -17,7 +17,7 @@ import { type ChatMessage } from "@/entities/message";
 import {
   CONNECTION_STATE_LABELS,
   type ConnectionState,
-} from "@/features/receive-messages";
+} from "@/features/chat-notifications";
 import { formatPhoneNumber, type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 import { ChatMessageItem } from "./ChatMessageItem";

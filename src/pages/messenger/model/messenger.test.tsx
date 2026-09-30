@@ -9,7 +9,7 @@ import { createChatClientMock } from "@/entities/chat/testing";
 import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
 import { contactStore } from "@/features/green-api-session";
-import { useChatNotifications } from "@/features/receive-messages";
+import { useChatNotifications } from "@/features/chat-notifications";
 import { useChatHistory } from "./useChatHistory";
 import { useActiveContact } from "./useActiveContact";
 import { useConversation } from "./useConversation";
@@ -500,7 +500,7 @@ it.each([{ chatId: "a", description: "rejected" }, {}])(
 
     const { result } = renderHook(() => {
       const handler = useChatNotificationHandler(store);
-      const { connection } = useChatNotifications({
+      const connection = useChatNotifications({
         client,
         onNotification: handler.onNotification,
       });
