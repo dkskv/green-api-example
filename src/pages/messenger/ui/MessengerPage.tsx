@@ -1,3 +1,4 @@
+import { useMessageCacheController } from "../model/useMessageCacheController";
 import { useChatNotificationHandler } from "../model/useChatNotificationHandler";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useTranslation } from "@/shared/i18n";
@@ -35,8 +36,11 @@ export function MessengerPage(props: MessengerPageProps) {
 
 function MessengerContent({ client, historyNotice }: MessengerPageProps) {
   const { t } = useTranslation(["ui", "errors"]);
+  const messageCacheController = useMessageCacheController();
 
-  const { onNotification, deliveryError } = useChatNotificationHandler();
+  const { onNotification, deliveryError } = useChatNotificationHandler(
+    messageCacheController,
+  );
   const connection = useChatNotifications({ client, onNotification });
 
   const selection = useActiveContact(client);
@@ -44,8 +48,8 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
 
   const historyQuery = useChatHistory(client, chatId);
   const messages = historyQuery.data?.messages ?? emptyChatState.messages;
-  const send = useSendMessage(client, chatId);
-  const deletion = useDeleteMessage(client, chatId);
+  const send = useSendMessage(client, messageCacheController, chatId);
+  const deletion = useDeleteMessage(client, messageCacheController, chatId);
 
   const errors = getMessengerErrors(
     {

@@ -1,10 +1,11 @@
-import { useMessageCacheController } from "./useMessageCacheController";
+import { type MessageCacheController } from "./messageCacheController";
 import { useState } from "react";
 import { type ChatEvent } from "@/entities/message";
 
 /** Применяет уведомления к сообщениям и хранит ошибку доставки для страницы. */
-export function useChatNotificationHandler() {
-  const messageCacheController = useMessageCacheController();
+export function useChatNotificationHandler(
+  messageCacheController: MessageCacheController,
+) {
   const [deliveryError, setDeliveryError] = useState<Extract<
     ChatEvent,
     { type: "deliveryFailed" }

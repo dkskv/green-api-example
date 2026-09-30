@@ -157,8 +157,8 @@ describe("chat history", () => {
       const { result } = renderHook(
         () => ({
           history: useChatHistory(client, "a"),
-          handler: useChatNotificationHandler(),
-          deletion: useDeleteMessage(client, "a"),
+          handler: useChatNotificationHandler(messageCacheController),
+          deletion: useDeleteMessage(client, messageCacheController, "a"),
         }),
         { wrapper },
       );
@@ -319,7 +319,7 @@ describe("contact selection", () => {
   });
 
   it("opens before history arrives and can send and retry after a history failure", async () => {
-    const { client, wrapper } = setup();
+    const { messageCacheController, client, wrapper } = setup();
     const response = deferred<ChatMessage[]>();
 
     client.resolveContact.mockResolvedValue({ phone: "12345678", chatId: "a" });
@@ -341,7 +341,7 @@ describe("contact selection", () => {
         const chatId = selection.activeContact?.chatId;
         const historyQuery = useChatHistory(client, chatId);
         const messages = historyQuery.data?.messages ?? emptyChatState.messages;
-        const send = useSendMessage(client, chatId);
+        const send = useSendMessage(client, messageCacheController, chatId);
 
         return { selection, historyQuery, messages, send };
       },
@@ -409,7 +409,7 @@ describe("contact selection", () => {
 
 describe("message actions", () => {
   it("tracks concurrent sends by chat and applies late success to the original chat", async () => {
-    const { client, getMessages, wrapper } = setup();
+    const { messageCacheController, client, getMessages, wrapper } = setup();
     const response = deferred<ChatMessage>();
 
     vi.spyOn(client, "sendMessage").mockImplementation((id) =>
@@ -424,7 +424,7 @@ describe("message actions", () => {
     );
 
     const { result, rerender } = renderHook(
-      ({ chatId }) => useSendMessage(client, chatId),
+      ({ chatId }) => useSendMessage(client, messageCacheController, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
     let sent!: Promise<boolean>;
@@ -461,11 +461,11 @@ describe("message actions", () => {
   });
 
   it("exposes a failed send only in its chat and does not retry it", async () => {
-    const { client, getMessages, wrapper } = setup();
+    const { messageCacheController, client, getMessages, wrapper } = setup();
 
     vi.spyOn(client, "sendMessage").mockRejectedValue(new Error("send failed"));
     const { result, rerender } = renderHook(
-      ({ chatId }) => useSendMessage(client, chatId),
+      ({ chatId }) => useSendMessage(client, messageCacheController, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
 
@@ -497,9 +497,12 @@ describe("message actions", () => {
       id === "first" ? first.promise : second.promise,
     );
 
-    const { result } = renderHook(() => useDeleteMessage(client, "a"), {
-      wrapper,
-    });
+    const { result } = renderHook(
+      () => useDeleteMessage(client, messageCacheController, "a"),
+      {
+        wrapper,
+      },
+    );
 
     act(() => {
       result.current.deleteMessage("first");
@@ -583,7 +586,7 @@ it("starts notification loading once in StrictMode and stops on unmount", async 
 it.each([{ chatId: "a", description: "rejected" }, {}])(
   "routes delivery failures to their handler and acknowledges them: %j",
   async (details) => {
-    const { client, queryClient, wrapper } = setup();
+    const { messageCacheController, client, queryClient, wrapper } = setup();
     const acknowledge = vi.fn().mockResolvedValue(undefined);
     const event = { type: "deliveryFailed" as const, ...details };
 
@@ -593,7 +596,7 @@ it.each([{ chatId: "a", description: "rejected" }, {}])(
 
     const { result } = renderHook(
       () => {
-        const handler = useChatNotificationHandler();
+        const handler = useChatNotificationHandler(messageCacheController);
         const connection = useChatNotifications({
           client,
           onNotification: handler.onNotification,
@@ -661,10 +664,13 @@ it("routes message events to the latest handler without restarting polling", asy
 });
 
 it("keeps only unknown message statuses and removes pending statuses on deletion", () => {
-  const { queryClient, getMessages, wrapper } = setup();
-  const { result } = renderHook(() => useChatNotificationHandler(), {
-    wrapper,
-  });
+  const { messageCacheController, queryClient, getMessages, wrapper } = setup();
+  const { result } = renderHook(
+    () => useChatNotificationHandler(messageCacheController),
+    {
+      wrapper,
+    },
+  );
   const message: ChatMessage = {
     id: "1",
     text: "hello",

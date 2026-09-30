@@ -1,12 +1,15 @@
-import { useMessageCacheController } from "./useMessageCacheController";
+import { type MessageCacheController } from "./messageCacheController";
 import { useMutation, useMutationState } from "@tanstack/react-query";
 import { type ChatClient } from "@/entities/chat";
 import { getDeletionError } from "./getDeletionError";
 
 type DeleteVariables = { chatId: string; id: string };
 
-export function useDeleteMessage(client: ChatClient, chatId?: string) {
-  const messageCacheController = useMessageCacheController();
+export function useDeleteMessage(
+  client: ChatClient,
+  messageCacheController: MessageCacheController,
+  chatId: string | undefined,
+) {
   const remove = useMutation({
     mutationKey: ["delete-message"],
     mutationFn: ({ chatId, id }: DeleteVariables) =>

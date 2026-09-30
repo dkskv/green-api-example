@@ -4,7 +4,7 @@ import { type ChatClient } from "@/entities/chat";
 import { useBypassStrictMode } from "@/shared/lib/useBypassStrictMode";
 import { chatHistoryKey } from "./messageCacheController";
 
-export function useChatHistory(client: ChatClient, chatId?: string) {
+export function useChatHistory(client: ChatClient, chatId: string | undefined) {
   const queryClient = useQueryClient();
   // Ждём завершения проверочного цикла StrictMode: повторные запросы вызывают 429 на dev-аккаунте.
   const ready = useBypassStrictMode();
