@@ -1,3 +1,4 @@
+import { useChatNotificationHandler } from "./useChatNotificationHandler";
 // @vitest-environment jsdom
 import { useStore } from "zustand";
 import { StrictMode, type PropsWithChildren } from "react";
@@ -8,7 +9,7 @@ import { createChatClientMock } from "@/entities/chat/testing";
 import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
 import { contactStore } from "@/features/green-api-session";
-import { useReceiveMessages } from "@/features/receive-messages";
+import { useChatNotifications } from "@/features/receive-messages";
 import { useChatHistory } from "./useChatHistory";
 import { useActiveContact } from "./useActiveContact";
 import { useConversation } from "./useConversation";
@@ -101,12 +102,7 @@ describe("chat history", () => {
     renderHook(() => useChatHistory(client, store, "a"), { wrapper });
     store.remove("a", "deleted");
 
-    store.receive({
-      type: "messageStatusChanged",
-      chatId: "a",
-      messageId: "read",
-      status: "read",
-    });
+    store.updateMessageStatus("a", "read", "read");
 
     response.resolve(snapshot);
 
@@ -467,9 +463,16 @@ it("starts notification loading once in StrictMode and stops on unmount", async 
   const client = createChatClientMock();
 
   client.receiveNotification.mockImplementation(() => new Promise(() => {}));
-  const { unmount } = renderHook(() => useReceiveMessages(client, () => {}), {
-    wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
-  });
+  const { unmount } = renderHook(
+    () =>
+      useChatNotifications({
+        client,
+        onNotification: () => {},
+      }),
+    {
+      wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
+    },
+  );
 
   await waitFor(() =>
     expect(client.receiveNotification).toHaveBeenCalledTimes(1),
@@ -482,34 +485,126 @@ it("starts notification loading once in StrictMode and stops on unmount", async 
   expect(signal.aborted).toBe(true);
 });
 
-it.each([
-  [
-    { chatId: "a", description: "rejected" },
-    "Failed to send a message to chat a: rejected",
-  ],
-  [{}, "Failed to send a message to chat unknown: unknown error"],
-])(
-  "показывает ошибку доставки и подтверждает уведомление: %j",
-  async (details, expected) => {
+it.each([{ chatId: "a", description: "rejected" }, {}])(
+  "routes delivery failures to their handler and acknowledges them: %j",
+  async (details) => {
     const client = createChatClientMock();
-    const handler = vi.fn();
+    const store = new MessageStore();
+    const merge = vi.spyOn(store, "merge");
     const acknowledge = vi.fn().mockResolvedValue(undefined);
+    const event = { type: "deliveryFailed" as const, ...details };
 
     client.receiveNotification
-      .mockResolvedValueOnce({
-        event: { type: "deliveryFailed", ...details },
-        acknowledge,
-      })
+      .mockResolvedValueOnce({ event, acknowledge })
       .mockImplementation(() => new Promise(() => {}));
 
-    const { result } = renderHook(() => useReceiveMessages(client, handler));
+    const { result } = renderHook(() => {
+      const handler = useChatNotificationHandler(store);
+      const { connection } = useChatNotifications({
+        client,
+        onNotification: handler.onNotification,
+      });
+
+      return { connection, deliveryErrorMessage: handler.deliveryErrorMessage };
+    });
 
     await waitFor(() =>
-      expect(result.current.deliveryErrorMessage).toBe(expected),
+      expect(result.current.connection).toEqual({ status: "online" }),
     );
 
-    expect(handler).not.toHaveBeenCalled();
+    expect(result.current.deliveryErrorMessage).toBe(
+      "chatId" in details
+        ? "Failed to send a message to chat a: rejected"
+        : "Failed to send a message to chat unknown: unknown error",
+    );
+
+    expect(merge).not.toHaveBeenCalled();
     expect(acknowledge).toHaveBeenCalledTimes(1);
-    expect(result.current.state).toBe("online");
   },
 );
+
+it("routes message events to the latest handler without restarting polling", async () => {
+  const client = createChatClientMock();
+  const event = {
+    type: "messageDeleted" as const,
+    chatId: "a",
+    messageId: "1",
+  };
+  const acknowledge = vi.fn().mockResolvedValue(undefined);
+  let deliver!: (value: {
+    event: typeof event;
+    acknowledge: typeof acknowledge;
+  }) => void;
+
+  client.receiveNotification
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          deliver = resolve;
+        }),
+    )
+    .mockImplementation(() => new Promise(() => {}));
+
+  const originalHandler = vi.fn();
+  const latestHandler = vi.fn();
+  const { rerender } = renderHook(
+    ({ onNotification }) => useChatNotifications({ client, onNotification }),
+    { initialProps: { onNotification: originalHandler } },
+  );
+
+  await waitFor(() =>
+    expect(client.receiveNotification).toHaveBeenCalledTimes(1),
+  );
+
+  rerender({ onNotification: latestHandler });
+  expect(client.receiveNotification).toHaveBeenCalledTimes(1);
+
+  await act(async () => {
+    deliver({ event, acknowledge });
+  });
+
+  expect(latestHandler).toHaveBeenCalledExactlyOnceWith(event);
+  expect(originalHandler).not.toHaveBeenCalled();
+  expect(acknowledge).toHaveBeenCalledTimes(1);
+});
+
+it("applies message notifications and preserves status and deletion across snapshots", () => {
+  const store = new MessageStore();
+  const { result } = renderHook(() => useChatNotificationHandler(store));
+  const message: ChatMessage = {
+    id: "1",
+    text: "hello",
+    direction: "outgoing",
+    timestamp: 1,
+    status: "sent",
+  };
+
+  act(() => {
+    result.current.onNotification({
+      type: "messageStatusChanged",
+      chatId: "a",
+      messageId: "1",
+      status: "read",
+    });
+
+    result.current.onNotification({
+      type: "messageReceived",
+      chatId: "a",
+      message,
+    });
+  });
+
+  expect(store.getMessages("a")).toEqual([{ ...message, status: "read" }]);
+
+  act(() =>
+    result.current.onNotification({
+      type: "messageDeleted",
+      chatId: "a",
+      messageId: "1",
+    }),
+  );
+
+  store.merge("a", [message]);
+  expect(store.getMessages("a")).toEqual([]);
+  expect(result.current.deliveryErrorMessage).toBe("");
+});

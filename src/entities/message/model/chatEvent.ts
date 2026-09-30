@@ -1,7 +1,7 @@
 import type { MessageStatus } from "./status";
 import { type ChatMessage } from "./message";
 
-/** Событие чата, независимое от провайдера API; адаптер преобразует в него внешние уведомления. */
+/** Событие чата, независимое от провайдера API. */
 export type ChatEvent =
   | { type: "messageReceived"; chatId: string; message: ChatMessage }
   | {

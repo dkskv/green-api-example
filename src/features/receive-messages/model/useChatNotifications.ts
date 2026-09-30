@@ -5,16 +5,19 @@ import { type ChatEvent } from "@/entities/message";
 import { useBypassStrictMode } from "@/shared/lib/useBypassStrictMode";
 import { useActualRef } from "@/shared/lib/useActualRef";
 import { runNotificationLoop } from "./runNotificationLoop";
-import { RECEIVE_ERROR_MESSAGES } from "./errors";
 
-export function useReceiveMessages(
-  client: ChatClient,
-  onNotification: (notification: ChatEvent) => void,
-) {
+type ChatNotificationsOptions = {
+  client: ChatClient;
+  onNotification: (event: ChatEvent) => void;
+};
+
+export function useChatNotifications({
+  client,
+  onNotification,
+}: ChatNotificationsOptions) {
   const [connection, setConnection] = useState<Connection>({
     status: CONNECTION_STATE.CONNECTING,
   });
-  const [deliveryErrorMessage, setDeliveryErrorMessage] = useState<string>("");
   // Ждём завершения проверочного цикла StrictMode: повторные запросы вызывают 429 на dev-аккаунте.
   const ready = useBypassStrictMode();
   const onNotificationRef = useActualRef(onNotification);
@@ -27,30 +30,12 @@ export function useReceiveMessages(
     runNotificationLoop({
       client,
       signal: controller.signal,
-      onNotification: (notification) => {
-        if (notification.type === "deliveryFailed") {
-          setDeliveryErrorMessage(
-            RECEIVE_ERROR_MESSAGES.deliveryFailed(
-              notification.chatId,
-              notification.description,
-            ),
-          );
-
-          return;
-        }
-
-        onNotificationRef.current(notification);
-      },
+      onNotification: (notification) => onNotificationRef.current(notification),
       onConnectionChange: setConnection,
     });
 
     return () => controller.abort();
   }, [client, onNotificationRef, ready]);
 
-  return {
-    state: connection.status,
-    errorMessage:
-      connection.status === CONNECTION_STATE.ERROR ? connection.message : "",
-    deliveryErrorMessage,
-  };
+  return connection;
 }

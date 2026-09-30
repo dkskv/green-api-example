@@ -1,7 +1,5 @@
-import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
 import { newerStatus, type MessageStatus } from "./status";
-import { type ChatEvent } from "./chatEvent";
 import { type ChatMessage } from "./message";
 
 type ChatState = {
@@ -74,36 +72,23 @@ export class MessageStore {
     }));
   }
 
-  /** Применяет изменения сообщений из события чата. */
-  @boundMethod
-  receive(event: ChatEvent): void {
-    switch (event.type) {
-      case "messageDeleted":
-        this.remove(event.chatId, event.messageId);
-
-        return;
-      case "messageReceived":
-        this.merge(event.chatId, [event.message]);
-
-        return;
-      case "messageStatusChanged": {
-        const { chatId, messageId: id, status } = event;
-
-        this.update(chatId, (chat) => ({
-          ...chat,
-          statuses: {
-            ...chat.statuses,
-            [id]: newerStatus(chat.statuses[id], status)!,
-          },
-          messages: chat.messages.map((message) =>
-            message.id === id
-              ? { ...message, status: newerStatus(message.status, status) }
-              : message,
-          ),
-        }));
-
-        return;
-      }
-    }
+  /** Обновляет статус сообщения, сохраняя его и до загрузки самого сообщения. */
+  updateMessageStatus(
+    chatId: string,
+    messageId: string,
+    status: MessageStatus,
+  ): void {
+    this.update(chatId, (chat) => ({
+      ...chat,
+      statuses: {
+        ...chat.statuses,
+        [messageId]: newerStatus(chat.statuses[messageId], status)!,
+      },
+      messages: chat.messages.map((message) =>
+        message.id === messageId
+          ? { ...message, status: newerStatus(message.status, status) }
+          : message,
+      ),
+    }));
   }
 }

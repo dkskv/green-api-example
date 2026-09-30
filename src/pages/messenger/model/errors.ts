@@ -7,4 +7,9 @@ export const MESSENGER_ERROR_MESSAGES = {
   apiError: i18n.t("errors:messenger.apiError"),
   restoreFailed: (reason: string) =>
     i18n.t("errors:messenger.restoreFailed", { reason }),
+  deliveryFailed: (chatId?: string, description?: string) =>
+    i18n.t("errors:message.sendFailed", {
+      chatId: chatId ?? i18n.t("errors:message.unknownChat"),
+      description: description ?? i18n.t("errors:message.unknownError"),
+    }),
 } as const;

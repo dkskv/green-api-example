@@ -1,10 +1,14 @@
+import { useChatNotificationHandler } from "../model/useChatNotificationHandler";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useTranslation } from "@/shared/i18n";
 import { useMessengerQueryClient } from "../model/useMessengerQueryClient";
 import { Alert, Flex } from "antd";
 import { useState } from "react";
 import { MessageStore } from "@/entities/message";
-import { useReceiveMessages } from "@/features/receive-messages";
+import {
+  CONNECTION_STATE,
+  useChatNotifications,
+} from "@/features/receive-messages";
 import { useActiveContact } from "../model/useActiveContact";
 import { useConversation } from "../model/useConversation";
 import { getMessengerErrors } from "../model/getMessengerErrors";
@@ -31,7 +35,9 @@ export function MessengerPage(props: MessengerPageProps) {
 function MessengerContent({ client, historyNotice }: MessengerPageProps) {
   const { t } = useTranslation("ui");
   const [store] = useState(() => new MessageStore());
-  const connection = useReceiveMessages(client, store.receive);
+  const { onNotification, deliveryErrorMessage } =
+    useChatNotificationHandler(store);
+  const connection = useChatNotifications({ client, onNotification });
   const selection = useActiveContact(client);
   const conversation = useConversation(
     client,
@@ -54,8 +60,8 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
       {errors.map(({ operation, message }) => (
         <Alert key={operation} type="error" showIcon title={message} />
       ))}
-      {connection.deliveryErrorMessage && (
-        <Alert type="error" showIcon title={connection.deliveryErrorMessage} />
+      {deliveryErrorMessage && (
+        <Alert type="error" showIcon title={deliveryErrorMessage} />
       )}
       <ChatWindow
         contact={selection.activeContact}
@@ -65,8 +71,10 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
           t("chatWindow.historyNotice", { count: client.historyLimit })
         }
         loadingHistory={history.isFetching}
-        errorMessage={connection.errorMessage}
-        connectionState={connection.state}
+        errorMessage={
+          connection.status === CONNECTION_STATE.ERROR ? connection.message : ""
+        }
+        connectionState={connection.status}
         onRefresh={() => void history.refetch()}
         onSend={conversation.sendMessage}
         sending={conversation.sending}
