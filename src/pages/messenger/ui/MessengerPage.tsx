@@ -11,9 +11,9 @@ import {
 } from "@/features/chat-notifications";
 import { useActiveContact } from "../model/useActiveContact";
 import { useConversation } from "../model/useConversation";
-import { getMessengerErrors } from "../model/getMessengerErrors";
+import { getMessengerErrors } from "./getMessengerErrors";
 import { OpenChatForm } from "@/features/open-chat";
-import { SEND_ERROR_MESSAGES } from "@/features/send-message";
+import { errorText } from "@/shared/ui/errorText";
 import { type ChatClient } from "@/entities/chat";
 import { ChatWindow } from "@/widgets/chat-window";
 
@@ -33,10 +33,9 @@ export function MessengerPage(props: MessengerPageProps) {
 }
 
 function MessengerContent({ client, historyNotice }: MessengerPageProps) {
-  const { t } = useTranslation("ui");
+  const { t } = useTranslation(["ui", "errors"]);
   const [store] = useState(() => new MessageStore());
-  const { onNotification, deliveryErrorMessage } =
-    useChatNotificationHandler(store);
+  const { onNotification, deliveryError } = useChatNotificationHandler(store);
   const connection = useChatNotifications({ client, onNotification });
   const selection = useActiveContact(client);
   const conversation = useConversation(
@@ -45,11 +44,14 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
     selection.activeContact?.chatId,
   );
   const { history } = conversation;
-  const errors = getMessengerErrors({
-    contact: selection.error,
-    history: history.error,
-    deletion: conversation.deleteError,
-  });
+  const errors = getMessengerErrors(
+    {
+      contact: selection.error,
+      history: history.error,
+      deletion: conversation.deleteError,
+    },
+    t,
+  );
 
   return (
     <Flex vertical gap="middle">
@@ -60,8 +62,16 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
       {errors.map(({ operation, message }) => (
         <Alert key={operation} type="error" showIcon title={message} />
       ))}
-      {deliveryErrorMessage && (
-        <Alert type="error" showIcon title={deliveryErrorMessage} />
+      {deliveryError && (
+        <Alert
+          type="error"
+          showIcon
+          title={t("errors:message.sendFailed", {
+            chatId: deliveryError.chatId ?? t("errors:message.unknownChat"),
+            description:
+              deliveryError.description ?? t("errors:message.unknownError"),
+          })}
+        />
       )}
       <ChatWindow
         contact={selection.activeContact}
@@ -72,7 +82,9 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
         }
         loadingHistory={history.isFetching}
         errorMessage={
-          connection.status === CONNECTION_STATE.ERROR ? connection.message : ""
+          connection.status === CONNECTION_STATE.ERROR
+            ? errorText(connection.error, t("errors:receive.receiveFailed"))
+            : ""
         }
         connectionState={connection.status}
         onRefresh={() => void history.refetch()}
@@ -80,7 +92,12 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
         sending={conversation.sending}
         sendErrorMessage={
           conversation.sendError
-            ? SEND_ERROR_MESSAGES.sendFailed(conversation.sendError)
+            ? t("errors:send.failed", {
+                reason: errorText(
+                  conversation.sendError,
+                  t("errors:send.retry"),
+                ),
+              })
             : ""
         }
         deletingIds={conversation.deletingIds}

@@ -1,5 +1,3 @@
-import { i18n } from "@/shared/i18n";
-
 export const MESSAGE_STATUS = {
   PENDING: "pending",
   SENT: "sent",
@@ -12,25 +10,10 @@ export const MESSAGE_STATUS = {
 export type MessageStatus =
   (typeof MESSAGE_STATUS)[keyof typeof MESSAGE_STATUS];
 
-export const MESSAGE_STATUS_LABELS: Record<MessageStatus, string> = {
-  [MESSAGE_STATUS.PENDING]: i18n.t("messages:status.pending"),
-  [MESSAGE_STATUS.SENT]: i18n.t("messages:status.sent"),
-  [MESSAGE_STATUS.DELIVERED]: i18n.t("messages:status.delivered"),
-  [MESSAGE_STATUS.READ]: i18n.t("messages:status.read"),
-  [MESSAGE_STATUS.FAILED]: i18n.t("messages:status.failed"),
-  [MESSAGE_STATUS.NO_ACCOUNT]: i18n.t("messages:status.no_account"),
-};
-
 export function isFailureStatus(status?: MessageStatus): boolean {
   return (
     status === MESSAGE_STATUS.FAILED || status === MESSAGE_STATUS.NO_ACCOUNT
   );
-}
-
-export function getMessageStatusLabel(
-  status?: MessageStatus,
-): string | undefined {
-  return status ? MESSAGE_STATUS_LABELS[status] : undefined;
 }
 
 const STATUS_PRIORITY: Record<MessageStatus, number> = {

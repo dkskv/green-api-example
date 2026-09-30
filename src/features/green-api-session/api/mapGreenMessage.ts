@@ -1,5 +1,4 @@
 import { parseMessageStatus } from "./parseMessageStatus";
-import { i18n } from "@/shared/i18n";
 import { type ChatMessage } from "@/entities/message";
 import { MESSAGE_TYPE } from "@/shared/api/green-api";
 import type { z } from "zod";
@@ -15,9 +14,7 @@ export function mapGreenMessage(
   return {
     id: data.idMessage,
     text: isText ? (data.textMessage ?? "") : "",
-    placeholder: isText
-      ? undefined
-      : i18n.t("messages:placeholders.unsupported"),
+    unsupported: !isText,
     direction: data.type,
     timestamp: data.timestamp ?? 0,
     status: parseMessageStatus(data.statusMessage),

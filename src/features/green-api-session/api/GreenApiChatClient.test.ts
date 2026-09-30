@@ -40,12 +40,18 @@ describe("GreenApiChatClient", () => {
     ]);
 
     expect(await client.getChatHistory("chat", signal)).toEqual([
-      { id: "1", direction: "incoming", text: "hello", timestamp: 12 },
+      {
+        id: "1",
+        direction: "incoming",
+        text: "hello",
+        timestamp: 12,
+        unsupported: false,
+      },
       {
         id: "2",
         direction: "outgoing",
         text: "",
-        placeholder: "This message type is not supported yet.",
+        unsupported: true,
         timestamp: 0,
         status: "read",
       },
@@ -80,7 +86,7 @@ describe("GreenApiChatClient", () => {
     expect(api.checkAccount).toHaveBeenCalledWith(12345678);
 
     await expect(client.resolveContact("12345678")).rejects.toThrow(
-      "No Telegram account was found, or the phone number is hidden by privacy settings.",
+      "ACCOUNT_NOT_FOUND",
     );
 
     await expect(client.resolveContact("12345678")).rejects.toThrow(
@@ -132,6 +138,7 @@ describe("mapGreenNotification", () => {
       message: {
         id: "message",
         text: "hello",
+        unsupported: false,
         direction: "incoming",
         timestamp: 0,
       },
@@ -186,14 +193,14 @@ describe("mapGreenNotification", () => {
         receiptId: 1,
         body: { typeWebhook: "outgoingMessageStatus", status: "read" },
       }),
-    ).toThrow("Invalid message status notification.");
+    ).toThrow("INVALID_STATUS_NOTIFICATION");
 
     expect(() =>
       mapGreenNotification({
         receiptId: 1,
         body: { typeWebhook: "incomingMessageReceived" },
       }),
-    ).toThrow("The notification is missing a chat ID.");
+    ).toThrow("MISSING_CHAT");
   });
 });
 

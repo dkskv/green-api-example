@@ -88,7 +88,7 @@ it("does not acknowledge a failed handler and processes redelivery before acknow
 
   expect(onConnectionChange).toHaveBeenLastCalledWith({
     status: "error",
-    message: "handler failed",
+    error: new Error("handler failed"),
   });
 
   await vi.advanceTimersByTimeAsync(1500);

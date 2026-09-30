@@ -1,27 +1,30 @@
-import { errorText } from "@/shared/lib/errorText";
-import { MESSENGER_ERROR_MESSAGES } from "./errors";
+import { errorText } from "@/shared/ui/errorText";
+import { type TFunction } from "i18next";
 
 /** Подготавливает ошибки операций для отображения на странице. */
-export function getMessengerErrors(errors: {
-  contact: Error | null;
-  history: Error | null;
-  deletion: Error | null;
-}) {
+export function getMessengerErrors(
+  errors: {
+    contact: Error | null;
+    history: Error | null;
+    deletion: Error | null;
+  },
+  t: TFunction<["ui", "errors"]>,
+) {
   return [
     {
       operation: "open",
       error: errors.contact,
-      fallback: MESSENGER_ERROR_MESSAGES.openFailed,
+      fallback: t("errors:messenger.openFailed"),
     },
     {
       operation: "history",
       error: errors.history,
-      fallback: MESSENGER_ERROR_MESSAGES.refreshFailed,
+      fallback: t("errors:messenger.refreshFailed"),
     },
     {
       operation: "delete",
       error: errors.deletion,
-      fallback: MESSENGER_ERROR_MESSAGES.deleteFailed,
+      fallback: t("errors:messenger.deleteFailed"),
     },
   ]
     .filter(({ error }) => error)

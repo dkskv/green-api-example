@@ -1,4 +1,4 @@
-import { errorText } from "@/shared/lib/errorText";
+import { errorText } from "@/shared/ui/errorText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./GreenApiSessionForm.module.css";
 import { GreenApiChatClient } from "../api/GreenApiChatClient";
@@ -12,7 +12,6 @@ import {
   type FormItemProps,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
-import { GREEN_API_SESSION_ERROR_MESSAGES } from "../model/errors";
 import {
   greenApiCredentialsSchema,
   type GreenApiCredentials,
@@ -40,8 +39,11 @@ type GreenApiSessionFormProps = {
 };
 
 export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
-  const { t } = useTranslation("ui");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const { t } = useTranslation(["ui", "errors"]);
+  const [failure, setFailure] = useState<{ reason: unknown } | null>(null);
+  const errorMessage = failure
+    ? errorText(failure.reason, t("errors:session.verificationFailed"))
+    : "";
 
   const [checking, setChecking] = useState(false);
 
@@ -57,7 +59,7 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
     request.current = controller;
 
     setChecking(true);
-    setErrorMessage("");
+    setFailure(null);
 
     try {
       const credentials = greenApiCredentialsSchema.parse(values);
@@ -69,9 +71,7 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
     } catch (reason) {
       if (controller.signal.aborted) return;
 
-      setErrorMessage(
-        errorText(reason, GREEN_API_SESSION_ERROR_MESSAGES.verificationFailed),
-      );
+      setFailure({ reason });
     } finally {
       request.current = null;
 
@@ -97,10 +97,7 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
         <Form.Item<GreenApiCredentials>
           name="apiUrl"
           label={t("greenApiSessionForm.apiUrl")}
-          rules={credentialRules(
-            "apiUrl",
-            GREEN_API_SESSION_ERROR_MESSAGES.invalidApiUrl,
-          )}
+          rules={credentialRules("apiUrl", t("errors:session.invalidApiUrl"))}
         >
           <Input placeholder={DEFAULT_API_URL} />
         </Form.Item>
@@ -110,7 +107,7 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
           label={t("greenApiSessionForm.instanceId")}
           rules={credentialRules(
             "instanceId",
-            GREEN_API_SESSION_ERROR_MESSAGES.missingCredentials,
+            t("errors:session.missingCredentials"),
           )}
         >
           <Input placeholder={t("greenApiSessionForm.instancePlaceholder")} />
@@ -121,7 +118,7 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
           label={t("greenApiSessionForm.apiToken")}
           rules={credentialRules(
             "apiToken",
-            GREEN_API_SESSION_ERROR_MESSAGES.missingCredentials,
+            t("errors:session.missingCredentials"),
           )}
         >
           <Input.Password

@@ -1,3 +1,4 @@
+import { GreenApiError } from "@/shared/api/green-api";
 import { initializeGreenApiSession } from "./initializeGreenApiSession";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
@@ -9,7 +10,6 @@ import {
 } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
-import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {
@@ -35,15 +35,16 @@ export class GreenApiChatClient implements ChatClient {
   async resolveContact(phone: string): Promise<VerifiedContact> {
     const account = await this.api.checkAccount(Number(phone));
 
-    if (account.status === false)
-      throw new Error(
-        account.reason ??
-          account.data?.reason ??
-          GREEN_CHAT_ERROR_MESSAGES.checkFailed,
-      );
+    if (account.status === false) {
+      const reason = account.reason ?? account.data?.reason;
+
+      throw reason != null
+        ? new Error(reason)
+        : new GreenApiError("ACCOUNT_CHECK_FAILED");
+    }
 
     if (!account.exist || !account.chatId)
-      throw new Error(GREEN_CHAT_ERROR_MESSAGES.accountNotFound);
+      throw new GreenApiError("ACCOUNT_NOT_FOUND");
 
     return { phone, chatId: account.chatId };
   }

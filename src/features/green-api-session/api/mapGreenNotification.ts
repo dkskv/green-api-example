@@ -1,3 +1,4 @@
+import { GreenApiError } from "@/shared/api/green-api";
 import { parseMessageStatus } from "./parseMessageStatus";
 import type { z } from "zod";
 import type { notificationSchema } from "@/shared/api/green-api";
@@ -5,7 +6,6 @@ import { type ChatEvent } from "@/entities/message";
 import { isFailureStatus } from "@/entities/message";
 import { WEBHOOK_TYPE, MESSAGE_TYPE } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
-import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 
 type GreenNotification = z.infer<typeof notificationSchema>;
 
@@ -46,7 +46,7 @@ function mapMessageStatus(
   }
 
   if (!chatId || !idMessage || !status)
-    throw new Error(GREEN_CHAT_ERROR_MESSAGES.invalidStatusNotification);
+    throw new GreenApiError("INVALID_STATUS_NOTIFICATION");
 
   return {
     type: "messageStatusChanged",
@@ -60,19 +60,18 @@ function mapMessageNotification(
   { idMessage, typeWebhook, timestamp, messageData }: NotificationBody,
   chatId: string | undefined,
 ): ChatEvent {
-  if (!chatId) throw new Error(GREEN_CHAT_ERROR_MESSAGES.missingChat);
+  if (!chatId) throw new GreenApiError("MISSING_CHAT");
 
   if (messageData?.typeMessage === MESSAGE_TYPE.DELETED) {
     const messageId = messageData.deletedMessageData?.stanzaId;
 
-    if (!messageId)
-      throw new Error(GREEN_CHAT_ERROR_MESSAGES.missingDeletedMessageId);
+    if (!messageId) throw new GreenApiError("MISSING_DELETED_MESSAGE_ID");
 
     return { type: "messageDeleted", chatId, messageId };
   }
 
   if (!idMessage || !messageData)
-    throw new Error(GREEN_CHAT_ERROR_MESSAGES.invalidNotification);
+    throw new GreenApiError("INVALID_NOTIFICATION");
 
   const direction =
     typeWebhook === WEBHOOK_TYPE.INCOMING_MESSAGE ? "incoming" : "outgoing";

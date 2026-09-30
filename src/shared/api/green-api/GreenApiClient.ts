@@ -1,4 +1,4 @@
-import { i18n } from "@/shared/i18n";
+import { GreenApiError } from "./errors";
 import { type GreenApiCredentials } from "./credentials";
 import { z } from "zod";
 import {
@@ -6,7 +6,6 @@ import {
   INSTANCE_STATE,
   WEBHOOK_SETTING,
 } from "./constants";
-import { API_ERROR_MESSAGES } from "./errors";
 import {
   accountSchema,
   acknowledgementSchema,
@@ -42,8 +41,7 @@ export class GreenApiClient {
     );
     const data: unknown = await response.json();
 
-    if (!Array.isArray(data))
-      throw new Error(API_ERROR_MESSAGES.invalidHistory);
+    if (!Array.isArray(data)) throw new GreenApiError("INVALID_HISTORY");
 
     return z.array(messageSchema).parse(data);
   }
@@ -92,9 +90,9 @@ export class GreenApiClient {
     const result = parsed.success ? parsed.data : undefined;
 
     if (result?.result !== true)
-      throw new Error(
-        result?.reason || API_ERROR_MESSAGES.notificationNotAcknowledged,
-      );
+      throw result?.reason
+        ? new Error(result.reason)
+        : new GreenApiError("NOTIFICATION_NOT_ACKNOWLEDGED");
   }
 
   /** Проверяет готовность инстанса. */
@@ -105,7 +103,7 @@ export class GreenApiClient {
       .parse(await response.json());
 
     if (stateInstance !== INSTANCE_STATE.AUTHORIZED)
-      throw new Error(API_ERROR_MESSAGES.instanceNotReady(stateInstance));
+      throw new GreenApiError("INSTANCE_NOT_READY", { state: stateInstance });
   }
 
   /** Включает нужные уведомления. */
@@ -165,24 +163,25 @@ export class GreenApiClient {
     const response = await fetch(`${this.methodUrl(method)}${suffix}`, init);
 
     if (!response.ok) {
-      if (response.status === 429)
-        throw new Error(i18n.t("errors:api.RATE_LIMITED"));
+      if (response.status === 429) throw new GreenApiError("RATE_LIMITED");
 
       if (
         method === "receiveNotification" &&
         response.status >= 400 &&
         response.status < 500
       )
-        throw new Error(API_ERROR_MESSAGES.receiveRejected(response.status));
+        throw new GreenApiError("RECEIVE_REJECTED", {
+          status: response.status,
+        });
 
-      throw new Error(await this.getApiError(response));
+      throw await this.getApiError(response);
     }
 
     return response;
   }
 
-  /** Извлекает текст ошибки из ответа API. */
-  private async getApiError(response: Response): Promise<string> {
+  /** Создаёт ошибку с HTTP-статусом и причиной из ответа API. */
+  private async getApiError(response: Response): Promise<GreenApiError> {
     const parsed = apiErrorSchema.safeParse(
       await response.json().catch(() => null),
     );
@@ -194,7 +193,10 @@ export class GreenApiClient {
       payload?.error;
 
     return reason
-      ? i18n.t("errors:api.httpWithReason", { status: response.status, reason })
-      : i18n.t("errors:api.http", { status: response.status });
+      ? new GreenApiError("HTTP_ERROR_WITH_REASON", {
+          status: response.status,
+          reason,
+        })
+      : new GreenApiError("HTTP_ERROR", { status: response.status });
   }
 }

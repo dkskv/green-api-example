@@ -58,7 +58,7 @@ it("rejects an external webhook without changing its settings", async () => {
   });
 
   await expect(client.initializeSession(controller.signal)).rejects.toThrow(
-    "Clear webhookUrl",
+    "WEBHOOK_URL_CONFIGURED",
   );
 
   expect(update).not.toHaveBeenCalled();
@@ -113,7 +113,7 @@ it("fails session initialization when readiness times out", async () => {
   vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeout.signal);
   settings.mockResolvedValue(disabled);
   const task = client.initializeSession(controller.signal);
-  const rejected = expect(task).rejects.toThrow("within 5 minutes");
+  const rejected = expect(task).rejects.toThrow("SETTINGS_TIMEOUT");
 
   await vi.advanceTimersByTimeAsync(0);
   expect(AbortSignal.timeout).toHaveBeenCalledWith(300000);

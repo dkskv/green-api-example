@@ -1,7 +1,7 @@
 import { useTranslation } from "@/shared/i18n";
 import styles from "./ChatMessageItem.module.css";
 import { Button, Card, Flex, List, Typography, theme } from "antd";
-import { getMessageStatusLabel, type ChatMessage } from "@/entities/message";
+import { type ChatMessage } from "@/entities/message";
 import { formatMessageTime } from "../lib/formatMessageTime";
 
 type ChatMessageItemProps = {
@@ -33,7 +33,9 @@ export function ChatMessageItem({
       >
         <Flex vertical gap="small">
           <Typography.Text className={styles.text}>
-            {message.text || message.placeholder || t("chatMessageItem.empty")}
+            {message.unsupported
+              ? t("placeholders.unsupported", { ns: "messages" })
+              : message.text || t("chatMessageItem.empty")}
           </Typography.Text>
           <Flex justify="space-between" gap="small">
             <Typography.Text
@@ -49,7 +51,8 @@ export function ChatMessageItem({
                 type="secondary"
                 style={{ fontSize: token.fontSizeSM }}
               >
-                {getMessageStatusLabel(message.status) ?? ""}
+                {message.status &&
+                  t(`status.${message.status}`, { ns: "messages" })}
               </Typography.Text>
             )}
           </Flex>

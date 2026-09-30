@@ -5,7 +5,7 @@
     "delivered": "Delivered",
     "read": "Read",
     "failed": "Failed to send",
-    "no_account": "Account not found"
+    "noAccount": "Account not found"
   },
   "connection": {
     "connecting": "Connecting",

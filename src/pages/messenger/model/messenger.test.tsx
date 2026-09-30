@@ -505,18 +505,14 @@ it.each([{ chatId: "a", description: "rejected" }, {}])(
         onNotification: handler.onNotification,
       });
 
-      return { connection, deliveryErrorMessage: handler.deliveryErrorMessage };
+      return { connection, deliveryError: handler.deliveryError };
     });
 
     await waitFor(() =>
       expect(result.current.connection).toEqual({ status: "online" }),
     );
 
-    expect(result.current.deliveryErrorMessage).toBe(
-      "chatId" in details
-        ? "Failed to send a message to chat a: rejected"
-        : "Failed to send a message to chat unknown: unknown error",
-    );
+    expect(result.current.deliveryError).toEqual(event);
 
     expect(merge).not.toHaveBeenCalled();
     expect(acknowledge).toHaveBeenCalledTimes(1);
@@ -606,5 +602,5 @@ it("applies message notifications and preserves status and deletion across snaps
 
   store.merge("a", [message]);
   expect(store.getMessages("a")).toEqual([]);
-  expect(result.current.deliveryErrorMessage).toBe("");
+  expect(result.current.deliveryError).toBeNull();
 });

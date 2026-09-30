@@ -10,3 +10,4 @@ export {
   WEBHOOK_TYPE,
 } from "./constants";
 export { messageSchema, notificationSchema } from "./schemas";
+export { GreenApiError, type GreenApiErrorCode } from "./errors";

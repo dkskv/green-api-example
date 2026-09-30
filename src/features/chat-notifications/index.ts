@@ -1,6 +1,2 @@
 export { useChatNotifications } from "./model/useChatNotifications";
-export {
-  CONNECTION_STATE,
-  CONNECTION_STATE_LABELS,
-  type ConnectionState,
-} from "./model/connection";
+export { CONNECTION_STATE, type ConnectionState } from "./model/connection";

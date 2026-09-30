@@ -71,4 +71,29 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ["src/**/model/**/*.{ts,tsx}", "src/**/api/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@/shared/i18n",
+                "**/ui/**",
+                "i18next",
+                "react-i18next",
+                "antd",
+                "antd/*",
+              ],
+              message:
+                "Модель и API возвращают данные; перевод и оформление выполняются в UI.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

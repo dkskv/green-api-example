@@ -1,10 +1,7 @@
 import { Alert, Spin } from "antd";
-import {
-  type useGreenApiSession,
-  GREEN_API_SESSION_ERROR_MESSAGES,
-} from "@/features/green-api-session";
+import { type useGreenApiSession } from "@/features/green-api-session";
 import { GreenApiSessionPage } from "@/pages/green-api-session";
-import { errorText } from "@/shared/lib/errorText";
+import { errorText } from "@/shared/ui/errorText";
 import { useTranslation } from "@/shared/i18n";
 import { MessengerPage } from "@/pages/messenger";
 
@@ -13,7 +10,7 @@ type AppContentProps = {
 };
 
 export function AppContent({ session }: AppContentProps) {
-  const { t } = useTranslation("ui");
+  const { t } = useTranslation(["ui", "errors"]);
   const { credentials, client, verification, acceptVerifiedSession } = session;
 
   if (!credentials || !client)
@@ -27,7 +24,7 @@ export function AppContent({ session }: AppContentProps) {
         type="error"
         title={errorText(
           verification.error,
-          GREEN_API_SESSION_ERROR_MESSAGES.verificationFailed,
+          t("errors:session.verificationFailed"),
         )}
       />
     );

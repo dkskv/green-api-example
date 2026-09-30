@@ -43,7 +43,7 @@ it.each([
     );
 
     expect(history.text).toBe(text);
-    expect(history.placeholder).toBeUndefined();
+    expect(history.unsupported).toBe(false);
 
     expect(event).toEqual({
       type: "messageReceived",
@@ -61,7 +61,7 @@ it.each([
   "stickerMessage",
   "futureMessage",
   undefined,
-])("uses the same placeholder for unsupported type %s", (typeMessage) => {
+])("marks unsupported messages consistently for type %s", (typeMessage) => {
   const history = mapGreenMessage(
     messageSchema.parse({
       idMessage: "1",
@@ -89,7 +89,7 @@ it.each([
 
   expect(history).toMatchObject({
     text: "",
-    placeholder: "This message type is not supported yet.",
+    unsupported: true,
   });
 
   expect(event).toEqual({
@@ -109,7 +109,7 @@ it("does not label an empty text message as unsupported", () => {
         textMessage: "",
       }),
     ),
-  ).toMatchObject({ text: "", placeholder: undefined });
+  ).toMatchObject({ text: "", unsupported: false });
 });
 
 it.each(["outgoingMessageReceived", "outgoingAPIMessageReceived"])(

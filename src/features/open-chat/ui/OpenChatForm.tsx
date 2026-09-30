@@ -10,7 +10,6 @@ import {
   type FormItemProps,
 } from "antd";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/entities/contact";
-import { OPEN_CHAT_ERROR_MESSAGES } from "../model/errors";
 
 type OpenChatFormValues = {
   phone: string;
@@ -27,14 +26,14 @@ export function OpenChatForm({
   loading,
   onOpen,
 }: OpenChatFormProps) {
-  const { t } = useTranslation("ui");
+  const { t } = useTranslation(["ui", "errors"]);
   const initialValues = { phone: initialPhone };
   const phoneRules: FormItemProps["rules"] = [
     {
-      message: OPEN_CHAT_ERROR_MESSAGES.invalidPhone,
+      message: t("errors:openChat.invalidPhone"),
       validator: async (_, value: string | undefined) => {
         if (!normalizePhoneNumber(value ?? "")) {
-          throw new Error(OPEN_CHAT_ERROR_MESSAGES.invalidPhone);
+          throw new Error(t("errors:openChat.invalidPhone"));
         }
       },
     },

@@ -14,10 +14,7 @@ import {
   theme,
 } from "antd";
 import { type ChatMessage } from "@/entities/message";
-import {
-  CONNECTION_STATE_LABELS,
-  type ConnectionState,
-} from "@/features/chat-notifications";
+import { type ConnectionState } from "@/features/chat-notifications";
 import { formatPhoneNumber, type VerifiedContact } from "@/entities/contact";
 import { MessageComposer } from "@/features/send-message";
 import { ChatMessageItem } from "./ChatMessageItem";
@@ -72,7 +69,7 @@ export function ChatWindow({
   const { t } = useTranslation("ui");
   const headerActions = contact && (
     <Space size="small">
-      <Tag>{CONNECTION_STATE_LABELS[connectionState]}</Tag>
+      <Tag>{t(`connection.${connectionState}`, { ns: "messages" })}</Tag>
       <Button onClick={onRefresh} loading={loadingHistory}>
         {t("chatWindow.refresh")}
       </Button>

@@ -1,10 +1,33 @@
-import { i18n } from "@/shared/i18n";
+export type GreenApiErrorCode =
+  | "INVALID_HISTORY"
+  | "NOTIFICATION_NOT_ACKNOWLEDGED"
+  | "RECEIVE_REJECTED"
+  | "INSTANCE_NOT_READY"
+  | "RATE_LIMITED"
+  | "HTTP_ERROR"
+  | "HTTP_ERROR_WITH_REASON"
+  | "WEBHOOK_URL_CONFIGURED"
+  | "ACCOUNT_CHECK_FAILED"
+  | "ACCOUNT_NOT_FOUND"
+  | "INVALID_STATUS_NOTIFICATION"
+  | "MISSING_CHAT"
+  | "MISSING_DELETED_MESSAGE_ID"
+  | "INVALID_NOTIFICATION"
+  | "SETTINGS_TIMEOUT";
 
-export const API_ERROR_MESSAGES = {
-  invalidHistory: i18n.t("errors:api.invalidHistory"),
-  notificationNotAcknowledged: i18n.t("errors:api.notificationNotAcknowledged"),
-  receiveRejected: (status: number) =>
-    i18n.t("errors:api.receiveRejected", { status }),
-  instanceNotReady: (state: string) =>
-    i18n.t("errors:api.instanceNotReady", { state }),
-} as const;
+/** Ошибка провайдера: код и параметры для обработки или отображения. */
+export class GreenApiError extends Error {
+  readonly code: GreenApiErrorCode;
+  readonly details: { status?: number; state?: string; reason?: string };
+
+  constructor(
+    code: GreenApiErrorCode,
+    details: { status?: number; state?: string; reason?: string } = {},
+    options?: ErrorOptions,
+  ) {
+    super(code, options);
+    this.name = "GreenApiError";
+    this.code = code;
+    this.details = details;
+  }
+}

@@ -1,9 +1,7 @@
-import { errorText } from "@/shared/lib/errorText";
 import { type ChatClient } from "@/entities/chat";
 import { type ChatEvent } from "@/entities/message";
 import { runPolling } from "@/shared/lib/polling";
 import { CONNECTION_STATE, type Connection } from "./connection";
-import { RECEIVE_ERROR_MESSAGES } from "./errors";
 
 type NotificationLoopOptions = {
   /** Клиент чата. */
@@ -49,7 +47,7 @@ export async function runNotificationLoop({
     onError: (reason) => {
       onConnectionChange({
         status: CONNECTION_STATE.ERROR,
-        message: errorText(reason, RECEIVE_ERROR_MESSAGES.receiveFailed),
+        error: reason,
       });
     },
   });

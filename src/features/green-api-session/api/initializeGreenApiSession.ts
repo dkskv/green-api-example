@@ -1,12 +1,11 @@
+import { GreenApiError } from "@/shared/api/green-api";
 import { GreenApiClient, WEBHOOK_SETTING } from "@/shared/api/green-api";
-import { i18n } from "@/shared/i18n";
-import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 
 type Settings = Awaited<ReturnType<GreenApiClient["getSettings"]>>;
 
 function notificationsEnabled(settings: Settings): boolean {
   if (settings.webhookUrl.trim())
-    throw new Error(GREEN_CHAT_ERROR_MESSAGES.webhookUrlConfigured);
+    throw new GreenApiError("WEBHOOK_URL_CONFIGURED");
 
   return [
     settings.incomingWebhook,
@@ -76,9 +75,13 @@ export async function initializeGreenApiSession(
     signal.throwIfAborted();
 
     if (readinessSignal.aborted)
-      throw new Error(i18n.t("errors:greenApi.settingsTimeout"), {
-        cause: reason,
-      });
+      throw new GreenApiError(
+        "SETTINGS_TIMEOUT",
+        {},
+        {
+          cause: reason,
+        },
+      );
 
     throw reason;
   }

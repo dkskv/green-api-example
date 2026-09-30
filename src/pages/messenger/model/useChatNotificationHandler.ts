@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { type ChatEvent, type MessageStore } from "@/entities/message";
-import { MESSENGER_ERROR_MESSAGES } from "./errors";
 
 /** Применяет уведомления к сообщениям и хранит ошибку доставки для страницы. */
 export function useChatNotificationHandler(store: MessageStore) {
-  const [deliveryErrorMessage, setDeliveryErrorMessage] = useState("");
+  const [deliveryError, setDeliveryError] = useState<Extract<
+    ChatEvent,
+    { type: "deliveryFailed" }
+  > | null>(null);
 
   function onNotification(event: ChatEvent): void {
     switch (event.type) {
@@ -21,16 +23,11 @@ export function useChatNotificationHandler(store: MessageStore) {
 
         return;
       case "deliveryFailed":
-        setDeliveryErrorMessage(
-          MESSENGER_ERROR_MESSAGES.deliveryFailed(
-            event.chatId,
-            event.description,
-          ),
-        );
+        setDeliveryError(event);
 
         return;
     }
   }
 
-  return { onNotification, deliveryErrorMessage };
+  return { onNotification, deliveryError };
 }
