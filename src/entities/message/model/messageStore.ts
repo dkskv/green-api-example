@@ -1,13 +1,12 @@
 import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
-import { newerStatus } from "./status";
+import { newerStatus, type MessageStatus } from "./status";
 import { type ChatEvent } from "./chatEvent";
-import { MESSAGE_ERROR_MESSAGES } from "./errors";
 import { type ChatMessage } from "./message";
 
 type ChatState = {
   messages: ChatMessage[];
-  statuses: Record<string, string>;
+  statuses: Record<string, MessageStatus>;
   deleted: string[];
 };
 
@@ -75,15 +74,10 @@ export class MessageStore {
     }));
   }
 
-  /** Применяет событие чата или возвращает ошибку доставки. */
+  /** Применяет изменения сообщений из события чата. */
   @boundMethod
-  receive(event: ChatEvent) {
+  receive(event: ChatEvent): void {
     switch (event.type) {
-      case "deliveryFailed":
-        return MESSAGE_ERROR_MESSAGES.sendFailed(
-          event.chatId,
-          event.description,
-        );
       case "messageDeleted":
         this.remove(event.chatId, event.messageId);
 

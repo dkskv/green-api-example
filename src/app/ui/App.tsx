@@ -1,12 +1,7 @@
-import { z } from "zod";
-import { useEffect } from "react";
-import { errorText } from "@/shared/lib/errorText";
 import { useTranslation } from "@/shared/i18n";
 import enUS from "antd/locale/en_US";
 import styles from "./App.module.css";
 import {
-  Alert,
-  Spin,
   App as AntApp,
   Button,
   ConfigProvider,
@@ -17,28 +12,18 @@ import {
   Typography,
   theme,
 } from "antd";
-import {
-  useMessengerSession,
-  SESSION_ERROR_MESSAGES,
-} from "@/features/messenger-session";
-import { MessengerSession } from "./MessengerSession";
-import { SessionPage } from "@/pages/session";
+import { useGreenApiSession } from "@/features/green-api-session";
+import { AppContent } from "./AppContent";
+import { useDocumentLocalization } from "../model/useDocumentLocalization";
 import "../styles/index.css";
 
-export default function App() {
-  const { t, i18n } = useTranslation("ui");
+export function App() {
+  const { t } = useTranslation("ui");
 
-  useEffect(() => {
-    document.documentElement.lang = z
-      .string()
-      .min(1)
-      .parse(i18n.resolvedLanguage);
+  useDocumentLocalization();
 
-    document.title = t("app.appName");
-  }, [t, i18n.resolvedLanguage]);
-
-  const { credentials, client, verification, signOut, acceptVerifiedSession } =
-    useMessengerSession();
+  const session = useGreenApiSession();
+  const { credentials, verification, signOut } = session;
 
   return (
     <ConfigProvider locale={enUS} theme={{ algorithm: theme.darkAlgorithm }}>
@@ -51,15 +36,9 @@ export default function App() {
                 align="center"
                 justify="space-between"
               >
-                <ConfigProvider
-                  theme={{
-                    components: { Typography: { titleMarginBottom: 0 } },
-                  }}
-                >
-                  <Typography.Title level={4}>
-                    {t("app.appName")}
-                  </Typography.Title>
-                </ConfigProvider>
+                <Typography.Title level={4} style={{ marginBottom: 0 }}>
+                  {t("app.appName")}
+                </Typography.Title>
                 {credentials && (
                   <Space>
                     <Tag>
@@ -76,26 +55,7 @@ export default function App() {
               </Flex>
             </Layout.Header>
             <Layout.Content className={styles.content}>
-              {credentials && client ? (
-                verification?.status === "success" ? (
-                  <MessengerSession
-                    key={`${credentials.apiUrl}:${credentials.instanceId}`}
-                    client={client}
-                  />
-                ) : verification?.status === "error" ? (
-                  <Alert
-                    type="error"
-                    title={errorText(
-                      verification.error,
-                      SESSION_ERROR_MESSAGES.VERIFICATION_FAILED,
-                    )}
-                  />
-                ) : (
-                  <Spin description={t("app.verifying")} />
-                )
-              ) : (
-                <SessionPage onReady={acceptVerifiedSession} />
-              )}
+              <AppContent session={session} />
             </Layout.Content>
           </Flex>
         </Layout>

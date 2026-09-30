@@ -1,5 +1,8 @@
 export { GreenApiClient } from "./GreenApiClient";
-export type { GreenApiCredentials } from "./credentials";
+export {
+  greenApiCredentialsSchema,
+  type GreenApiCredentials,
+} from "./credentials";
 export {
   CHAT_HISTORY_LIMIT,
   MESSAGE_TYPE,

@@ -7,7 +7,7 @@
     "signOut": "Sign out",
     "verifying": "Verifying session…"
   },
-  "sessionForm": {
+  "greenApiSessionForm": {
     "title": "Connect instance",
     "description": "Enter your GREEN API Telegram instance credentials.",
     "apiUrl": "API URL",

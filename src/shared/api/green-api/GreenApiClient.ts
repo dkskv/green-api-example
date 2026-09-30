@@ -43,7 +43,7 @@ export class GreenApiClient {
     const data: unknown = await response.json();
 
     if (!Array.isArray(data))
-      throw new Error(API_ERROR_MESSAGES.INVALID_HISTORY);
+      throw new Error(API_ERROR_MESSAGES.invalidHistory);
 
     return z.array(messageSchema).parse(data);
   }
@@ -93,7 +93,7 @@ export class GreenApiClient {
 
     if (result?.result !== true)
       throw new Error(
-        result?.reason || API_ERROR_MESSAGES.NOTIFICATION_NOT_ACKNOWLEDGED,
+        result?.reason || API_ERROR_MESSAGES.notificationNotAcknowledged,
       );
   }
 

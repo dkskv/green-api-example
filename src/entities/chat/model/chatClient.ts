@@ -23,6 +23,6 @@ export interface ChatClient {
   deleteMessage(chatId: string, messageId: string): Promise<void>;
   /** Подготовка приёма с необязательным уведомлением. */
   prepareNotifications(signal: AbortSignal): Promise<string | undefined>;
-  /** Получение события или пустого результата. */
+  /** Получение уведомления; null, если уведомления нет или запрос отменён. */
   receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null>;
 }

@@ -33,10 +33,7 @@ export function ChatMessageItem({
       >
         <Flex vertical gap="small">
           <Typography.Text className={styles.text}>
-            {message.text ||
-              (message.placeholder
-                ? message.placeholder
-                : t("chatMessageItem.empty"))}
+            {message.text || message.placeholder || t("chatMessageItem.empty")}
           </Typography.Text>
           <Flex justify="space-between" gap="small">
             <Typography.Text

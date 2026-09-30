@@ -31,14 +31,15 @@ export function OpenChatForm({
   const initialValues = { phone: initialPhone };
   const phoneRules: FormItemProps["rules"] = [
     {
-      message: OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE,
+      message: OPEN_CHAT_ERROR_MESSAGES.invalidPhone,
       validator: async (_, value: string | undefined) => {
         if (!normalizePhoneNumber(value ?? "")) {
-          throw new Error(OPEN_CHAT_ERROR_MESSAGES.INVALID_PHONE);
+          throw new Error(OPEN_CHAT_ERROR_MESSAGES.invalidPhone);
         }
       },
     },
   ];
+
   const handleFinish = ({ phone }: OpenChatFormValues) => {
     if (loading) return;
 

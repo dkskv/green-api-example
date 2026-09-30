@@ -4,9 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MessengerPage } from "@/pages/messenger";
 import { type ChatClient } from "@/entities/chat";
 
-export function MessengerSession({ client }: { client: ChatClient }) {
+export function MessengerRoot({ client }: { client: ChatClient }) {
   const { t } = useTranslation("ui");
-  // Каждая сессия получает отдельный кеш истории и мутаций.
+
   const [queryClient] = useState(
     () =>
       new QueryClient({

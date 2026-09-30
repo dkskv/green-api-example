@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChatClientMock } from "@/entities/chat/testing";
 import { type ChatMessage } from "@/entities/message";
 import { MessageStore } from "@/entities/message";
-import { contactStore } from "@/features/messenger-session";
+import { contactStore } from "@/features/green-api-session";
 import { useReceiveMessages } from "@/features/receive-messages";
 import { useChatHistory } from "./useChatHistory";
 import { useActiveContact } from "./useActiveContact";
@@ -483,3 +483,37 @@ it("starts notification loading once in StrictMode and stops on unmount", async 
   unmount();
   expect(signal.aborted).toBe(true);
 });
+
+it.each([
+  [
+    { chatId: "a", description: "rejected" },
+    "Failed to send a message to chat a: rejected",
+  ],
+  [{}, "Failed to send a message to chat unknown: unknown error"],
+])(
+  "показывает ошибку доставки и подтверждает уведомление: %j",
+  async (details, expected) => {
+    const client = createChatClientMock();
+    const handler = vi.fn();
+    const acknowledge = vi.fn().mockResolvedValue(undefined);
+
+    client.prepareNotifications.mockResolvedValue(undefined);
+
+    client.receiveNotification
+      .mockResolvedValueOnce({
+        event: { type: "deliveryFailed", ...details },
+        acknowledge,
+      })
+      .mockImplementation(() => new Promise(() => {}));
+
+    const { result } = renderHook(() => useReceiveMessages(client, handler));
+
+    await waitFor(() =>
+      expect(result.current.deliveryErrorMessage).toBe(expected),
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(acknowledge).toHaveBeenCalledTimes(1);
+    expect(result.current.state).toBe("online");
+  },
+);

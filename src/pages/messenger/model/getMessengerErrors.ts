@@ -11,17 +11,17 @@ export function getMessengerErrors(errors: {
     {
       operation: "open",
       error: errors.contact,
-      fallback: MESSENGER_ERROR_MESSAGES.OPEN_FAILED,
+      fallback: MESSENGER_ERROR_MESSAGES.openFailed,
     },
     {
       operation: "history",
       error: errors.history,
-      fallback: MESSENGER_ERROR_MESSAGES.REFRESH_FAILED,
+      fallback: MESSENGER_ERROR_MESSAGES.refreshFailed,
     },
     {
       operation: "delete",
       error: errors.deletion,
-      fallback: MESSENGER_ERROR_MESSAGES.DELETE_FAILED,
+      fallback: MESSENGER_ERROR_MESSAGES.deleteFailed,
     },
   ]
     .filter(({ error }) => error)

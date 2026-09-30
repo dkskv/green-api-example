@@ -223,3 +223,24 @@ it("ignores a verification error for replaced credentials", () => {
     verification: { status: "success" },
   });
 });
+
+it("нормализует сохранённые реквизиты по тем же правилам, что и форма", () => {
+  localStorage.setItem(
+    "green-api-credentials",
+    JSON.stringify({
+      state: {
+        credentials: {
+          apiUrl: " https://example.com/path?query=1 ",
+          instanceId: " instance ",
+          apiToken: " token ",
+        },
+      },
+      version: 0,
+    }),
+  );
+
+  expect(new CredentialsStore().state.getState()).toEqual({
+    credentials,
+    verification: null,
+  });
+});

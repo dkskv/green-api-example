@@ -1,43 +1,43 @@
 {
   "greenApi": {
-    "WEBHOOK_URL_CONFIGURED": "Clear webhookUrl in your GREEN API settings to receive notifications through HTTP polling.",
-    "CHECK_FAILED": "Telegram could not verify the phone number.",
-    "ACCOUNT_NOT_FOUND": "No Telegram account was found, or the phone number is hidden by privacy settings.",
-    "INVALID_STATUS_NOTIFICATION": "Invalid message status notification.",
-    "MISSING_CHAT": "The notification is missing a chat ID.",
-    "MISSING_DELETED_MESSAGE_ID": "The deletion notification is missing a message ID.",
-    "INVALID_NOTIFICATION": "Invalid message notification."
+    "webhookUrlConfigured": "Clear webhookUrl in your GREEN API settings to receive notifications through HTTP polling.",
+    "checkFailed": "Telegram could not verify the phone number.",
+    "accountNotFound": "No Telegram account was found, or the phone number is hidden by privacy settings.",
+    "invalidStatusNotification": "Invalid message status notification.",
+    "missingChat": "The notification is missing a chat ID.",
+    "missingDeletedMessageId": "The deletion notification is missing a message ID.",
+    "invalidNotification": "Invalid message notification."
   },
   "api": {
     "RATE_LIMITED": "Too many requests (HTTP 429). Please wait a moment and try again.",
-    "INVALID_HISTORY": "Telegram API returned an invalid chat history.",
-    "NOTIFICATION_NOT_ACKNOWLEDGED": "The notification was not acknowledged.",
+    "invalidHistory": "Telegram API returned an invalid chat history.",
+    "notificationNotAcknowledged": "The notification was not acknowledged.",
     "receiveRejected": "GREEN API rejected ReceiveNotification (HTTP {{status}}).",
     "instanceNotReady": "Instance is not ready: {{state}}. Check its authorization in GREEN API.",
     "httpWithReason": "HTTP {{status}}: {{reason}}",
     "http": "HTTP {{status}}"
   },
   "messenger": {
-    "OPEN_FAILED": "Could not open the chat.",
-    "REFRESH_FAILED": "Could not refresh the chat history.",
-    "DELETE_FAILED": "Could not delete the message.",
-    "API_ERROR": "API error",
+    "openFailed": "Could not open the chat.",
+    "refreshFailed": "Could not refresh the chat history.",
+    "deleteFailed": "Could not delete the message.",
+    "apiError": "API error",
     "restoreFailed": "Could not restore chat history: {{reason}}"
   },
   "receive": {
-    "RECEIVE_FAILED": "Could not receive notifications."
+    "receiveFailed": "Could not receive notifications."
   },
   "send": {
     "failed": "Message not sent. Your draft has been kept. {{reason}}",
     "retry": "Please try again."
   },
   "openChat": {
-    "INVALID_PHONE": "Enter a phone number with a country code (8–15 digits)."
+    "invalidPhone": "Enter a phone number with a country code (8–15 digits)."
   },
   "session": {
-    "INVALID_API_URL": "Enter a valid HTTPS API URL.",
-    "MISSING_CREDENTIALS": "Enter an instance ID and API token.",
-    "VERIFICATION_FAILED": "Could not verify the session."
+    "invalidApiUrl": "Enter a valid HTTPS API URL.",
+    "missingCredentials": "Enter an instance ID and API token.",
+    "verificationFailed": "Could not verify the session."
   },
   "message": {
     "sendFailed": "Failed to send a message to chat {{chatId}}: {{description}}",

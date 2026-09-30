@@ -237,3 +237,27 @@ describe("mapGreenNotification", () => {
     ).toThrow("The notification is missing a chat ID.");
   });
 });
+
+it("acknowledges unknown statuses without emitting a chat event", async () => {
+  const { api, client, signal } = setup();
+
+  vi.spyOn(api, "receiveNotification").mockResolvedValue({
+    receiptId: 42,
+    body: {
+      typeWebhook: "outgoingMessageStatus",
+      chatId: "chat",
+      idMessage: "1",
+      status: "futureStatus",
+    },
+  });
+
+  const acknowledge = vi
+    .spyOn(api, "acknowledgeNotification")
+    .mockResolvedValue(undefined);
+  const delivery = await client.receiveNotification(signal);
+
+  expect(delivery).not.toBeNull();
+  expect(delivery?.event).toBeNull();
+  await delivery!.acknowledge(signal);
+  expect(acknowledge).toHaveBeenCalledWith(42, signal);
+});

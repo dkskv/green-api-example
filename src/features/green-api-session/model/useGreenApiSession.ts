@@ -4,7 +4,7 @@ import { useStore } from "zustand";
 import { credentialsStore } from "./credentialsStore";
 import { acceptVerifiedSession, signOut } from "./sessionActions";
 
-export function useMessengerSession() {
+export function useGreenApiSession() {
   const { credentials, verification } = useStore(credentialsStore.state);
 
   const client = useMemo(

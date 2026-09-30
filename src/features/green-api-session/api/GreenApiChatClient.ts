@@ -2,12 +2,15 @@ import { i18n } from "@/shared/i18n";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
-import { GreenApiClient } from "@/shared/api/green-api";
+import {
+  GreenApiClient,
+  CHAT_HISTORY_LIMIT,
+  WEBHOOK_SETTING,
+  type GreenApiCredentials,
+} from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
 import { mapGreenNotification } from "./mapGreenNotification";
-import { CHAT_HISTORY_LIMIT, WEBHOOK_SETTING } from "@/shared/api/green-api";
 import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
-import { type GreenApiCredentials } from "@/shared/api/green-api";
 
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {
@@ -37,11 +40,11 @@ export class GreenApiChatClient implements ChatClient {
       throw new Error(
         account.reason ??
           account.data?.reason ??
-          GREEN_CHAT_ERROR_MESSAGES.CHECK_FAILED,
+          GREEN_CHAT_ERROR_MESSAGES.checkFailed,
       );
 
     if (!account.exist || !account.chatId)
-      throw new Error(GREEN_CHAT_ERROR_MESSAGES.ACCOUNT_NOT_FOUND);
+      throw new Error(GREEN_CHAT_ERROR_MESSAGES.accountNotFound);
 
     return { phone, chatId: account.chatId };
   }
@@ -85,7 +88,7 @@ export class GreenApiChatClient implements ChatClient {
     signal.throwIfAborted();
 
     if (settings.webhookUrl.trim())
-      throw new Error(GREEN_CHAT_ERROR_MESSAGES.WEBHOOK_URL_CONFIGURED);
+      throw new Error(GREEN_CHAT_ERROR_MESSAGES.webhookUrlConfigured);
 
     // Настройки обновляем только если хотя бы одно нужное событие отключено.
     const enabled = [

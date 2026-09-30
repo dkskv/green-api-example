@@ -28,26 +28,22 @@ const DELIVERY_STATUS_ORDER: Partial<Record<MessageStatus, number>> = {
   [MESSAGE_STATUS.READ]: 3,
 };
 
-export function isMessageStatus(status: string): status is MessageStatus {
-  return Object.values(MESSAGE_STATUS).some((value) => value === status);
-}
-
-export function isFailureStatus(status?: string): boolean {
+export function isFailureStatus(status?: MessageStatus): boolean {
   return (
     status === MESSAGE_STATUS.FAILED || status === MESSAGE_STATUS.NO_ACCOUNT
   );
 }
 
-export function getMessageStatusLabel(status?: string): string | undefined {
-  return status && isMessageStatus(status)
-    ? MESSAGE_STATUS_LABELS[status]
-    : status;
+export function getMessageStatusLabel(
+  status?: MessageStatus,
+): string | undefined {
+  return status ? MESSAGE_STATUS_LABELS[status] : undefined;
 }
 
 export function newerStatus(
-  previous?: string,
-  next?: string,
-): string | undefined {
+  previous?: MessageStatus,
+  next?: MessageStatus,
+): MessageStatus | undefined {
   if (!next) return previous;
 
   if (!previous) return next;
@@ -67,12 +63,8 @@ export function newerStatus(
       : previous;
   }
 
-  const previousRank = isMessageStatus(previous)
-    ? DELIVERY_STATUS_ORDER[previous]
-    : undefined;
-  const nextRank = isMessageStatus(next)
-    ? DELIVERY_STATUS_ORDER[next]
-    : undefined;
+  const previousRank = DELIVERY_STATUS_ORDER[previous];
+  const nextRank = DELIVERY_STATUS_ORDER[next];
 
   if (
     previousRank !== undefined &&

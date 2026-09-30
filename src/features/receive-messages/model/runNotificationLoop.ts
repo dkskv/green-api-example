@@ -65,7 +65,7 @@ export async function runNotificationLoop({
     onError: (reason) => {
       onConnectionChange({
         status: CONNECTION_STATE.ERROR,
-        message: errorText(reason, RECEIVE_ERROR_MESSAGES.RECEIVE_FAILED),
+        message: errorText(reason, RECEIVE_ERROR_MESSAGES.receiveFailed),
       });
     },
   });

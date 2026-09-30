@@ -3,6 +3,7 @@ export type VerifiedContact = {
   chatId: string;
 };
 
+/** Убирает нецифровые символы и префикс 00; возвращает 8–15 цифр без ведущего нуля или null. */
 export function normalizePhoneNumber(value: string): string | null {
   let digits = value.replace(/\D/g, "");
 
@@ -11,7 +12,7 @@ export function normalizePhoneNumber(value: string): string | null {
   return /^[1-9]\d{7,14}$/.test(digits) ? digits : null;
 }
 
-/** Format +7 numbers for display; keep other country codes unchanged. */
+/** Форматирует номера +7 по группам цифр, остальные выводит с префиксом «+». */
 export function formatPhoneNumber(value: string): string {
   const phone = normalizePhoneNumber(value);
 

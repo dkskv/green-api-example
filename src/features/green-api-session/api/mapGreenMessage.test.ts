@@ -1,3 +1,4 @@
+import { MessageStore } from "@/entities/message";
 import { expect, it } from "vitest";
 import { messageSchema, notificationSchema } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
@@ -135,3 +136,25 @@ it.each(["outgoingMessageReceived", "outgoingAPIMessageReceived"])(
     });
   },
 );
+
+it("keeps history messages with unknown statuses without overwriting a known status", () => {
+  const store = new MessageStore();
+  const message = mapGreenMessage(
+    messageSchema.parse({
+      idMessage: "1",
+      type: "outgoing",
+      typeMessage: "textMessage",
+      textMessage: "hello",
+      statusMessage: "futureStatus",
+    }),
+  );
+
+  expect(message.status).toBeUndefined();
+  store.merge("chat", [{ ...message, status: "read" }]);
+  store.merge("chat", [message]);
+
+  expect(store.getMessages("chat")[0]).toMatchObject({
+    text: "hello",
+    status: "read",
+  });
+});

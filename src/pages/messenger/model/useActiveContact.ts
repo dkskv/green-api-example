@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useStore } from "zustand";
 import { type ChatClient } from "@/entities/chat";
-import { contactStore } from "@/features/messenger-session";
+import { contactStore } from "@/features/green-api-session";
 
 /** Проверяет номер и сохраняет выбранный контакт независимо от истории. */
 export function useActiveContact(client: ChatClient) {

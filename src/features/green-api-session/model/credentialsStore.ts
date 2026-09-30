@@ -2,16 +2,13 @@ import { boundMethod } from "@/shared/lib/decorators/boundMethod";
 import { createStore } from "zustand/vanilla";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { z } from "zod";
-import { type GreenApiCredentials } from "@/shared/api/green-api";
+import {
+  greenApiCredentialsSchema,
+  type GreenApiCredentials,
+} from "@/shared/api/green-api";
 
 const credentialsSchema = z.object({
-  credentials: z
-    .object({
-      apiUrl: z.url().refine((value) => new URL(value).protocol === "https:"),
-      instanceId: z.string().trim().min(1),
-      apiToken: z.string().trim().min(1),
-    })
-    .nullable(),
+  credentials: greenApiCredentialsSchema.nullable(),
 });
 
 type VerificationResult =
