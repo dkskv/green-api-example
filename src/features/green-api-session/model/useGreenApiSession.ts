@@ -18,7 +18,7 @@ export function useGreenApiSession() {
     const controller = new AbortController();
 
     client
-      .validateSession(controller.signal)
+      .initializeSession(controller.signal)
       .then(() => {
         if (!controller.signal.aborted)
           credentialsStore.setVerification(credentials, { status: "success" });

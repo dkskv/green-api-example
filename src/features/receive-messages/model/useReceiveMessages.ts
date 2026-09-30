@@ -14,7 +14,6 @@ export function useReceiveMessages(
   const [connection, setConnection] = useState<Connection>({
     status: CONNECTION_STATE.CONNECTING,
   });
-  const [notice, setNotice] = useState<string>("");
   const [deliveryErrorMessage, setDeliveryErrorMessage] = useState<string>("");
   // Ждём завершения проверочного цикла StrictMode: повторные запросы вызывают 429 на dev-аккаунте.
   const ready = useBypassStrictMode();
@@ -43,7 +42,6 @@ export function useReceiveMessages(
         onNotificationRef.current(notification);
       },
       onConnectionChange: setConnection,
-      onNotice: setNotice,
     });
 
     return () => controller.abort();
@@ -53,7 +51,6 @@ export function useReceiveMessages(
     state: connection.status,
     errorMessage:
       connection.status === CONNECTION_STATE.ERROR ? connection.message : "",
-    notice,
     deliveryErrorMessage,
   };
 }

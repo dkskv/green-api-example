@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GreenApiClient } from "@/shared/api/green-api";
-import { WEBHOOK_SETTING } from "@/shared/api/green-api";
 import { GreenApiChatClient } from "./GreenApiChatClient";
 import { mapGreenNotification } from "./mapGreenNotification";
 
@@ -109,46 +108,6 @@ describe("GreenApiChatClient", () => {
     await delivery!.acknowledge(signal);
     expect(acknowledge).toHaveBeenCalledWith(42, signal);
     expect(await client.receiveNotification(signal)).toBeNull();
-  });
-
-  it("enables missing webhook settings and rejects a configured webhook URL", async () => {
-    const { api, client, signal } = setup();
-    const settings = {
-      webhookUrl: "",
-      incomingWebhook: WEBHOOK_SETTING.ENABLED,
-      outgoingWebhook: WEBHOOK_SETTING.ENABLED,
-      outgoingMessageWebhook: WEBHOOK_SETTING.ENABLED,
-      outgoingAPIMessageWebhook: WEBHOOK_SETTING.ENABLED,
-      deletedMessageWebhook: WEBHOOK_SETTING.ENABLED,
-    };
-
-    vi.spyOn(api, "getSettings")
-      .mockResolvedValueOnce(settings)
-      .mockResolvedValueOnce({
-        ...settings,
-        incomingWebhook: WEBHOOK_SETTING.DISABLED,
-      })
-      .mockResolvedValueOnce({
-        ...settings,
-        webhookUrl: "https://example.com/webhook",
-      });
-
-    const enable = vi.spyOn(api, "enableNotifications").mockResolvedValue();
-
-    expect(await client.prepareNotifications(signal)).toBeUndefined();
-    expect(enable).not.toHaveBeenCalled();
-
-    expect(await client.prepareNotifications(signal)).toBe(
-      "Notifications enabled. GREEN API may take up to 5 minutes to apply the settings and restart the instance.",
-    );
-
-    expect(enable).toHaveBeenCalledTimes(1);
-
-    await expect(client.prepareNotifications(signal)).rejects.toThrow(
-      "Clear webhookUrl in your GREEN API settings to receive notifications through HTTP polling.",
-    );
-
-    expect(enable).toHaveBeenCalledTimes(1);
   });
 });
 

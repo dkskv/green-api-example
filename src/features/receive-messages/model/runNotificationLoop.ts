@@ -11,11 +11,9 @@ type NotificationLoopOptions = {
   /** Сигнал остановки. */
   signal: AbortSignal;
   /** Обработка события. */
-  onNotification: (notification: ChatEvent) => void | Promise<void>;
+  onNotification: (notification: ChatEvent) => void;
   /** Обновление состояния соединения. */
   onConnectionChange: (connection: Connection) => void;
-  /** Показ уведомления пользователю. */
-  onNotice: (notice: string) => void;
 };
 
 export async function runNotificationLoop({
@@ -23,10 +21,7 @@ export async function runNotificationLoop({
   signal,
   onNotification,
   onConnectionChange,
-  onNotice,
 }: NotificationLoopOptions): Promise<void> {
-  let prepared = false;
-
   if (signal.aborted) return;
 
   onConnectionChange({ status: CONNECTION_STATE.CONNECTING });
@@ -35,23 +30,12 @@ export async function runNotificationLoop({
     signal,
     retryDelayMs: 1500,
     execute: async (signal) => {
-      if (!prepared) {
-        const notice = await client.prepareNotifications(signal);
-
-        if (signal.aborted) return;
-
-        // Ошибка опроса не должна повторять успешную настройку.
-        prepared = true;
-
-        if (notice) onNotice(notice);
-      }
-
       const notification = await client.receiveNotification(signal);
 
       if (signal.aborted) return;
 
       if (notification) {
-        if (notification.event) await onNotification(notification.event);
+        if (notification.event) onNotification(notification.event);
 
         if (signal.aborted) return;
 

@@ -11,7 +11,7 @@ import {
   Typography,
   type FormItemProps,
 } from "antd";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GREEN_API_SESSION_ERROR_MESSAGES } from "../model/errors";
 import {
   greenApiCredentialsSchema,
@@ -45,8 +45,16 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
 
   const [checking, setChecking] = useState(false);
 
+  const request = useRef<AbortController | null>(null);
+
+  useEffect(() => () => request.current?.abort(), []);
+
   async function submit(values: GreenApiCredentials): Promise<void> {
-    if (checking) return;
+    if (request.current) return;
+
+    const controller = new AbortController();
+
+    request.current = controller;
 
     setChecking(true);
     setErrorMessage("");
@@ -55,14 +63,19 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
       const credentials = greenApiCredentialsSchema.parse(values);
       const client = GreenApiChatClient.create(credentials);
 
-      await client.validateSession();
+      await client.initializeSession(controller.signal);
+      controller.signal.throwIfAborted();
       onReady(credentials);
     } catch (reason) {
+      if (controller.signal.aborted) return;
+
       setErrorMessage(
         errorText(reason, GREEN_API_SESSION_ERROR_MESSAGES.verificationFailed),
       );
     } finally {
-      setChecking(false);
+      request.current = null;
+
+      if (!controller.signal.aborted) setChecking(false);
     }
   }
 

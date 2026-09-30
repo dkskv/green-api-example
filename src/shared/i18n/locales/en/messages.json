@@ -15,6 +15,5 @@
   "placeholders": {
     "unsupported": "This message type is not supported yet."
   },
-  "notificationsEnabled": "Notifications enabled. GREEN API may take up to 5 minutes to apply the settings and restart the instance.",
   "now": "now"
 }

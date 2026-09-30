@@ -1,5 +1,6 @@
 {
   "greenApi": {
+    "settingsTimeout": "The instance did not become ready within 5 minutes after updating notification settings. Please try connecting again.",
     "webhookUrlConfigured": "Clear webhookUrl in your GREEN API settings to receive notifications through HTTP polling.",
     "checkFailed": "Telegram could not verify the phone number.",
     "accountNotFound": "No Telegram account was found, or the phone number is hidden by privacy settings.",

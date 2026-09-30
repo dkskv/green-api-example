@@ -1,11 +1,10 @@
-import { i18n } from "@/shared/i18n";
+import { initializeGreenApiSession } from "./initializeGreenApiSession";
 import { type ChatClient, type ChatDelivery } from "@/entities/chat";
 import { type VerifiedContact } from "@/entities/contact";
 import { MESSAGE_STATUS, type ChatMessage } from "@/entities/message";
 import {
   GreenApiClient,
   CHAT_HISTORY_LIMIT,
-  WEBHOOK_SETTING,
   type GreenApiCredentials,
 } from "@/shared/api/green-api";
 import { mapGreenMessage } from "./mapGreenMessage";
@@ -15,7 +14,7 @@ import { GREEN_CHAT_ERROR_MESSAGES } from "./errors";
 /** Адаптер GREEN-API к моделям и операциям чата. */
 export class GreenApiChatClient implements ChatClient {
   /** Создаёт клиент чата по реквизитам подключения к GREEN-API. */
-  static create(credentials: GreenApiCredentials): ChatClient {
+  static create(credentials: GreenApiCredentials): GreenApiChatClient {
     return new GreenApiChatClient(new GreenApiClient(credentials));
   }
 
@@ -27,9 +26,9 @@ export class GreenApiChatClient implements ChatClient {
     this.api = api;
   }
 
-  /** Проверяет авторизацию инстанса; при неготовности выбрасывает ошибку. */
-  validateSession(signal?: AbortSignal): Promise<void> {
-    return this.api.validateSession(signal);
+  /** Проверяет сессию и готовит получение уведомлений до открытия чата. */
+  initializeSession(signal: AbortSignal): Promise<void> {
+    return initializeGreenApiSession(this.api, signal);
   }
 
   /** Проверяет наличие аккаунта по номеру и возвращает контакт с chatId. */
@@ -75,35 +74,6 @@ export class GreenApiChatClient implements ChatClient {
   /** Удаляет сообщение для всех участников чата через API. */
   deleteMessage(chatId: string, messageId: string): Promise<void> {
     return this.api.deleteMessage(chatId, messageId);
-  }
-
-  /**
-   * Включает нужные события перед запуском опроса, если они отключены.
-   * @returns Текст уведомления об изменении настроек или undefined, если они уже готовы.
-   * @throws Если настроен внешний webhook URL.
-   */
-  async prepareNotifications(signal: AbortSignal): Promise<string | undefined> {
-    const settings = await this.api.getSettings(signal);
-
-    signal.throwIfAborted();
-
-    if (settings.webhookUrl.trim())
-      throw new Error(GREEN_CHAT_ERROR_MESSAGES.webhookUrlConfigured);
-
-    // Настройки обновляем только если хотя бы одно нужное событие отключено.
-    const enabled = [
-      settings.incomingWebhook,
-      settings.outgoingWebhook,
-      settings.outgoingMessageWebhook,
-      settings.outgoingAPIMessageWebhook,
-      settings.deletedMessageWebhook,
-    ].every((value) => value === WEBHOOK_SETTING.ENABLED);
-
-    if (enabled) return undefined;
-
-    await this.api.enableNotifications(signal);
-
-    return i18n.t("messages:notificationsEnabled");
   }
 
   /**

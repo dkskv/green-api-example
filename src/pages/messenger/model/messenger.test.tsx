@@ -466,7 +466,6 @@ it("updates the Zustand subscription after live events and keeps sessions isolat
 it("starts notification loading once in StrictMode and stops on unmount", async () => {
   const client = createChatClientMock();
 
-  client.prepareNotifications.mockResolvedValue(undefined);
   client.receiveNotification.mockImplementation(() => new Promise(() => {}));
   const { unmount } = renderHook(() => useReceiveMessages(client, () => {}), {
     wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
@@ -476,8 +475,7 @@ it("starts notification loading once in StrictMode and stops on unmount", async 
     expect(client.receiveNotification).toHaveBeenCalledTimes(1),
   );
 
-  expect(client.prepareNotifications).toHaveBeenCalledTimes(1);
-  const signal = client.prepareNotifications.mock.calls[0][0];
+  const signal = client.receiveNotification.mock.calls[0][0];
 
   expect(signal.aborted).toBe(false);
   unmount();
@@ -496,8 +494,6 @@ it.each([
     const client = createChatClientMock();
     const handler = vi.fn();
     const acknowledge = vi.fn().mockResolvedValue(undefined);
-
-    client.prepareNotifications.mockResolvedValue(undefined);
 
     client.receiveNotification
       .mockResolvedValueOnce({

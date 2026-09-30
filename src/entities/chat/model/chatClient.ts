@@ -11,8 +11,6 @@ export interface ChatDelivery {
 export interface ChatClient {
   /** Максимальное число сообщений в истории. */
   readonly historyLimit: number;
-  /** Проверка сессии. */
-  validateSession(signal?: AbortSignal): Promise<void>;
   /** Проверка контакта по номеру. */
   resolveContact(phone: string): Promise<VerifiedContact>;
   /** Загрузка истории чата. */
@@ -21,8 +19,6 @@ export interface ChatClient {
   sendMessage(chatId: string, text: string): Promise<ChatMessage>;
   /** Удаление сообщения. */
   deleteMessage(chatId: string, messageId: string): Promise<void>;
-  /** Подготовка приёма с необязательным уведомлением. */
-  prepareNotifications(signal: AbortSignal): Promise<string | undefined>;
   /** Получение уведомления; null, если уведомления нет или запрос отменён. */
   receiveNotification(signal: AbortSignal): Promise<ChatDelivery | null>;
 }

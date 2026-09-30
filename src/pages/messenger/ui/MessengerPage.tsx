@@ -57,9 +57,6 @@ function MessengerContent({ client, historyNotice }: MessengerPageProps) {
       {connection.deliveryErrorMessage && (
         <Alert type="error" showIcon title={connection.deliveryErrorMessage} />
       )}
-      {connection.notice && (
-        <Alert type="info" showIcon title={connection.notice} closable />
-      )}
       <ChatWindow
         contact={selection.activeContact}
         messages={conversation.messages}
