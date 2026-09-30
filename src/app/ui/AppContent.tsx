@@ -6,7 +6,7 @@ import {
 import { GreenApiSessionPage } from "@/pages/green-api-session";
 import { errorText } from "@/shared/lib/errorText";
 import { useTranslation } from "@/shared/i18n";
-import { MessengerRoot } from "./MessengerRoot";
+import { MessengerPage } from "@/pages/messenger";
 
 type AppContentProps = {
   session: ReturnType<typeof useGreenApiSession>;
@@ -33,7 +33,7 @@ export function AppContent({ session }: AppContentProps) {
     );
 
   return (
-    <MessengerRoot
+    <MessengerPage
       key={`${credentials.apiUrl}:${credentials.instanceId}`}
       client={client}
     />

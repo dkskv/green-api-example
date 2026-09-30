@@ -1,3 +1,6 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { useTranslation } from "@/shared/i18n";
+import { useMessengerQueryClient } from "../model/useMessengerQueryClient";
 import { Alert, Flex } from "antd";
 import { useState } from "react";
 import { MessageStore } from "@/entities/message";
@@ -15,7 +18,18 @@ type MessengerPageProps = {
   historyNotice?: string;
 };
 
-export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
+export function MessengerPage(props: MessengerPageProps) {
+  const queryClient = useMessengerQueryClient();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MessengerContent {...props} />
+    </QueryClientProvider>
+  );
+}
+
+function MessengerContent({ client, historyNotice }: MessengerPageProps) {
+  const { t } = useTranslation("ui");
   const [store] = useState(() => new MessageStore());
   const connection = useReceiveMessages(client, store.receive);
   const selection = useActiveContact(client);
@@ -49,7 +63,10 @@ export function MessengerPage({ client, historyNotice }: MessengerPageProps) {
       <ChatWindow
         contact={selection.activeContact}
         messages={conversation.messages}
-        historyNotice={historyNotice}
+        historyNotice={
+          historyNotice ??
+          t("chatWindow.historyNotice", { count: client.historyLimit })
+        }
         loadingHistory={history.isFetching}
         errorMessage={connection.errorMessage}
         connectionState={connection.state}

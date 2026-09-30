@@ -18,7 +18,7 @@ export function useReceiveMessages(
   const [deliveryErrorMessage, setDeliveryErrorMessage] = useState<string>("");
   // Ждём завершения проверочного цикла StrictMode: повторные запросы вызывают 429 на dev-аккаунте.
   const ready = useBypassStrictMode();
-  const handler = useActualRef(onNotification);
+  const onNotificationRef = useActualRef(onNotification);
 
   useEffect(() => {
     if (!ready) return;
@@ -40,14 +40,14 @@ export function useReceiveMessages(
           return;
         }
 
-        handler.current(notification);
+        onNotificationRef.current(notification);
       },
       onConnectionChange: setConnection,
       onNotice: setNotice,
     });
 
     return () => controller.abort();
-  }, [client, handler, ready]);
+  }, [client, onNotificationRef, ready]);
 
   return {
     state: connection.status,
