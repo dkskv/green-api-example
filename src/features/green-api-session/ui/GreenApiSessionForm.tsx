@@ -1,7 +1,7 @@
 import { errorText } from "@/shared/ui/errorText";
 import { useTranslation } from "@/shared/i18n";
 import styles from "./GreenApiSessionForm.module.css";
-import { GreenApiChatClient } from "../api/GreenApiChatClient";
+import { useInitializeGreenApiSession } from "../model/useInitializeGreenApiSession";
 import {
   Alert,
   Button,
@@ -11,7 +11,6 @@ import {
   Typography,
   type FormItemProps,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
 import {
   greenApiCredentialsSchema,
   type GreenApiCredentials,
@@ -40,44 +39,10 @@ type GreenApiSessionFormProps = {
 
 export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
   const { t } = useTranslation(["ui", "errors"]);
-  const [failure, setFailure] = useState<{ reason: unknown } | null>(null);
-  const errorMessage = failure
-    ? errorText(failure.reason, t("errors:session.verificationFailed"))
+  const initialization = useInitializeGreenApiSession(onReady);
+  const errorMessage = initialization.isError
+    ? errorText(initialization.error, t("errors:session.verificationFailed"))
     : "";
-
-  const [checking, setChecking] = useState(false);
-
-  const request = useRef<AbortController | null>(null);
-
-  useEffect(() => () => request.current?.abort(), []);
-
-  async function submit(values: GreenApiCredentials): Promise<void> {
-    if (request.current) return;
-
-    const controller = new AbortController();
-
-    request.current = controller;
-
-    setChecking(true);
-    setFailure(null);
-
-    try {
-      const credentials = greenApiCredentialsSchema.parse(values);
-      const client = GreenApiChatClient.create(credentials);
-
-      await client.initializeSession(controller.signal);
-      controller.signal.throwIfAborted();
-      onReady(credentials);
-    } catch (reason) {
-      if (controller.signal.aborted) return;
-
-      setFailure({ reason });
-    } finally {
-      request.current = null;
-
-      if (!controller.signal.aborted) setChecking(false);
-    }
-  }
 
   return (
     <Card title={t("greenApiSessionForm.title")} className={styles.card}>
@@ -92,7 +57,7 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
           instanceId: "",
           apiToken: "",
         }}
-        onFinish={submit}
+        onFinish={initialization.mutate}
       >
         <Form.Item<GreenApiCredentials>
           name="apiUrl"
@@ -133,7 +98,12 @@ export function GreenApiSessionForm({ onReady }: GreenApiSessionFormProps) {
             className={styles.error}
           />
         )}
-        <Button type="primary" htmlType="submit" block loading={checking}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          block
+          loading={initialization.isPending}
+        >
           {t("greenApiSessionForm.continue")}
         </Button>
       </Form>

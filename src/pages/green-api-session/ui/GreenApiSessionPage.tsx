@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   GreenApiSessionForm,
   type GreenApiCredentials,
@@ -8,5 +10,11 @@ type GreenApiSessionPageProps = {
 };
 
 export function GreenApiSessionPage({ onReady }: GreenApiSessionPageProps) {
-  return <GreenApiSessionForm onReady={onReady} />;
+  const [queryClient] = useState(() => new QueryClient());
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GreenApiSessionForm onReady={onReady} />
+    </QueryClientProvider>
+  );
 }
