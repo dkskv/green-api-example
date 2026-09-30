@@ -1,13 +1,16 @@
 import { useChatNotificationHandler } from "./useChatNotificationHandler";
 // @vitest-environment jsdom
-import { useStore } from "zustand";
 import { StrictMode, type PropsWithChildren } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChatClientMock } from "@/entities/chat/testing";
 import { type ChatMessage } from "@/entities/message";
-import { MessageStore } from "@/entities/message";
+import { type ChatState, emptyChatState } from "@/entities/message";
+import {
+  MessageCacheController,
+  chatHistoryKey,
+} from "./messageCacheController";
 import { contactStore } from "@/features/green-api-session";
 import { useChatNotifications } from "@/features/chat-notifications";
 import { useChatHistory } from "./useChatHistory";
@@ -22,14 +25,18 @@ function setup() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+  const messageCacheController = new MessageCacheController(queryClient);
   const client = createChatClientMock();
-  const store = new MessageStore();
+  const getMessages = (chatId: string) =>
+    queryClient.getQueryData<ChatState>(chatHistoryKey(chatId))?.messages ??
+    emptyChatState.messages;
 
   clients.push(queryClient);
 
   return {
     client,
-    store,
+    getMessages,
+    messageCacheController,
     queryClient,
     wrapper: ({ children }: PropsWithChildren) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -75,10 +82,10 @@ afterEach(() => {
 
 describe("chat history", () => {
   it("loads history once in StrictMode and cancels it on unmount", async () => {
-    const { client, store, wrapper: Provider } = setup();
+    const { client, wrapper: Provider } = setup();
 
     client.getChatHistory.mockImplementation(() => new Promise(() => {}));
-    const { unmount } = renderHook(() => useChatHistory(client, store, "a"), {
+    const { unmount } = renderHook(() => useChatHistory(client, "a"), {
       wrapper: ({ children }) => (
         <StrictMode>
           <Provider>{children}</Provider>
@@ -94,27 +101,123 @@ describe("chat history", () => {
     expect(signal?.aborted).toBe(true);
   });
 
-  it("reconciles a delayed snapshot with live deletions and delivery statuses", async () => {
-    const { client, store, wrapper } = setup();
+  it("merges delayed history with live messages and consumes pending statuses", async () => {
+    const {
+      client,
+      queryClient,
+      messageCacheController,
+      getMessages,
+      wrapper,
+    } = setup();
     const response = deferred<ChatMessage[]>();
 
-    vi.spyOn(client, "getChatHistory").mockReturnValue(response.promise);
-    renderHook(() => useChatHistory(client, store, "a"), { wrapper });
-    store.remove("a", "deleted");
+    client.getChatHistory.mockReturnValue(response.promise);
+    renderHook(() => useChatHistory(client, "a"), { wrapper });
+    await waitFor(() => expect(client.getChatHistory).toHaveBeenCalledTimes(1));
 
-    store.updateMessageStatus("a", "read", "read");
+    act(() => {
+      messageCacheController.updateStatus("a", "read", "read");
 
-    response.resolve(snapshot);
+      messageCacheController.merge("a", [
+        { id: "live", text: "new", direction: "incoming", timestamp: 1 },
+      ]);
+    });
 
-    await waitFor(() =>
-      expect(store.getMessages("a")).toEqual([
-        expect.objectContaining({ id: "read", status: "read" }),
-      ]),
-    );
+    await act(async () => {
+      response.resolve(snapshot);
+      await response.promise;
+    });
+
+    await waitFor(() => expect(getMessages("a")).toHaveLength(3));
+    expect(getMessages("a").find((m) => m.id === "read")?.status).toBe("read");
+
+    expect(
+      queryClient.getQueryData<ChatState>(chatHistoryKey("a"))?.pendingStatuses,
+    ).toEqual({});
   });
 
+  it.each(["notification", "mutation"])(
+    "cancels stale history after deletion via %s and reloads without losing live events",
+    async (source) => {
+      const {
+        client,
+        queryClient,
+        messageCacheController,
+        getMessages,
+        wrapper,
+      } = setup();
+      const oldResponse = deferred<ChatMessage[]>();
+      const freshResponse = deferred<ChatMessage[]>();
+
+      client.getChatHistory
+        .mockReturnValueOnce(oldResponse.promise)
+        .mockReturnValueOnce(freshResponse.promise);
+
+      client.deleteMessage.mockResolvedValue(undefined);
+      const { result } = renderHook(
+        () => ({
+          history: useChatHistory(client, "a"),
+          handler: useChatNotificationHandler(),
+          deletion: useDeleteMessage(client, "a"),
+        }),
+        { wrapper },
+      );
+
+      await waitFor(() =>
+        expect(client.getChatHistory).toHaveBeenCalledTimes(1),
+      );
+
+      const oldSignal = client.getChatHistory.mock.calls[0][1];
+
+      act(() =>
+        messageCacheController.merge("a", [
+          ...snapshot,
+          { id: "live", text: "new", direction: "incoming", timestamp: 1 },
+        ]),
+      );
+
+      act(() => {
+        if (source === "notification")
+          result.current.handler.onNotification({
+            type: "messageDeleted",
+            chatId: "a",
+            messageId: "deleted",
+          });
+        else result.current.deletion.deleteMessage("deleted");
+      });
+
+      await waitFor(() =>
+        expect(client.getChatHistory).toHaveBeenCalledTimes(2),
+      );
+
+      expect(oldSignal?.aborted).toBe(true);
+      expect(getMessages("a").map((m) => m.id)).toEqual(["read", "live"]);
+
+      await act(async () => {
+        freshResponse.resolve([snapshot[1]]);
+        await freshResponse.promise;
+      });
+
+      await waitFor(() =>
+        expect(result.current.history.isFetching).toBe(false),
+      );
+
+      await act(async () => {
+        oldResponse.resolve(snapshot);
+        await oldResponse.promise;
+      });
+
+      expect(getMessages("a").map((m) => m.id)).toEqual(["read", "live"]);
+
+      expect(queryClient.getQueryData(chatHistoryKey("a"))).toEqual({
+        messages: getMessages("a"),
+        pendingStatuses: {},
+      });
+    },
+  );
+
   it("cancels the old history request when switching chats", async () => {
-    const { client, store, wrapper } = setup();
+    const { client, getMessages, wrapper } = setup();
     let oldSignal: AbortSignal | undefined;
 
     vi.spyOn(client, "getChatHistory").mockImplementation((chatId, signal) => {
@@ -128,7 +231,7 @@ describe("chat history", () => {
     });
 
     const { result, rerender } = renderHook(
-      ({ chatId }) => useChatHistory(client, store, chatId),
+      ({ chatId }) => useChatHistory(client, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
 
@@ -136,8 +239,8 @@ describe("chat history", () => {
     rerender({ chatId: "b" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(oldSignal?.aborted).toBe(true);
-    expect(store.getMessages("a")).toEqual([]);
-    expect(store.getMessages("b")).toHaveLength(2);
+    expect(getMessages("a")).toEqual([]);
+    expect(getMessages("b")).toHaveLength(2);
   });
 });
 
@@ -216,7 +319,7 @@ describe("contact selection", () => {
   });
 
   it("opens before history arrives and can send and retry after a history failure", async () => {
-    const { client, store, wrapper } = setup();
+    const { client, wrapper } = setup();
     const response = deferred<ChatMessage[]>();
 
     client.resolveContact.mockResolvedValue({ phone: "12345678", chatId: "a" });
@@ -236,11 +339,9 @@ describe("contact selection", () => {
       () => {
         const selection = useActiveContact(client);
         const chatId = selection.activeContact?.chatId;
-        const historyQuery = useChatHistory(client, store, chatId);
-        const messages = useStore(store.state, (state) =>
-          store.getMessages(chatId, state),
-        );
-        const send = useSendMessage(client, store, chatId);
+        const historyQuery = useChatHistory(client, chatId);
+        const messages = historyQuery.data?.messages ?? emptyChatState.messages;
+        const send = useSendMessage(client, chatId);
 
         return { selection, historyQuery, messages, send };
       },
@@ -283,11 +384,11 @@ describe("contact selection", () => {
   });
 
   it("refreshes history on returning to a previously selected chat", async () => {
-    const { client, store, wrapper } = setup();
+    const { client, wrapper } = setup();
 
     client.getChatHistory.mockResolvedValue([]);
     const { result, rerender } = renderHook(
-      ({ chatId }) => useChatHistory(client, store, chatId),
+      ({ chatId }) => useChatHistory(client, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
 
@@ -308,7 +409,7 @@ describe("contact selection", () => {
 
 describe("message actions", () => {
   it("tracks concurrent sends by chat and applies late success to the original chat", async () => {
-    const { client, store, wrapper } = setup();
+    const { client, getMessages, wrapper } = setup();
     const response = deferred<ChatMessage>();
 
     vi.spyOn(client, "sendMessage").mockImplementation((id) =>
@@ -323,7 +424,7 @@ describe("message actions", () => {
     );
 
     const { result, rerender } = renderHook(
-      ({ chatId }) => useSendMessage(client, store, chatId),
+      ({ chatId }) => useSendMessage(client, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
     let sent!: Promise<boolean>;
@@ -355,16 +456,16 @@ describe("message actions", () => {
     });
 
     await waitFor(() => expect(result.current.sending).toBe(false));
-    expect(store.getMessages("a")[0]?.id).toBe("a-message");
-    expect(store.getMessages("b")[0]?.id).toBe("b-message");
+    expect(getMessages("a")[0]?.id).toBe("a-message");
+    expect(getMessages("b")[0]?.id).toBe("b-message");
   });
 
   it("exposes a failed send only in its chat and does not retry it", async () => {
-    const { client, store, wrapper } = setup();
+    const { client, getMessages, wrapper } = setup();
 
     vi.spyOn(client, "sendMessage").mockRejectedValue(new Error("send failed"));
     const { result, rerender } = renderHook(
-      ({ chatId }) => useSendMessage(client, store, chatId),
+      ({ chatId }) => useSendMessage(client, chatId),
       { initialProps: { chatId: "a" }, wrapper },
     );
 
@@ -377,17 +478,17 @@ describe("message actions", () => {
     );
 
     expect(client.sendMessage).toHaveBeenCalledTimes(1);
-    expect(store.getMessages("a")).toEqual([]);
+    expect(getMessages("a")).toEqual([]);
     rerender({ chatId: "b" });
     expect(result.current.sendError).toBeNull();
   });
 
   it("tracks multiple deletions and preserves an earlier request's late error", async () => {
-    const { client, store, wrapper } = setup();
+    const { client, messageCacheController, getMessages, wrapper } = setup();
     const first = deferred<void>();
     const second = deferred<void>();
 
-    store.merge("a", [
+    messageCacheController.merge("a", [
       { id: "first", text: "1", direction: "outgoing", timestamp: 1 },
       { id: "second", text: "2", direction: "outgoing", timestamp: 2 },
     ]);
@@ -396,7 +497,7 @@ describe("message actions", () => {
       id === "first" ? first.promise : second.promise,
     );
 
-    const { result } = renderHook(() => useDeleteMessage(client, store, "a"), {
+    const { result } = renderHook(() => useDeleteMessage(client, "a"), {
       wrapper,
     });
 
@@ -421,41 +522,36 @@ describe("message actions", () => {
       expect(result.current.deleteError?.message).toBe("delete failed"),
     );
 
-    expect(store.getMessages("a").map((message) => message.id)).toEqual([
-      "first",
-    ]);
+    expect(getMessages("a").map((message) => message.id)).toEqual(["first"]);
   });
 });
 
-it("keeps empty message snapshots stable without an active or loaded chat", () => {
-  const store = new MessageStore();
-  const { result, rerender } = renderHook(
-    ({ chatId }: { chatId?: string }) =>
-      useStore(store.state, (state) => store.getMessages(chatId, state)),
-    { initialProps: { chatId: undefined } as { chatId?: string } },
-  );
-  const empty = result.current;
+it("updates query subscribers after live events and keeps sessions isolated", async () => {
+  const { client, messageCacheController, wrapper } = setup();
+  const otherSession = new QueryClient();
 
-  expect(empty).toEqual([]);
-  rerender({ chatId: "missing" });
-  expect(result.current).toBe(empty);
-  act(() => store.merge("other", snapshot));
-  expect(result.current).toBe(empty);
-});
+  client.getChatHistory.mockResolvedValue([]);
+  const { result } = renderHook(
+    () => {
+      const { data, isSuccess } = useChatHistory(client, "a");
 
-it("updates the Zustand subscription after live events and keeps sessions isolated", () => {
-  const store = new MessageStore();
-  const otherSession = new MessageStore();
-  const { result } = renderHook(() =>
-    useStore(store.state, (state) => store.getMessages("a", state)),
+      return { data, isSuccess };
+    },
+    { wrapper },
   );
 
-  expect(result.current).toEqual([]);
-  act(() => store.merge("a", snapshot));
-  expect(result.current).toHaveLength(2);
-  act(() => store.remove("a", "deleted"));
-  expect(result.current.map((message) => message.id)).toEqual(["read"]);
-  expect(otherSession.getMessages("a")).toEqual([]);
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  act(() => messageCacheController.merge("a", snapshot));
+  await waitFor(() => expect(result.current.data?.messages).toHaveLength(2));
+  act(() => messageCacheController.remove("a", "deleted"));
+
+  await waitFor(() =>
+    expect(result.current.data?.messages.map((m) => m.id)).toEqual(["read"]),
+  );
+
+  expect(client.getChatHistory).toHaveBeenCalledTimes(1);
+  expect(otherSession.getQueryData(chatHistoryKey("a"))).toBeUndefined();
+  otherSession.clear();
 });
 
 it("starts notification loading once in StrictMode and stops on unmount", async () => {
@@ -487,9 +583,7 @@ it("starts notification loading once in StrictMode and stops on unmount", async 
 it.each([{ chatId: "a", description: "rejected" }, {}])(
   "routes delivery failures to their handler and acknowledges them: %j",
   async (details) => {
-    const client = createChatClientMock();
-    const store = new MessageStore();
-    const merge = vi.spyOn(store, "merge");
+    const { client, queryClient, wrapper } = setup();
     const acknowledge = vi.fn().mockResolvedValue(undefined);
     const event = { type: "deliveryFailed" as const, ...details };
 
@@ -497,15 +591,18 @@ it.each([{ chatId: "a", description: "rejected" }, {}])(
       .mockResolvedValueOnce({ event, acknowledge })
       .mockImplementation(() => new Promise(() => {}));
 
-    const { result } = renderHook(() => {
-      const handler = useChatNotificationHandler(store);
-      const connection = useChatNotifications({
-        client,
-        onNotification: handler.onNotification,
-      });
+    const { result } = renderHook(
+      () => {
+        const handler = useChatNotificationHandler();
+        const connection = useChatNotifications({
+          client,
+          onNotification: handler.onNotification,
+        });
 
-      return { connection, deliveryError: handler.deliveryError };
-    });
+        return { connection, deliveryError: handler.deliveryError };
+      },
+      { wrapper },
+    );
 
     await waitFor(() =>
       expect(result.current.connection).toEqual({ status: "online" }),
@@ -513,7 +610,7 @@ it.each([{ chatId: "a", description: "rejected" }, {}])(
 
     expect(result.current.deliveryError).toEqual(event);
 
-    expect(merge).not.toHaveBeenCalled();
+    expect(queryClient.getQueryCache().getAll()).toHaveLength(0);
     expect(acknowledge).toHaveBeenCalledTimes(1);
   },
 );
@@ -563,9 +660,11 @@ it("routes message events to the latest handler without restarting polling", asy
   expect(acknowledge).toHaveBeenCalledTimes(1);
 });
 
-it("applies message notifications and preserves status and deletion across snapshots", () => {
-  const store = new MessageStore();
-  const { result } = renderHook(() => useChatNotificationHandler(store));
+it("keeps only unknown message statuses and removes pending statuses on deletion", () => {
+  const { queryClient, getMessages, wrapper } = setup();
+  const { result } = renderHook(() => useChatNotificationHandler(), {
+    wrapper,
+  });
   const message: ChatMessage = {
     id: "1",
     text: "hello",
@@ -589,7 +688,41 @@ it("applies message notifications and preserves status and deletion across snaps
     });
   });
 
-  expect(store.getMessages("a")).toEqual([{ ...message, status: "read" }]);
+  act(() =>
+    result.current.onNotification({
+      type: "messageStatusChanged",
+      chatId: "a",
+      messageId: "1",
+      status: "sent",
+    }),
+  );
+
+  expect(getMessages("a")).toEqual([{ ...message, status: "read" }]);
+
+  expect(
+    queryClient.getQueryData<ChatState>(chatHistoryKey("a"))?.pendingStatuses,
+  ).toEqual({});
+
+  act(() =>
+    result.current.onNotification({
+      type: "messageStatusChanged",
+      chatId: "a",
+      messageId: "unknown",
+      status: "read",
+    }),
+  );
+
+  expect(
+    queryClient.getQueryData<ChatState>(chatHistoryKey("a"))?.pendingStatuses,
+  ).toEqual({ unknown: "read" });
+
+  act(() =>
+    result.current.onNotification({
+      type: "messageDeleted",
+      chatId: "a",
+      messageId: "unknown",
+    }),
+  );
 
   act(() =>
     result.current.onNotification({
@@ -599,7 +732,11 @@ it("applies message notifications and preserves status and deletion across snaps
     }),
   );
 
-  store.merge("a", [message]);
-  expect(store.getMessages("a")).toEqual([]);
+  expect(getMessages("a")).toEqual([]);
+
+  expect(
+    queryClient.getQueryData<ChatState>(chatHistoryKey("a"))?.pendingStatuses,
+  ).toEqual({});
+
   expect(result.current.deliveryError).toBeNull();
 });

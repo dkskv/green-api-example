@@ -1,19 +1,17 @@
+import { useMessageCacheController } from "./useMessageCacheController";
 import { useMutation, useMutationState } from "@tanstack/react-query";
-import { type MessageStore } from "@/entities/message";
 import { type ChatClient } from "@/entities/chat";
 
 type SendVariables = { chatId: string; text: string };
 
-export function useSendMessage(
-  client: ChatClient,
-  store: MessageStore,
-  chatId?: string,
-) {
+export function useSendMessage(client: ChatClient, chatId?: string) {
+  const messageCacheController = useMessageCacheController();
   const send = useMutation({
     mutationKey: ["send-message"],
     mutationFn: ({ chatId, text }: SendVariables) =>
       client.sendMessage(chatId, text),
-    onSuccess: (message, { chatId }) => store.merge(chatId, [message]),
+    onSuccess: (message, { chatId }) =>
+      messageCacheController.merge(chatId, [message]),
   });
 
   const sends = useMutationState({

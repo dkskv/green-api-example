@@ -3,14 +3,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useTranslation } from "@/shared/i18n";
 import { useMessengerQueryClient } from "../model/useMessengerQueryClient";
 import { Alert, Flex } from "antd";
-import { useState } from "react";
-import { MessageStore } from "@/entities/message";
+import { emptyChatState } from "@/entities/message";
 import {
   CONNECTION_STATE,
   useChatNotifications,
 } from "@/features/chat-notifications";
 import { useActiveContact } from "../model/useActiveContact";
-import { useStore } from "zustand";
 import { useChatHistory } from "../model/useChatHistory";
 import { useSendMessage } from "../model/useSendMessage";
 import { useDeleteMessage } from "../model/useDeleteMessage";
@@ -37,20 +35,17 @@ export function MessengerPage(props: MessengerPageProps) {
 
 function MessengerContent({ client, historyNotice }: MessengerPageProps) {
   const { t } = useTranslation(["ui", "errors"]);
-  const [store] = useState(() => new MessageStore());
 
-  const { onNotification, deliveryError } = useChatNotificationHandler(store);
+  const { onNotification, deliveryError } = useChatNotificationHandler();
   const connection = useChatNotifications({ client, onNotification });
 
   const selection = useActiveContact(client);
   const chatId = selection.activeContact?.chatId;
 
-  const historyQuery = useChatHistory(client, store, chatId);
-  const messages = useStore(store.state, (state) =>
-    store.getMessages(chatId, state),
-  );
-  const send = useSendMessage(client, store, chatId);
-  const deletion = useDeleteMessage(client, store, chatId);
+  const historyQuery = useChatHistory(client, chatId);
+  const messages = historyQuery.data?.messages ?? emptyChatState.messages;
+  const send = useSendMessage(client, chatId);
+  const deletion = useDeleteMessage(client, chatId);
 
   const errors = getMessengerErrors(
     {

@@ -1,5 +1,11 @@
 export { type ChatMessage } from "./model/message";
-export { MessageStore } from "./model/messageStore";
+export {
+  type ChatState,
+  emptyChatState,
+  mergeMessages,
+  updateMessageStatus,
+  removeMessage,
+} from "./model/chatState";
 export {
   MESSAGE_STATUS,
   isFailureStatus,
